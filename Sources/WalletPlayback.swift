@@ -1656,7 +1656,7 @@ private struct WalletSwapSheet: View {
                     assetCard(receiving: true)
                 }
                 .overlay {
-                    Button(reverseAssets) {
+                    Button(action: reverseAssets) {
                         Image(systemName: "arrow.up.arrow.down").font(.system(size: 20, weight: .medium))
                             .foregroundStyle(profile.theme == .phantom ? .black : profile.theme == .trustWallet ? palette.accent : palette.ink)
                             .frame(width: 43, height: 43)
