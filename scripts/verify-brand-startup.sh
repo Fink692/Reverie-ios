@@ -47,15 +47,20 @@ xcodebuild -project Reverie.xcodeproj -scheme Reverie -configuration Debug \
     CODE_SIGNING_ALLOWED=NO build 2>&1 | tee brand-artifacts/startup-base-simulator-build.log
 
 startup_base=build/Build/Products/Debug-iphonesimulator/Reverie.app
+startup_catalog=brand-artifacts/compiled-simulator-icons.json
+python3 scripts/brand_bundle.py inspect-base --base-app "$startup_base" \
+    --platform iPhoneSimulator --output-json "$startup_catalog"
 xcrun simctl bootstatus "$SIMULATOR_ID" -b
 while IFS=$'\t' read -r startup_id startup_name startup_bundle; do
     startup_app="$startup_work/$startup_id/Reverie.app"
     python3 scripts/brand_bundle.py prepare --base-app "$startup_base" \
-        --output-app "$startup_app" --variant-id "$startup_id" --platform iPhoneSimulator
+        --output-app "$startup_app" --variant-id "$startup_id" --platform iPhoneSimulator \
+        --catalog-evidence "$startup_catalog"
     xcrun simctl install "$SIMULATOR_ID" "$startup_app"
     startup_container="$(xcrun simctl get_app_container "$SIMULATOR_ID" "$startup_bundle" app)"
     python3 scripts/brand_bundle.py validate --app "$startup_container" \
         --variant-id "$startup_id" --platform iPhoneSimulator \
+        --catalog-evidence "$startup_catalog" \
         --output-json "brand-artifacts/$startup_id-installed-info.json"
     # No UI-test brand override is supplied: startup reads the installed Info.plist.
     xcrun simctl launch --terminate-running-process "$SIMULATOR_ID" "$startup_bundle" \

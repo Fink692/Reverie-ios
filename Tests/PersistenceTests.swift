@@ -233,6 +233,64 @@ import XCTest
 }
 
 extension PersistenceTests {
+    func testStyledOrderAccountingAndSavedCueMetadataSurviveReload() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = store.scenes[0]
+        let event = try XCTUnwrap(store.emit(kind: .order, amount: 179.25, detail: "Weekend collection", sceneID: scene.id,
+            customerName: "Morgan Hale", itemCount: 3, orderNumber: 2088, style: .shopifyOrder, customTitle: "Checkout completed"))
+        XCTAssertEqual(event.orderNumber, 2088)
+        XCTAssertEqual(event.customerName, "Morgan Hale")
+        XCTAssertEqual(event.itemCount, 3)
+        XCTAssertEqual(event.title, "Checkout completed")
+        XCTAssertEqual(store.active.balance, scene.balance + 179.25)
+        XCTAssertEqual(store.active.orders, scene.orders + 1)
+        var cue = NotificationPreset(name: "Weekend checkout", kind: .order, amount: 179.25,
+            detail: "Weekend collection", delay: 300, count: 2)
+        cue.style = .shopifyOrder
+        cue.interval = 30
+        cue.customerName = "Morgan Hale"
+        cue.itemCount = 3
+        cue.orderNumber = 2088
+        cue.customTitle = "Checkout completed"
+        XCTAssertTrue(store.savePreset(cue))
+        let savedBytes = try Data(contentsOf: file)
+        var invalid = cue
+        invalid.interval = .infinity
+        XCTAssertFalse(store.savePreset(invalid))
+        invalid = cue
+        invalid.itemCount = 0
+        XCTAssertFalse(store.savePreset(invalid))
+        invalid = cue
+        invalid.kind = .payment
+        XCTAssertFalse(store.savePreset(invalid))
+        XCTAssertEqual(store.presets, [cue])
+        XCTAssertEqual(try Data(contentsOf: file), savedBytes)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.events, [event])
+        XCTAssertEqual(restored.presets, [cue])
+        XCTAssertEqual(restored.active, store.active)
+    }
+
+    func testNonAccountingOrUnavailableStylesCannotMutateTheDashboard() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        store.save()
+        let memory = store.exportData()
+        let disk = try Data(contentsOf: file)
+        XCTAssertNil(store.emit(kind: NotificationStyle.custom.eventKind, amount: 25, detail: "Fictional milestone",
+            style: .custom, customTitle: "Milestone reached"))
+        XCTAssertNil(store.emit(kind: .payment, amount: 25, detail: "Wrong kind", style: .shopifyOrder))
+        XCTAssertNil(store.emit(kind: .order, amount: 25, detail: "Wrong scene", sceneID: store.scenes[1].id, style: .shopifyOrder))
+        XCTAssertNil(store.emit(kind: .order, amount: 25, detail: "Invalid items", itemCount: 0, style: .shopifyOrder))
+        XCTAssertNil(store.emit(kind: .order, amount: 25, detail: "Invalid title", style: .shopifyOrder, customTitle: String(repeating: "x", count: 81)))
+        XCTAssertEqual(store.exportData(), memory)
+        XCTAssertEqual(try Data(contentsOf: file), disk)
+    }
+
     func testCoinbaseTransfersChangeCryptoUnitsAndBasisWithoutChangingCash() throws {
         let file = temporaryFile()
         defer { try? FileManager.default.removeItem(at: file) }

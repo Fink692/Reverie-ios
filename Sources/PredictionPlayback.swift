@@ -9,11 +9,20 @@ struct PredictionPlayback: View {
     @AppStorage("cleanPlayback") private var cleanPlayback = false
     @State private var tab: PredictionTab = .home
     @State private var category = "All"
+    @State private var league = "Home"
     @State private var query = ""
     @State private var sheet: PredictionSheet?
+    @State private var showProfileMenu = false
+    @FocusState private var searching: Bool
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: PredictionProfile { store.predictionProfile(for: sceneID) }
+    private var games: [PredictionGame] { profile.games ?? [] }
+    private var leagues: [String] {
+        let standard = ["Home", "MLB", "Pro", "CFB", "NHL", "Tennis"]
+        return standard + Set(games.map(\.league)).subtracting(standard).sorted()
+    }
+    private var visibleGames: [PredictionGame] { games.filter { league == "Home" || $0.league == league } }
     private var categories: [String] { ["All"] + Set(profile.markets.map(\.category)).sorted() }
     private var markets: [PredictionMarket] {
         profile.markets.filter {
@@ -29,7 +38,10 @@ struct PredictionPlayback: View {
                     VStack(spacing: 0) {
                         header(scene)
                         switch tab {
-                        case .home, .search: discovery(scene)
+                        case .home: sportsHome(scene, liveOnly: false)
+                        case .live: sportsHome(scene, liveOnly: true)
+                        case .squads: squads(scene)
+                        case .search: discovery(scene)
                         case .portfolio: portfolio(scene)
                         case .activity: history(scene)
                         case .profile: profilePage(scene)
@@ -43,6 +55,19 @@ struct PredictionPlayback: View {
             }
             .background(PredictionColors.background)
             .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { searching = false }.accessibilityIdentifier("prediction-search-done")
+                }
+            }
+            .confirmationDialog("Account", isPresented: $showProfileMenu, titleVisibility: .visible) {
+                Button("Account settings") { sheet = .profile }
+                Button("Manage markets") { sheet = .markets }
+                Button("Trade history") { tab = .activity }
+                Button("Close scene") { dismiss() }
+                Button("Cancel", role: .cancel) { }
+            }
             .preferredColorScheme(.light)
             .tint(PredictionColors.blue)
             .sheet(item: $sheet) { destination in
@@ -63,35 +88,172 @@ struct PredictionPlayback: View {
     }
 
     private func header(_ scene: StudioScene) -> some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 7) {
-                Image(systemName: "chart.bar.xaxis").accessibilityHidden(true)
-                Text("Polymarket").font(.title3.weight(.bold))
+        HStack(spacing: 8) {
+            Button { searching = false; showProfileMenu = true } label: {
+                HStack(spacing: 6) {
+                    PredictionWordmark().stroke(.primary, lineWidth: 1.8).frame(width: 20, height: 20).accessibilityHidden(true)
+                    Text("Polymarket").font(.headline).lineLimit(1).minimumScaleFactor(0.85)
+                }.foregroundStyle(.primary).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
             }
-            .foregroundStyle(PredictionColors.blue)
-            Spacer(minLength: 6)
-            Button { sheet = .profile } label: {
-                Image(systemName: "wallet.bifold")
-                    .font(.body.weight(.semibold)).frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("Cash balance, \(scene.money(scene.balance))")
-            .accessibilityIdentifier("prediction-cash")
-            Menu {
-                Button("Account settings") { sheet = .profile }
-                Button("Manage markets") { sheet = .markets }
-                Button("Close scene") { dismiss() }
-            } label: { Image(systemName: "person.crop.circle").font(.title2).frame(width: 44, height: 44) }
             .accessibilityLabel("Market profile and close scene")
             .accessibilityIdentifier("prediction-profile-menu")
+            Spacer(minLength: 8)
+            Button { sheet = .profile } label: {
+                Text("Deposit").font(.caption.weight(.semibold))
+                    .padding(.horizontal, 15).frame(minHeight: 44)
+                    .foregroundStyle(.white).background(PredictionColors.blue, in: RoundedRectangle(cornerRadius: 12))
+            }
+            .accessibilityLabel("Cash settings, balance \(scene.money(scene.balance))")
+            .accessibilityIdentifier("prediction-cash")
+            Button { tab = .activity } label: {
+                Image(systemName: "bell").font(.body.weight(.medium)).frame(width: 44, height: 44)
+                    .foregroundStyle(.primary).background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(PredictionColors.fill))
+            }
+            .accessibilityLabel("Trade activity")
             if !cleanPlayback {
                 Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
-                    .accessibilityLabel("Close prediction playback")
-                    .accessibilityIdentifier("close-scene")
+                    .accessibilityLabel("Close prediction playback").accessibilityIdentifier("close-scene")
             }
         }
-        .padding(.horizontal, 16).padding(.vertical, 4)
+        .buttonStyle(.plain).padding(.horizontal, 16).padding(.vertical, 4).background(.white)
+    }
+
+    private func sportsHome(_ scene: StudioScene, liveOnly: Bool) -> some View {
+        let selected = visibleGames.filter { !liveOnly || $0.isLive }
+        let trending = selected.sorted { first, second in
+            if first.league == "Pro" { return false }
+            if second.league == "Pro" { return true }
+            return first.league < second.league
+        }
+        return ScrollView {
+            LazyVStack(alignment: .leading, spacing: 20) {
+                leagueNavigation
+                if !liveOnly { seasonBanner }
+                if !liveOnly && !trending.isEmpty {
+                    Text("Trending").font(.headline).accessibilityAddTraits(.isHeader)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(trending) { game in
+                                Button { sheet = .market(game.marketID) } label: { PredictionScoreCard(game: game) }
+                                    .buttonStyle(.plain).accessibilityIdentifier("prediction-trending-\(game.id.uuidString)")
+                            }
+                        }
+                    }
+                }
+                HStack {
+                    Text(liveOnly ? "Live markets" : "Live").font(.headline).accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    if !liveOnly { Button("See all") { tab = .live }.font(.subheadline.weight(.medium)) }
+                }
+                if selected.isEmpty {
+                    ContentUnavailableView("No games in this league", systemImage: "sportscourt", description: Text("Choose another league or add match details from Manage markets."))
+                }
+                ForEach(selected) { game in
+                    if let market = profile.market(for: game.marketID) {
+                        PredictionGameCard(game: game, market: market, onOpen: { sheet = .market(market.id) }) { outcome in
+                            sheet = .trade(market.id, outcome, .buy)
+                        }
+                    }
+                }
+                Button {
+                    query = ""
+                    category = "All"
+                    tab = .search
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Markets on everything").font(.headline)
+                            Text("Explore crypto, economy, culture, and more").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.right").accessibilityHidden(true)
+                    }
+                    .padding(16).frame(minHeight: 70).predictionSurface()
+                }
+                .buttonStyle(.plain).foregroundStyle(.primary)
+                .accessibilityIdentifier("prediction-explore-all-markets")
+            }
+            .frame(maxWidth: 720, alignment: .leading).padding(16).frame(maxWidth: .infinity)
+        }
         .background(.white)
-        .overlay(alignment: .bottom) { Divider() }
+        .accessibilityIdentifier(liveOnly ? "prediction-live" : "prediction-home")
+    }
+
+    private var leagueNavigation: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 14) {
+                ForEach(leagues, id: \.self) { value in
+                    Button { league = value } label: {
+                        VStack(spacing: 7) {
+                            Text(predictionLeagueGlyph(value)).font(.system(size: 25))
+                                .frame(width: 46, height: 46)
+                                .background(league == value ? PredictionColors.fill : .clear, in: RoundedRectangle(cornerRadius: 12))
+                            Text(value).font(.caption.weight(league == value ? .semibold : .regular))
+                                .foregroundStyle(league == value ? .primary : .secondary)
+                        }
+                        .frame(minWidth: 54, minHeight: 72)
+                    }
+                    .buttonStyle(.plain).accessibilityLabel(value == "Home" ? "All leagues" : "\(value) league")
+                    .accessibilityAddTraits(league == value ? [.isSelected] : [])
+                    .accessibilityIdentifier("prediction-league-\(value.lowercased())")
+                }
+            }
+        }
+    }
+
+    private var seasonBanner: some View {
+        Button { league = "Pro"; tab = .live } label: {
+            ZStack(alignment: .leading) {
+                LinearGradient(colors: [Color(red: 0.10, green: 0.13, blue: 0.23), Color(red: 0.21, green: 0.30, blue: 0.48)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                GeometryReader { geometry in
+                    Circle().fill(.white.opacity(0.06)).frame(width: geometry.size.width * 0.9).offset(x: geometry.size.width * 0.42, y: -40)
+                    PredictionHelmet().frame(width: 150, height: 142).rotationEffect(.degrees(-9)).position(x: geometry.size.width - 72, y: 98)
+                }
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("PRO  FOOTBALL").font(.title2.weight(.heavy)).foregroundStyle(.white)
+                    Text("Regular Season").font(.subheadline).foregroundStyle(.white.opacity(0.8))
+                    Spacer(minLength: 15)
+                    Text("Week 3 of 18").font(.subheadline).foregroundStyle(.white.opacity(0.8))
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.white.opacity(0.2)).frame(width: 125, height: 4)
+                        Capsule().fill(.white).frame(width: 24, height: 4)
+                        Circle().fill(.white).frame(width: 13, height: 13).offset(x: 18)
+                    }.frame(height: 13).accessibilityHidden(true)
+                }
+                .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 172).clipShape(RoundedRectangle(cornerRadius: 22))
+        }
+        .buttonStyle(.plain).accessibilityLabel("Pro Football regular season, view markets")
+        .accessibilityIdentifier("prediction-season-banner")
+    }
+
+    private func squads(_ scene: StudioScene) -> some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 18) {
+                Text("Squads").font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
+                Text("Your market groups").font(.headline).foregroundStyle(.secondary)
+                ForEach(Array(Set(games.map(\.league))).sorted(), id: \.self) { value in
+                    let fixtures = games.filter { $0.league == value }
+                    Button { league = value; tab = .live } label: {
+                        HStack(spacing: 14) {
+                            Text(predictionLeagueGlyph(value)).font(.largeTitle).frame(width: 60, height: 60).background(PredictionColors.fill, in: RoundedRectangle(cornerRadius: 16))
+                            VStack(alignment: .leading, spacing: 7) {
+                                Text("\(value) watchlist").font(.headline)
+                                Text("\(fixtures.count) game\(fixtures.count == 1 ? "" : "s") · view markets").font(.subheadline).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption).accessibilityHidden(true)
+                        }.padding(16).predictionSurface()
+                    }
+                    .buttonStyle(.plain).foregroundStyle(.primary)
+                    .accessibilityIdentifier("prediction-squad-\(value.lowercased())")
+                }
+                if games.isEmpty { ContentUnavailableView("No market groups", systemImage: "person.2", description: Text("Add sports match details from Manage markets to group your fixtures by league.")) }
+            }
+            .frame(maxWidth: 720, alignment: .leading).padding(20).frame(maxWidth: .infinity)
+        }
     }
 
     private func discovery(_ scene: StudioScene) -> some View {
@@ -127,6 +289,7 @@ struct PredictionPlayback: View {
                 }
                 ForEach(markets) { market in
                     PredictionMarketCard(market: market, scene: scene, onOpen: { sheet = .market(market.id) }) { outcome in
+                        searching = false
                         sheet = .trade(market.id, outcome, .buy)
                     }
                 }
@@ -140,6 +303,7 @@ struct PredictionPlayback: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
             TextField("Search markets", text: $query)
+                .focused($searching).submitLabel(.search).onSubmit { searching = false }
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier("prediction-search")
             if !query.isEmpty {
@@ -155,7 +319,12 @@ struct PredictionPlayback: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Portfolio").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                    HStack {
+                        Text("Portfolio").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                        Spacer()
+                        Button { tab = .activity } label: { Image(systemName: "clock").frame(width: 44, height: 44) }
+                            .accessibilityLabel("Trade history").accessibilityIdentifier("prediction-tab-activity")
+                    }
                     Text(scene.money(profile.total(cash: scene.balance)))
                         .font(.system(.largeTitle, design: .rounded).bold()).monospacedDigit().minimumScaleFactor(0.65).lineLimit(1)
                         .accessibilityIdentifier("prediction-portfolio-value")
@@ -248,17 +417,20 @@ struct PredictionPlayback: View {
 
     private var bottomTabs: some View {
         HStack(spacing: 0) {
-            ForEach(PredictionTab.allCases) { value in
+            ForEach(PredictionTab.navigation) { value in
                 Button {
+                    searching = false
                     tab = value
-                    if value == .search { category = "All" }
+                    if value == .search { category = "All"; query = "" }
                 } label: {
                     VStack(spacing: 5) {
-                        Image(systemName: value.symbol).font(.title3)
+                        if value == .portfolio, let scene {
+                            Text(scene.money(profile.total(cash: scene.balance))).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(height: 23)
+                        } else { Image(systemName: value.symbol).font(.title3).frame(height: 23) }
                         Text(value.title).font(.caption2.weight(tab == value ? .semibold : .regular))
                     }
                     .foregroundStyle(tab == value ? PredictionColors.blue : .secondary)
-                    .frame(maxWidth: .infinity).frame(minHeight: 54)
+                    .frame(maxWidth: .infinity).frame(minHeight: 54).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityLabel(value.title)
                 .accessibilityAddTraits(tab == value ? [.isSelected] : [])
@@ -268,6 +440,147 @@ struct PredictionPlayback: View {
         .padding(.horizontal, 8).padding(.vertical, 5).background(.white)
         .overlay(alignment: .top) { Divider() }
     }
+}
+
+private struct PredictionScoreCard: View {
+    let game: PredictionGame
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label(game.status, systemImage: game.isLive ? "circle.fill" : "clock")
+                    .font(.caption.weight(.semibold)).foregroundStyle(game.isLive ? PredictionColors.red : .secondary)
+                Spacer(minLength: 8)
+                Text(game.league).font(.caption).foregroundStyle(.secondary)
+            }
+            scoreRow(game.homeTeam, score: game.homeScore, color: PredictionColors.blue)
+            scoreRow(game.awayTeam, score: game.awayScore, color: Color(red: 0.76, green: 0.35, blue: 0.18))
+        }
+        .padding(15).frame(width: 205, alignment: .leading).predictionSurface()
+        .accessibilityElement(children: .combine)
+    }
+    private func scoreRow(_ team: String, score: Int, color: Color) -> some View {
+        HStack(spacing: 9) {
+            Text(predictionTeamInitials(team)).font(.caption2.weight(.heavy)).foregroundStyle(color).frame(width: 23, height: 22)
+            Text(team).font(.subheadline).foregroundStyle(.primary).lineLimit(1)
+            Spacer(minLength: 4)
+            Text(score.formatted()).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+        }
+    }
+}
+
+private struct PredictionGameCard: View {
+    let game: PredictionGame
+    let market: PredictionMarket
+    var onOpen: () -> Void
+    var onBuy: (PredictionOutcome) -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button(action: onOpen) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("\(game.homeTeam) vs \(game.awayTeam)").font(.headline).foregroundStyle(.primary)
+                    HStack(spacing: 6) {
+                        if game.isLive { Circle().fill(PredictionColors.red).frame(width: 5, height: 5).accessibilityHidden(true) }
+                        Text(game.status).foregroundStyle(game.isLive ? PredictionColors.red : .secondary)
+                        Text("· \(game.league == "Pro" ? "Pro Football" : game.league)").foregroundStyle(.secondary)
+                    }.font(.caption.weight(.medium))
+                }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }
+            .buttonStyle(.plain).accessibilityIdentifier("market-\(market.id.uuidString)")
+            choice(.yes, team: game.homeTeam, color: PredictionColors.blue)
+            choice(.no, team: game.awayTeam, color: Color(red: 0.88, green: 0.36, blue: 0.18))
+            Button(action: onOpen) {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.stack.3d.up").foregroundStyle(PredictionColors.blue)
+                    Text("2 outcomes")
+                    Spacer()
+                    Text("View market")
+                    Image(systemName: "chevron.right").font(.caption2)
+                }.font(.caption).foregroundStyle(.secondary).frame(minHeight: 44)
+            }.buttonStyle(.plain)
+        }
+        .padding(16).predictionSurface()
+        .accessibilityIdentifier("prediction-game-\(game.id.uuidString)")
+    }
+    private func choice(_ outcome: PredictionOutcome, team: String, color: Color) -> some View {
+        let price = market.price(for: outcome)
+        return Button { onBuy(outcome) } label: {
+            HStack(spacing: 12) {
+                Text(predictionTeamInitials(team)).font(.caption.weight(.heavy)).foregroundStyle(color)
+                    .frame(width: 34, height: 34).background(color.opacity(0.09), in: RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(team).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
+                    Capsule().fill(color).frame(width: max(22, price * 115), height: 3)
+                }
+                Spacer()
+                Text(price > 0 ? (1 / price).formatted(.number.precision(.fractionLength(1))) + "x" : "Closed")
+                    .font(.subheadline).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity, minHeight: 48)
+        }
+        .buttonStyle(.plain).disabled(!market.isOpen)
+        .accessibilityLabel("\(team), buy \(outcome.title), \(predictionPrice(price)) per share")
+        .accessibilityIdentifier("prediction-game-\(game.id.uuidString)-\(outcome.rawValue)")
+    }
+}
+
+private struct PredictionWordmark: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * 0.1, y: rect.height * 0.2))
+        path.addLine(to: CGPoint(x: rect.width * 0.85, y: rect.height * 0.05))
+        path.addLine(to: CGPoint(x: rect.width * 0.95, y: rect.height * 0.95))
+        path.addLine(to: CGPoint(x: rect.width * 0.15, y: rect.height * 0.75))
+        path.closeSubpath()
+        path.move(to: CGPoint(x: rect.width * 0.1, y: rect.height * 0.2))
+        path.addLine(to: CGPoint(x: rect.width * 0.9, y: rect.height * 0.5))
+        path.addLine(to: CGPoint(x: rect.width * 0.15, y: rect.height * 0.75))
+        return path
+    }
+}
+
+private struct PredictionHelmet: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            ZStack {
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.08, y: height * 0.63))
+                    path.addCurve(to: CGPoint(x: width * 0.82, y: height * 0.58), control1: CGPoint(x: -width * 0.05, y: -height * 0.2), control2: CGPoint(x: width, y: -height * 0.1))
+                    path.addLine(to: CGPoint(x: width * 0.61, y: height * 0.63))
+                    path.addLine(to: CGPoint(x: width * 0.56, y: height * 0.91))
+                    path.addLine(to: CGPoint(x: width * 0.22, y: height * 0.81))
+                    path.closeSubpath()
+                }
+                .fill(LinearGradient(colors: [.white, Color(red: 0.67, green: 0.75, blue: 0.88)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.42, y: height * 0.06))
+                    path.addCurve(to: CGPoint(x: width * 0.47, y: height * 0.83), control1: CGPoint(x: width * 0.77, y: height * 0.06), control2: CGPoint(x: width * 0.7, y: height * 0.51))
+                }.stroke(Color(red: 0.09, green: 0.26, blue: 0.49), lineWidth: width * 0.09)
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.63, y: height * 0.52))
+                    path.addLine(to: CGPoint(x: width * 0.96, y: height * 0.72))
+                    path.addLine(to: CGPoint(x: width * 0.82, y: height * 0.98))
+                    path.addLine(to: CGPoint(x: width * 0.54, y: height * 0.86))
+                    path.move(to: CGPoint(x: width * 0.61, y: height * 0.66))
+                    path.addLine(to: CGPoint(x: width * 0.9, y: height * 0.84))
+                }.stroke(Color(red: 0.18, green: 0.24, blue: 0.34), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+            }
+        }.accessibilityHidden(true)
+    }
+}
+
+private func predictionLeagueGlyph(_ league: String) -> String {
+    switch league {
+    case "Home": return "🧭"
+    case "MLB": return "⚾"
+    case "Pro", "CFB": return "🏈"
+    case "NHL": return "🏒"
+    case "Tennis": return "🎾"
+    default: return "🏆"
+    }
+}
+private func predictionTeamInitials(_ name: String) -> String {
+    name.split(separator: " ").prefix(2).compactMap { $0.first.map(String.init) }.joined()
 }
 
 private struct PredictionMarketCard: View {
@@ -546,6 +859,7 @@ private struct PredictionMarketManager: View {
                             Button("Delete", role: .destructive) {
                                 var value = profile
                                 value.markets.removeAll { $0.id == market.id }
+                                value.games?.removeAll { $0.marketID == market.id }
                                 _ = store.updatePredictionProfile(value)
                             }
                         }
@@ -580,7 +894,16 @@ private struct PredictionMarketEditor: View {
     @State private var volume = ""
     @State private var chart = ""
     @State private var didLoad = false
-    private enum Field: Hashable { case question, category, chance, volume, chart }
+    @State private var hasGame = false
+    @State private var gameID = UUID()
+    @State private var gameLeague = "Pro"
+    @State private var homeTeam = "Home team"
+    @State private var awayTeam = "Away team"
+    @State private var homeScore = "0"
+    @State private var awayScore = "0"
+    @State private var gameStatus = "Scheduled"
+    @State private var liveGame = false
+    private enum Field: Hashable { case question, category, chance, volume, chart, league, homeTeam, awayTeam, homeScore, awayScore, status }
     @FocusState private var focused: Field?
     private var prepared: PredictionMarket? {
         guard let probability = Simulation.parseAmount(chance), (0...100).contains(probability),
@@ -593,6 +916,15 @@ private struct PredictionMarketEditor: View {
         value.chart = points
         return value.isValid ? value : nil
     }
+    private var preparedGame: PredictionGame? {
+        guard let firstScore = integerScore(homeScore), let secondScore = integerScore(awayScore) else { return nil }
+        let value = PredictionGame(id: gameID, marketID: market.id,
+            league: gameLeague.trimmingCharacters(in: .whitespacesAndNewlines),
+            homeTeam: homeTeam.trimmingCharacters(in: .whitespacesAndNewlines), awayTeam: awayTeam.trimmingCharacters(in: .whitespacesAndNewlines),
+            homeScore: firstScore, awayScore: secondScore, status: gameStatus.trimmingCharacters(in: .whitespacesAndNewlines), isLive: liveGame)
+        return value.isValid ? value : nil
+    }
+    private var valid: Bool { prepared != nil && (!hasGame || preparedGame != nil) }
     var body: some View {
         NavigationStack {
             Form {
@@ -601,6 +933,7 @@ private struct PredictionMarketEditor: View {
                         .accessibilityIdentifier("prediction-market-question")
                     TextField("Category", text: $market.category).focused($focused, equals: .category)
                 }
+                if hasGame || market.category.lowercased() == "sports" { sportsSettings }
                 Section("Market") {
                     numberField("Yes probability · %", placeholder: "Probability from 0 to 100", text: $chance, field: .chance)
                     numberField("Trading volume", placeholder: "Volume", text: $volume, field: .volume)
@@ -618,7 +951,7 @@ private struct PredictionMarketEditor: View {
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save", action: save).disabled(prepared == nil) }
+                ToolbarItem(placement: .confirmationAction) { Button("Save", action: save).disabled(!valid) }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { focused = nil } }
             }
             .onAppear {
@@ -627,9 +960,39 @@ private struct PredictionMarketEditor: View {
                 chance = predictionEntry(market.yesPrice * 100)
                 volume = predictionEntry(market.volume)
                 chart = market.chart.map { String($0) }.joined(separator: ", ")
+                if let game = store.predictionProfile(for: sceneID).games?.first(where: { $0.marketID == market.id }) {
+                    hasGame = true; gameID = game.id; gameLeague = game.league
+                    homeTeam = game.homeTeam; awayTeam = game.awayTeam
+                    homeScore = String(game.homeScore); awayScore = String(game.awayScore)
+                    gameStatus = game.status; liveGame = game.isLive
+                }
             }
             .tint(PredictionColors.blue)
         }
+    }
+    private var sportsSettings: some View {
+        Section {
+            Toggle("Show as sports match", isOn: $hasGame)
+                .accessibilityIdentifier("prediction-sports-match")
+            if hasGame {
+                TextField("League", text: $gameLeague).focused($focused, equals: .league)
+                TextField("Home team", text: $homeTeam).focused($focused, equals: .homeTeam)
+                    .accessibilityIdentifier("prediction-home-team")
+                TextField("Away team", text: $awayTeam).focused($focused, equals: .awayTeam)
+                    .accessibilityIdentifier("prediction-away-team")
+                numberField("Home score", placeholder: "Home score", text: $homeScore, field: .homeScore)
+                numberField("Away score", placeholder: "Away score", text: $awayScore, field: .awayScore)
+                TextField("Game status or clock", text: $gameStatus).focused($focused, equals: .status)
+                    .accessibilityIdentifier("prediction-game-status")
+                Toggle("Show in Live", isOn: $liveGame)
+            }
+        } header: { Text("Match details") } footer: {
+            Text("Set the team names, scores, and displayed status for this scene. Home team uses Yes shares; away team uses No shares. Status text stays as entered.")
+        }
+    }
+    private func integerScore(_ text: String) -> Int? {
+        guard let value = Simulation.parseAmount(text), (0...999).contains(value), value.rounded(.down) == value else { return nil }
+        return Int(value)
     }
     private func numberField(_ title: String, placeholder: String, text: Binding<String>, field: Field) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -638,10 +1001,14 @@ private struct PredictionMarketEditor: View {
         }
     }
     private func save() {
-        guard let market = prepared else { return }
+        guard valid, let market = prepared else { return }
         var profile = store.predictionProfile(for: sceneID)
         if let index = profile.markets.firstIndex(where: { $0.id == market.id }) { profile.markets[index] = market }
         else { profile.markets.append(market) }
+        var games = profile.games ?? []
+        games.removeAll { $0.marketID == market.id }
+        if hasGame, let game = preparedGame { games.append(game) }
+        profile.games = games
         if store.updatePredictionProfile(profile) { dismiss() }
     }
 }
@@ -718,11 +1085,20 @@ private struct PredictionProbabilityChart: View {
 }
 
 private enum PredictionTab: String, CaseIterable, Identifiable {
-    case home, portfolio, activity, search, profile
+    case home, live, portfolio, squads, search, activity, profile
+    static let navigation: [PredictionTab] = [.home, .live, .portfolio, .squads, .search]
     var id: String { rawValue }
     var title: String { rawValue.capitalized }
     var symbol: String {
-        switch self { case .home: return "house.fill"; case .portfolio: return "chart.pie"; case .activity: return "clock"; case .search: return "magnifyingglass"; case .profile: return "person.crop.circle" }
+        switch self {
+        case .home: return "house.fill"
+        case .live: return "dot.radiowaves.left.and.right"
+        case .portfolio: return "chart.pie"
+        case .squads: return "person.2"
+        case .search: return "magnifyingglass"
+        case .activity: return "clock"
+        case .profile: return "person.crop.circle"
+        }
     }
 }
 private enum PredictionSheet: Identifiable {

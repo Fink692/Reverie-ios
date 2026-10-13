@@ -108,6 +108,21 @@ final class ReverieUITests: XCTestCase {
         close.tap()
     }
 
+    private func openWalletPage(_ identifier: String, in app: XCUIApplication) {
+        let page = app.buttons[identifier]
+        if page.isHittable {
+            page.tap()
+            return
+        }
+        let menu = app.buttons["wallet-profile-menu"]
+        waitForHittable(menu)
+        menu.tap()
+        let actionLabel = identifier == "wallet-tab-settings" ? "Settings" : "Activity"
+        let action = page.isHittable ? page : app.buttons[actionLabel]
+        waitForHittable(action)
+        action.tap()
+    }
+
     private func captureScreen(_ name: String, in app: XCUIApplication) {
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = name
@@ -450,6 +465,99 @@ final class ReverieUITests: XCTestCase {
 }
 
 extension ReverieUITests {
+    func testEditableShopifyCuePersistsAndQueuesItsCustomizedPayload() {
+        let app = makeApp()
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        if welcome.waitForExistence(timeout: 3) { welcome.tap() }
+        app.tabBars.buttons["Studio"].tap()
+        let library = app.buttons["template-library"]
+        scrollTo(library, in: app)
+        library.tap()
+        let template = app.buttons["builtin-template-shopifyOrder"]
+        waitForHittable(template)
+        template.tap()
+        let amount = app.textFields["Amount in USD"]
+        scrollTo(amount, in: app, upwards: false)
+        replaceText(in: amount, with: "179.25")
+        let keyboardDone = app.toolbars.buttons["Done"].firstMatch
+        if keyboardDone.exists { keyboardDone.tap() }
+        let title = app.textFields["custom-title"]
+        scrollTo(title, in: app)
+        replaceText(in: title, with: "Checkout completed")
+        if keyboardDone.exists { keyboardDone.tap() }
+        let customer = app.textFields["customer"]
+        scrollTo(customer, in: app)
+        replaceText(in: customer, with: "Morgan Hale")
+        if keyboardDone.exists { keyboardDone.tap() }
+        let items = app.steppers["item-count"]
+        scrollTo(items, in: app)
+        items.buttons["Increment"].tap()
+        XCTAssertTrue(items.label.contains("3 items"))
+        let number = app.textFields["order-number"]
+        scrollTo(number, in: app)
+        replaceText(in: number, with: "2088")
+        if keyboardDone.exists { keyboardDone.tap() }
+        let delay = app.buttons["notification-delay"]
+        scrollTo(delay, in: app)
+        delay.tap()
+        app.buttons["5 minutes"].tap()
+        let interval = app.buttons["repeat-interval"]
+        interval.tap()
+        app.buttons["30 seconds"].tap()
+        XCTAssertTrue(app.steppers["notification-count"].label.contains("1 notification"))
+        let saveCurrent = app.buttons["save-current-cue"]
+        scrollTo(saveCurrent, in: app)
+        saveCurrent.tap()
+        replaceText(in: app.textFields["cue-name"], with: "Weekend checkout")
+        app.buttons["save-cue"].tap()
+        XCTAssertTrue(app.navigationBars["Studio"].waitForExistence(timeout: 3))
+        app.terminate()
+        app.launch()
+        app.tabBars.buttons["Studio"].tap()
+        let saved = app.buttons["saved-cues"]
+        scrollTo(saved, in: app)
+        saved.tap()
+        let cue = app.buttons["Weekend checkout"]
+        waitForHittable(cue)
+        cue.tap()
+        scrollTo(amount, in: app, upwards: false)
+        XCTAssertEqual(amount.value as? String, "179.25")
+        scrollTo(title, in: app)
+        XCTAssertEqual(title.value as? String, "Checkout completed")
+        scrollTo(customer, in: app)
+        XCTAssertEqual(customer.value as? String, "Morgan Hale")
+        XCTAssertTrue(items.label.contains("3 items"))
+        XCTAssertEqual(number.value as? String, "2088")
+        scrollTo(delay, in: app)
+        XCTAssertTrue(delay.label.contains("5 minutes"))
+        XCTAssertTrue(interval.label.contains("30 seconds"))
+        let monitor = addUIInterruptionMonitor(withDescription: "Notification permission") { alert in
+            if alert.buttons["Allow"].exists { alert.buttons["Allow"].tap(); return true }
+            return false
+        }
+        defer { removeUIInterruptionMonitor(monitor) }
+        let queueCue = app.buttons["Cue notifications"]
+        scrollTo(queueCue, in: app)
+        queueCue.tap()
+        allowNotificationsIfRequested(in: app)
+        XCTAssertTrue(app.alerts["Ready"].waitForExistence(timeout: 10))
+        app.alerts["Ready"].buttons["OK"].tap()
+        let queue = app.buttons["view-queued-alerts"]
+        scrollTo(queue, in: app)
+        queue.tap()
+        XCTAssertTrue(app.navigationBars["Queued alerts"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Checkout completed"].waitForExistence(timeout: 3))
+        let body = "[Studio Supply] You have a new order for 3 items totaling $179.25. From Morgan Hale."
+        XCTAssertTrue(app.staticTexts[body].waitForExistence(timeout: 3))
+        captureScreen("Customized Shopify cue in system notification queue", in: app)
+        let cancel = app.buttons["Cancel Checkout completed"]
+        waitForHittable(cancel)
+        cancel.tap()
+        XCTAssertTrue(app.staticTexts["Your queue is clear"].waitForExistence(timeout: 5))
+        app.buttons["Done"].tap()
+    }
+
     func testInvestingWalletAndPredictionThemesRenderSevenHomeScreens() {
         let app = makeApp()
         app.launch()
@@ -500,7 +608,7 @@ extension ReverieUITests {
             waitForHittable(save)
             save.tap()
             waitForHittable(assets)
-            app.buttons["wallet-tab-settings"].tap()
+            openWalletPage("wallet-tab-settings", in: app)
             XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 3))
             assets.tap()
             XCTAssertTrue(app.staticTexts["wallet-total"].isHittable)
@@ -511,7 +619,7 @@ extension ReverieUITests {
 
         openStudioScene(named: "My predictions", in: app)
         waitForHittable(app.buttons["prediction-tab-home"])
-        let market = app.buttons["market-5A110000-0000-4000-8000-000000000021"]
+        let market = app.buttons["market-5A110000-0000-4000-8000-000000000023"]
         XCTAssertTrue(market.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["prediction-cash"].label.contains("$2,500.00"))
         captureScreen("Prediction playback Polymarket", in: app)
@@ -591,14 +699,14 @@ extension ReverieUITests {
         let eth = app.buttons["wallet-asset-eth"]
         scrollTo(eth, in: app)
         XCTAssertTrue(eth.label.contains("4 ETH"))
-        app.buttons["wallet-tab-activity"].tap()
+        openWalletPage("wallet-tab-activity", in: app)
         XCTAssertTrue(app.staticTexts["Sent ETH"].waitForExistence(timeout: 3))
         app.terminate()
         app.launch()
         waitForHittable(app.buttons["wallet-tab-assets"])
         scrollTo(eth, in: app)
         XCTAssertTrue(eth.label.contains("4 ETH"))
-        app.buttons["wallet-tab-activity"].tap()
+        openWalletPage("wallet-tab-activity", in: app)
         XCTAssertTrue(app.staticTexts["Sent ETH"].waitForExistence(timeout: 3))
         XCTAssertFalse(welcome.exists)
         closeWalletScene(in: app)
@@ -610,7 +718,16 @@ extension ReverieUITests {
         let welcome = app.buttons["Enter your studio"]
         XCTAssertTrue(welcome.waitForExistence(timeout: 5))
         welcome.tap()
+        let searchTab = app.buttons["prediction-tab-search"]
+        waitForHittable(searchTab)
+        searchTab.tap()
+        let search = app.textFields["prediction-search"]
+        replaceText(in: search, with: "Bitcoin")
+        let keyboardDone = app.buttons["prediction-search-done"]
+        waitForHittable(keyboardDone)
+        keyboardDone.tap()
         let buyNo = app.buttons["prediction-no-5A110000-0000-4000-8000-000000000021"]
+        scrollTo(buyNo, in: app)
         waitForHittable(buyNo)
         buyNo.tap()
         XCTAssertTrue(app.textFields["prediction-shares"].waitForExistence(timeout: 3))

@@ -29,6 +29,7 @@ while IFS=$'\t' read -r variant_id variant_display_name variant_bundle_id varian
     variant_payload="$variant_work/$variant_id/Payload"
     python3 scripts/brand_bundle.py prepare --base-app "$base_app" \
         --output-app "$variant_payload/Reverie.app" --variant-id "$variant_id" --platform iPhoneOS \
+        --catalog-evidence brand-artifacts/compiled-device-icons.json \
         --output-json "brand-artifacts/$variant_id-packaged-info.json"
     variant_ipa="brand-artifacts/Reverie-$variant_id-unsigned.ipa"
     rm -f "$variant_ipa"
@@ -36,4 +37,5 @@ while IFS=$'\t' read -r variant_id variant_display_name variant_bundle_id varian
 done < "$variant_work/variants.tsv"
 
 python3 scripts/brand_bundle.py validate-packages --directory brand-artifacts --base-app "$base_app" \
-    --platform iPhoneOS --only "$only_variant" --output-json brand-artifacts/manifest.json
+    --platform iPhoneOS --only "$only_variant" --catalog-evidence brand-artifacts/compiled-device-icons.json \
+    --output-json brand-artifacts/manifest.json

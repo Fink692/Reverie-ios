@@ -20,16 +20,16 @@ Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINAT
 ## Use
 
 1. Dashboard: switch scenes from the chevrons; edit name, type, currency, and totals with the pencil.
-2. Studio: compose an event and add it to the dashboard, or schedule 1–20 alerts separately. Multiple notifications arrive ten seconds apart. Scheduling does not change dashboard totals.
+2. Studio: choose a notification template or style, customize its message and timing, and schedule 1–20 alerts. Supported accounting events can also be added to the dashboard; scheduled alerts leave totals unchanged.
 3. Activity: review and search the active scene's recorded events.
 4. Settings: create, edit, delete, or select scenes; export a JSON file or import a saved session; change appearance; cancel notifications; reset data.
-5. Studio saved cues: save the current setup, edit and reuse named presets, and review or cancel individual queued alerts.
+5. Studio saved cues: save and reuse the complete setup, including style, title, order information, and timing; review or cancel individual queued alerts.
 
 Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Each build variant has its own unique bundle identity, display name, and icon. iOS renders notifications using that installed variant’s identity. Charts use editable fictional scene curves. All currencies use the device locale for formatting. No real financial or commerce services are connected.
 
 ## Validation status
 
-The expanded shared Swift suite passes 41 tests with Swift 6.0.3. The latest native baseline and expanded Apple SDK results, screenshots, package checks, and limitations are recorded in [Verification/STATUS.md](Verification/STATUS.md). Physical-device installation and distribution signing still require an Apple account and a device; the hosted packages are unsigned.
+The shared Swift suite passes 47 tests with Swift 6.0.3. Native Apple SDK and simulator verification of the latest notification and prediction-screen changes is pending. Previous native results, screenshots, package checks, and current limitations are recorded in [Verification/STATUS.md](Verification/STATUS.md). Physical-device installation and distribution signing still require an Apple account and a device; the hosted packages are unsigned.
 
 ## Design references
 
@@ -50,7 +50,13 @@ The user-provided repository is https://github.com/Fink692/Reverie-ios. It is pu
 
 ## Notifications and recovery details
 
-Supported events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
+Studio offers 33 notification styles and 35 editable templates, filtered for the active scene. They cover Shopify orders, refunds, payouts, fulfillment and inventory; bank payments and balances; investing, crypto and prediction activity; creator milestones; and custom messages.
+
+Customize the title and details, amount, customer or subscriber, item quantity, order number, and relevant outcome. Custom messages support `{scene}`, `{amount}`, `{customer}`, `{items}`, and `{order}` placeholders. The preview reads the installed build’s name and primary icon, with a generic icon fallback when unavailable; iOS uses the installed app’s identity for delivered alerts.
+
+Each session supports 1–20 alerts, a start delay of 2 seconds to 24 hours, and at most 60 queued alerts across scenes. The repeat-interval picker offers 5, 10, 15, 20, 30, and 60 seconds; loaded or imported custom intervals within the validated 5–3,600-second range are retained. A queued confirmation appears only after iOS accepts the requests. Notice-only styles can be scheduled without changing accounting totals.
+
+Supported accounting events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
 
 Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard in Studio; a matching branded variant opens its immersive scene. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
 
@@ -58,7 +64,7 @@ Deleting a scene removes its recorded events and cancels its queued alerts. Canc
 
 Settings → Export session writes a native `.json` file through Files. Imports include all scenes, activity, and saved cues, and require confirmation before replacing current data. Import validates file size (up to 2 MB), identities, numerical bounds, references, and cue settings before changing anything; queued alerts are cleared after replacement. Older exports without saved cues still load. Invalid imports leave the current session unchanged.
 
-Saved cues store event type, amount, details, start delay, and alert count. Loading a cue fills Studio without scheduling it. The queued-alert view shows payloads, scene names, scheduled times, and per-alert cancellation. Queued iOS requests are not re-scheduled automatically when a session is imported.
+Saved cues retain event type, notification style, custom title, amount, details, customer, item quantity, order number, start delay, repeat interval, and alert count. Loading a cue fills Studio without scheduling it; incompatible styles require a matching scene. Older cues retain their automatic style and ten-second interval. The queued-alert view shows payloads, scene names, scheduled times, and per-alert cancellation. Queued iOS requests are not re-scheduled automatically when a session is imported.
 
 ## Immersive scenes
 
@@ -76,7 +82,7 @@ Investing offers Robinhood, Wealthsimple, and Coinbase appearances with editable
 
 Wallets offer MetaMask, Phantom, and Trust Wallet appearances, token balances, asset details, public-address receive cards and QR codes, send/receive review and confirmation, and local swaps at the scene's editable token prices. The app does not request recovery phrases or private keys and never broadcasts a transaction.
 
-Prediction playback offers a Polymarket appearance with searchable categories, editable markets and probabilities, Yes/No positions, charts, cash, share-based buy/sell review and confirmation, and saved history. These generic event-market flows reference the visible public iOS interface; the current US listing is sports-first. Complete authenticated screen fidelity is unverified.
+Prediction playback follows Polymarket’s sports-first Home, with league controls, game cards, editable teams, scores, game state, and probabilities. Search opens generic event markets and categories; market details include Yes/No positions, charts, cash, share-based buy/sell review and confirmation, and saved history. Complete authenticated screen fidelity remains unverified.
 
 Each transaction saves its balances, holdings, and record together. Invalid values, insufficient balances, stale quotes, overflow, and failed disk writes leave the previous session intact. Imports include all profiles and transaction histories; older archives without the new profiles still load. Reference evidence is in [Markets](References/Markets/README.md), [Wallets](References/Wallets/README.md), and [Prediction](References/Prediction/README.md).
 

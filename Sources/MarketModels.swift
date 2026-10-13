@@ -300,6 +300,24 @@ struct PredictionTrade: Codable, Identifiable, Equatable {
     }
 }
 
+/// Editable scene presentation for a sports market; scores and clocks are saved values.
+struct PredictionGame: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var marketID: UUID
+    var league: String
+    var homeTeam: String
+    var awayTeam: String
+    var homeScore: Int
+    var awayScore: Int
+    var status: String
+    var isLive: Bool
+    var isValid: Bool {
+        MarketValidation.name(league, maximum: 16) && MarketValidation.name(homeTeam, maximum: 40) &&
+        MarketValidation.name(awayTeam, maximum: 40) && MarketValidation.name(status, maximum: 32) &&
+        (0...999).contains(homeScore) && (0...999).contains(awayScore)
+    }
+}
+
 struct PredictionProfile: Codable, Identifiable, Equatable {
     var sceneID: UUID
     var id: UUID { sceneID }
@@ -307,6 +325,7 @@ struct PredictionProfile: Codable, Identifiable, Equatable {
     var markets: [PredictionMarket]
     var positions: [PredictionPosition]
     var transactions: [PredictionTrade]
+    var games: [PredictionGame]? = nil
     func market(for id: UUID) -> PredictionMarket? { markets.first { $0.id == id } }
     func value(of position: PredictionPosition) -> Double { position.shares * (market(for: position.marketID)?.price(for: position.outcome) ?? 0) }
     var positionsValue: Double { positions.reduce(0) { $0 + value(of: $1) } }
@@ -319,18 +338,28 @@ struct PredictionProfile: Codable, Identifiable, Equatable {
         Set(positions.map(\.id)).count == positions.count && Set(identities).count == positions.count &&
         MarketValidation.nonnegative(positionsValue) &&
         transactions.count <= 1000 && transactions.allSatisfy { $0.isValid && marketIDs.contains($0.marketID) } &&
-        Set(transactions.map(\.id)).count == transactions.count
+        Set(transactions.map(\.id)).count == transactions.count &&
+        (games ?? []).count <= 100 && Set((games ?? []).map(\.id)).count == (games ?? []).count &&
+        Set((games ?? []).map(\.marketID)).count == (games ?? []).count &&
+        (games ?? []).allSatisfy { $0.isValid && marketIDs.contains($0.marketID) }
     }
     static func starter(for sceneID: UUID) -> PredictionProfile {
         let close = Date().addingTimeInterval(30 * 86_400)
         let markets = [
             PredictionMarket(id: MarketSamples.id("21"), question: "Will Bitcoin reach $100,000 this year?", category: "Crypto", yesPrice: 0.64, volume: 1_240_800, closeDate: close, chart: MarketSamples.risingChart),
             PredictionMarket(id: MarketSamples.id("22"), question: "Will the next rate decision be a cut?", category: "Economy", yesPrice: 0.72, volume: 884_200, closeDate: close, chart: MarketSamples.risingChart),
-            PredictionMarket(id: MarketSamples.id("23"), question: "Will the home team win the final?", category: "Sports", yesPrice: 0.48, volume: 326_500, closeDate: close, chart: MarketSamples.fallingChart),
-            PredictionMarket(id: MarketSamples.id("24"), question: "Will the new launch sell out in 24 hours?", category: "Culture", yesPrice: 0.81, volume: 198_750, closeDate: close, chart: MarketSamples.risingChart)
+            PredictionMarket(id: MarketSamples.id("23"), question: "Will Los Angeles defeat Denver?", category: "Sports", yesPrice: 0.48, volume: 326_500, closeDate: close, chart: MarketSamples.fallingChart),
+            PredictionMarket(id: MarketSamples.id("24"), question: "Will the new launch sell out in 24 hours?", category: "Culture", yesPrice: 0.81, volume: 198_750, closeDate: close, chart: MarketSamples.risingChart),
+            PredictionMarket(id: MarketSamples.id("25"), question: "Will the Dodgers defeat the Rangers?", category: "Sports", yesPrice: 0.71, volume: 487_200, closeDate: close, chart: MarketSamples.risingChart),
+            PredictionMarket(id: MarketSamples.id("26"), question: "Will the Rangers defeat the Bruins?", category: "Sports", yesPrice: 0.56, volume: 264_500, closeDate: close, chart: MarketSamples.flatChart)
         ]
         let positions = [PredictionPosition(id: MarketSamples.id("31"), marketID: markets[0].id, outcome: .yes, shares: 250, averagePrice: 0.58)]
-        return PredictionProfile(sceneID: sceneID, theme: .polymarket, markets: markets, positions: positions, transactions: [])
+        let games = [
+            PredictionGame(id: MarketSamples.id("41"), marketID: markets[2].id, league: "Pro", homeTeam: "Los Angeles", awayTeam: "Denver", homeScore: 24, awayScore: 21, status: "Q4 12:43", isLive: true),
+            PredictionGame(id: MarketSamples.id("42"), marketID: markets[4].id, league: "MLB", homeTeam: "Dodgers", awayTeam: "Rangers", homeScore: 4, awayScore: 2, status: "Top 7th", isLive: true),
+            PredictionGame(id: MarketSamples.id("43"), marketID: markets[5].id, league: "NHL", homeTeam: "Rangers", awayTeam: "Bruins", homeScore: 2, awayScore: 1, status: "P2 14:37", isLive: true)
+        ]
+        return PredictionProfile(sceneID: sceneID, theme: .polymarket, markets: markets, positions: positions, transactions: [], games: games)
     }
 }
 

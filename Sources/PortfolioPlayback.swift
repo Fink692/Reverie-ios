@@ -109,7 +109,7 @@ struct PortfolioPlayback: View {
                 Text(scene.money(profile.total(cash: scene.balance))).font(.system(size: 39, weight: .medium)).monospacedDigit()
                 performanceLabel(scene, value: profile.total(cash: scene.balance), percent: profile.dailyChange)
             }.padding(.horizontal, 24).padding(.top, 14)
-            PortfolioTrend(values: profile.chart, range: range, color: palette.accent, fill: false)
+            PortfolioTrend(values: profile.chart, range: range, color: palette.accent, fill: false, highlightLastPoint: true)
                 .frame(height: 180).padding(.horizontal, 4)
             rangePicker.padding(.horizontal, 24)
             Button { modal = .editor } label: {
@@ -222,7 +222,7 @@ struct PortfolioPlayback: View {
     }
 
     private func coinbaseShortcut(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { VStack(spacing: 8) { Image(systemName: symbol).font(.system(size: 23)).frame(width: 36, height: 36).foregroundStyle(palette.accent); Text(title).font(.system(size: 11)).multilineTextAlignment(.center) }.frame(maxWidth: .infinity, minHeight: 75) }.buttonStyle(.plain)
+        Button(action: action) { VStack(spacing: 8) { CoinbaseShortcutMark(kind: symbol).frame(width: 36, height: 36); Text(title).font(.system(size: 11)).multilineTextAlignment(.center) }.frame(maxWidth: .infinity, minHeight: 75).contentShape(Rectangle()) }.buttonStyle(.plain)
     }
 
     private func performanceLabel(_ scene: StudioScene, value: Double, percent: Double) -> some View {
@@ -239,9 +239,10 @@ struct PortfolioPlayback: View {
             ForEach(PortfolioRange.allCases) { option in
                 Button { range = option } label: {
                     Text(option.title).font(.system(size: 12, weight: range == option ? .semibold : .medium))
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .foregroundStyle(range == option ? palette.accent : palette.secondary)
-                        .background(range == option ? palette.accent.opacity(0.1) : .clear, in: Capsule())
+                        .frame(width: 37, height: 28)
+                        .foregroundStyle(range == option && theme == .robinhood ? .black : range == option ? palette.accent : theme == .robinhood ? palette.accent : palette.secondary)
+                        .background(range == option ? theme == .robinhood ? palette.accent : palette.accent.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 7))
+                        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain)
             }
         }
@@ -406,6 +407,7 @@ private struct PortfolioTrend: View {
     let range: PortfolioRange
     let color: Color
     var fill = false
+    var highlightLastPoint = false
     private var points: [PortfolioChartPoint] {
         let source = values.isEmpty ? [0.4, 0.6] : values
         let offset = PortfolioRange.allCases.firstIndex(of: range) ?? 0
@@ -418,8 +420,13 @@ private struct PortfolioTrend: View {
         Chart(points) { point in
             if fill { AreaMark(x: .value("Period", point.id), y: .value("Value", point.value)).foregroundStyle(LinearGradient(colors: [color.opacity(0.15), color.opacity(0.01)], startPoint: .top, endPoint: .bottom)).interpolationMethod(.linear) }
             LineMark(x: .value("Period", point.id), y: .value("Value", point.value)).foregroundStyle(color).lineStyle(StrokeStyle(lineWidth: 2.1, lineJoin: .round)).interpolationMethod(.linear)
+            if highlightLastPoint && point.id == points.last?.id {
+                PointMark(x: .value("Period", point.id), y: .value("Value", point.value)).foregroundStyle(color.opacity(0.13)).symbolSize(220)
+                PointMark(x: .value("Period", point.id), y: .value("Value", point.value)).foregroundStyle(color).symbolSize(35)
+            }
         }
         .chartXAxis(.hidden).chartYAxis(.hidden).chartYScale(domain: 0...1)
+        .chartXScale(range: .plotDimension(padding: highlightLastPoint ? 10 : 0))
         .accessibilityElement(children: .ignore).accessibilityLabel("Portfolio trend, \(range.changeLabel)")
     }
 }
@@ -458,7 +465,74 @@ private struct PortfolioAssetIcon: View {
         Circle().fill(color).overlay {
             if position.symbol == "BTC" { Image(systemName: "bitcoinsign").font(.system(size: 23, weight: .medium)).foregroundStyle(.white) }
             else if position.symbol == "AAPL" { Image(systemName: "apple.logo").font(.system(size: 24)).foregroundStyle(.white) }
-            else { Text(position.symbol == "ETH" ? "Ξ" : String(position.symbol.prefix(1))).font(.system(size: 21, weight: .semibold)).foregroundStyle(.white) }
+            else if position.symbol == "ETH" { PortfolioEthereumMark().padding(8) }
+            else if position.symbol == "SOL" { PortfolioSolanaMark().padding(9) }
+            else { Text(String(position.symbol.prefix(1))).font(.system(size: 21, weight: .semibold)).foregroundStyle(.white) }
+        }.accessibilityHidden(true)
+    }
+}
+
+private struct PortfolioEthereumMark: View {
+    var body: some View {
+        ZStack {
+            PortfolioPolygon(points: [.init(x: 0.5, y: 0), .init(x: 0.1, y: 0.55), .init(x: 0.5, y: 0.73)]).fill(Color(portfolioHex: 0xEDF2FF))
+            PortfolioPolygon(points: [.init(x: 0.5, y: 0), .init(x: 0.9, y: 0.55), .init(x: 0.5, y: 0.73)]).fill(Color(portfolioHex: 0xC6D2FB))
+            PortfolioPolygon(points: [.init(x: 0.1, y: 0.55), .init(x: 0.5, y: 0.39), .init(x: 0.5, y: 0.73)]).fill(Color(portfolioHex: 0xA1B4EF))
+            PortfolioPolygon(points: [.init(x: 0.9, y: 0.55), .init(x: 0.5, y: 0.39), .init(x: 0.5, y: 0.73)]).fill(Color(portfolioHex: 0x8098DF))
+            PortfolioPolygon(points: [.init(x: 0.1, y: 0.63), .init(x: 0.5, y: 1), .init(x: 0.5, y: 0.81)]).fill(Color(portfolioHex: 0xE5EDFF))
+            PortfolioPolygon(points: [.init(x: 0.9, y: 0.63), .init(x: 0.5, y: 1), .init(x: 0.5, y: 0.81)]).fill(Color(portfolioHex: 0xB4C6F8))
+        }
+    }
+}
+
+private struct PortfolioSolanaMark: View {
+    var body: some View {
+        ZStack {
+            PortfolioPolygon(points: [.init(x: 0.2, y: 0.06), .init(x: 1, y: 0.06), .init(x: 0.8, y: 0.29), .init(x: 0, y: 0.29)])
+            PortfolioPolygon(points: [.init(x: 0, y: 0.39), .init(x: 0.8, y: 0.39), .init(x: 1, y: 0.62), .init(x: 0.2, y: 0.62)])
+            PortfolioPolygon(points: [.init(x: 0.2, y: 0.72), .init(x: 1, y: 0.72), .init(x: 0.8, y: 0.95), .init(x: 0, y: 0.95)])
+        }.foregroundStyle(LinearGradient(colors: [Color(portfolioHex: 0x00FFA3), Color(portfolioHex: 0xA147F8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+    }
+}
+
+private struct PortfolioPolygon: Shape {
+    let points: [CGPoint]
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        guard let first = points.first else { return path }
+        path.move(to: CGPoint(x: rect.minX + first.x * rect.width, y: rect.minY + first.y * rect.height))
+        for point in points.dropFirst() { path.addLine(to: CGPoint(x: rect.minX + point.x * rect.width, y: rect.minY + point.y * rect.height)) }
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct CoinbaseShortcutMark: View {
+    let kind: String
+    private let blue = Color(portfolioHex: 0x0052FF)
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                switch kind {
+                case "wallet.pass":
+                    PortfolioPolygon(points: [.init(x: 0.28, y: 0.1), .init(x: 0.93, y: 0.1), .init(x: 0.93, y: 0.77), .init(x: 0.28, y: 0.77)]).fill(Color(portfolioHex: 0xD0D3DA))
+                    PortfolioPolygon(points: [.init(x: 0.07, y: 0.1), .init(x: 0.72, y: 0.37), .init(x: 0.72, y: 0.97), .init(x: 0.07, y: 0.7)]).fill(blue)
+                    PortfolioPolygon(points: [.init(x: 0.07, y: 0.1), .init(x: 0.72, y: 0.37), .init(x: 0.72, y: 0.7), .init(x: 0.07, y: 0.7)]).fill(Color(portfolioHex: 0x0A0B0D))
+                case "creditcard":
+                    RoundedRectangle(cornerRadius: 1).fill(blue).frame(width: geometry.size.width * 0.57, height: geometry.size.height * 0.9).offset(x: -geometry.size.width * 0.1)
+                    Circle().fill(Color(portfolioHex: 0xD0D3DA)).frame(width: geometry.size.width * 0.55).offset(x: geometry.size.width * 0.19)
+                    Circle().fill(Color(portfolioHex: 0x0A0B0D)).frame(width: geometry.size.width * 0.43).offset(x: geometry.size.width * 0.11)
+                case "gift":
+                    Image(systemName: "trophy").font(.system(size: geometry.size.width * 0.83, weight: .medium)).foregroundStyle(blue).offset(y: geometry.size.height * 0.08)
+                    Circle().fill(Color(portfolioHex: 0xFFD600)).frame(width: geometry.size.width * 0.34).offset(y: -geometry.size.height * 0.32)
+                default:
+                    Rectangle().fill(Color(portfolioHex: 0xD0D3DA)).frame(height: geometry.size.height * 0.38)
+                    Rectangle().fill(blue).frame(width: geometry.size.width * 0.15, height: geometry.size.height * 0.93).offset(x: -geometry.size.width * 0.18)
+                    Rectangle().fill(blue).frame(width: geometry.size.width * 0.15, height: geometry.size.height).offset(x: geometry.size.width * 0.2)
+                    Rectangle().fill(Color(portfolioHex: 0x0A0B0D)).frame(width: geometry.size.width * 0.27, height: geometry.size.height * 0.41).offset(x: -geometry.size.width * 0.18)
+                    Rectangle().fill(Color(portfolioHex: 0x0A0B0D)).frame(width: geometry.size.width * 0.27, height: geometry.size.height * 0.54).offset(x: geometry.size.width * 0.2)
+                }
+            }.frame(width: geometry.size.width, height: geometry.size.height)
         }.accessibilityHidden(true)
     }
 }

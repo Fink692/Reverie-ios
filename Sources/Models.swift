@@ -75,15 +75,22 @@ struct SceneEvent: Codable, Identifiable, Equatable {
     var itemCount: Int?
     /// True for an atomic transfer between this scene's checking and savings accounts.
     var savingsTransfer: Bool?
-    var title: String { kind.title }
+    var style: NotificationStyle?
+    var customTitle: String?
+    var title: String { style?.title(orderNumber: orderNumber, customTitle: customTitle) ?? kind.title }
     var isValid: Bool {
         Simulation.validAmount(amount) && detail.count <= 240 && date.timeIntervalSince1970.isFinite &&
         (orderNumber.map { (1...2_000_000).contains($0) } ?? true) &&
         (customerName.map { !$0.isEmpty && $0.count <= 80 } ?? true) &&
         (itemCount.map { (1...1000).contains($0) } ?? true) &&
-        (savingsTransfer != true || kind == .payment || kind == .deposit)
+        (savingsTransfer != true || kind == .payment || kind == .deposit) &&
+        (style.map { $0.eventKind == kind } ?? true) &&
+        (customTitle.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true)
     }
     func body(scene: StudioScene) -> String {
+        if let style {
+            return style.body(scene: scene, amount: amount, detail: detail, customerName: customerName, itemCount: itemCount, orderNumber: orderNumber)
+        }
         if scene.kind == .commerce && kind == .order {
             let quantity = itemCount ?? 2
             return "[\(scene.name)] You have a new order for \(quantity) \(quantity == 1 ? "item" : "items") totaling \(scene.money(amount))."
@@ -101,11 +108,41 @@ struct NotificationPreset: Codable, Identifiable, Equatable {
     var detail: String
     var delay: Double
     var count: Int
+    var style: NotificationStyle? = nil
+    var interval: Double = 10
+    var customerName: String? = nil
+    var itemCount: Int? = nil
+    var orderNumber: Int? = nil
+    var customTitle: String? = nil
+    private enum CodingKeys: String, CodingKey { case id, name, kind, amount, detail, delay, count, style, interval, customerName, itemCount, orderNumber, customTitle }
     var isValid: Bool {
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return !cleanName.isEmpty && name.count <= 60 && detail.count <= 240 &&
         delay.isFinite && (2...86400).contains(delay) && (1...20).contains(count) &&
-        Simulation.validAmount(amount)
+        Simulation.validAmount(amount) && interval.isFinite && (5...3600).contains(interval) &&
+        (style.map { $0.eventKind == kind } ?? true) &&
+        (customerName.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true) &&
+        (itemCount.map { (1...1000).contains($0) } ?? true) &&
+        (orderNumber.map { (1...2_000_000).contains($0) } ?? true) &&
+        (customTitle.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true)
+    }
+}
+extension NotificationPreset {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        kind = try container.decode(EventKind.self, forKey: .kind)
+        amount = try container.decode(Double.self, forKey: .amount)
+        detail = try container.decode(String.self, forKey: .detail)
+        delay = try container.decode(Double.self, forKey: .delay)
+        count = try container.decode(Int.self, forKey: .count)
+        style = try container.decodeIfPresent(NotificationStyle.self, forKey: .style)
+        interval = try container.decodeIfPresent(Double.self, forKey: .interval) ?? 10
+        customerName = try container.decodeIfPresent(String.self, forKey: .customerName)
+        itemCount = try container.decodeIfPresent(Int.self, forKey: .itemCount)
+        orderNumber = try container.decodeIfPresent(Int.self, forKey: .orderNumber)
+        customTitle = try container.decodeIfPresent(String.self, forKey: .customTitle)
     }
 }
 struct QueuedAlert: Identifiable, Equatable {
@@ -148,7 +185,7 @@ struct Archive: Codable {
         let sceneIDs = Set(scenes.map(\.id))
         return (1...100).contains(scenes.count) && scenes.allSatisfy(\.isValid) && sceneIDs.count == scenes.count &&
         sceneIDs.contains(activeID) && events.count <= 1000 && Set(events.map(\.id)).count == events.count &&
-        events.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
+        events.allSatisfy { event in event.isValid && event.style?.canEmit != false && sceneIDs.contains(event.sceneID) } &&
         presets.count <= 50 && Set(presets.map(\.id)).count == presets.count && presets.allSatisfy(\.isValid) &&
         commerceProfiles.count <= 100 && Set(commerceProfiles.map(\.sceneID)).count == commerceProfiles.count &&
         commerceProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
@@ -188,7 +225,8 @@ enum ArchiveError: LocalizedError {
 
 enum Simulation {
     static func applying(_ event: SceneEvent, to scene: StudioScene) -> StudioScene {
-        guard scene.isValid, event.isValid, event.sceneID == scene.id else { return scene }
+        guard scene.isValid, event.isValid, event.sceneID == scene.id, event.style?.canEmit != false,
+              event.style?.isAvailable(for: scene.kind) ?? true else { return scene }
         var result = scene
         switch event.kind {
         case .order:
@@ -235,14 +273,23 @@ struct NotificationCue: Equatable {
     let delay: TimeInterval
 }
 enum NotificationPlan {
-    static func make(scene: StudioScene, kind: EventKind, amount: Double, detail: String, delay: TimeInterval, count: Int, pendingCount: Int) -> [NotificationCue]? {
+    static func make(scene: StudioScene, kind: EventKind, amount: Double, detail: String, delay: TimeInterval, count: Int, pendingCount: Int,
+                     style: NotificationStyle? = nil, interval: TimeInterval = 10, customerName: String? = nil,
+                     itemCount: Int? = nil, orderNumber: Int? = nil, customTitle: String? = nil) -> [NotificationCue]? {
         guard scene.isValid, delay.isFinite, (2...86400).contains(delay), (1...20).contains(count),
-              (0...60).contains(pendingCount), pendingCount + count <= 60, detail.count <= 240 else { return nil }
+              (0...60).contains(pendingCount), pendingCount + count <= 60, detail.count <= 240,
+              interval.isFinite, (5...3600).contains(interval),
+              style.map({ $0.eventKind == kind && $0.isAvailable(for: scene.kind) }) ?? true else { return nil }
         let value = kind == .subscriber ? 0.01 : amount
-        guard Simulation.validAmount(value) else { return nil }
+        var prototype = SceneEvent(sceneID: scene.id, kind: kind, amount: value,
+            detail: detail.trimmingCharacters(in: .whitespacesAndNewlines))
+        prototype.style = style; prototype.customTitle = customTitle
+        prototype.customerName = customerName; prototype.itemCount = itemCount; prototype.orderNumber = orderNumber
+        guard prototype.isValid else { return nil }
         return (0..<count).map { index in
-            NotificationCue(event: SceneEvent(sceneID: scene.id, kind: kind, amount: value,
-                detail: detail.trimmingCharacters(in: .whitespacesAndNewlines)), delay: delay + Double(index) * 10)
+            var event = prototype
+            event.id = UUID()
+            return NotificationCue(event: event, delay: delay + Double(index) * interval)
         }
     }
 }

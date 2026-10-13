@@ -11,6 +11,7 @@ from pathlib import Path
 import plistlib
 import re
 import shutil
+import subprocess
 import sys
 import zipfile
 
@@ -77,6 +78,11 @@ def sha256(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def binary_hashes(app, executable):
+    names = {executable, *(path.relative_to(app).as_posix() for path in app.rglob("*.dylib") if path.is_file())}
+    return {name: sha256((app / name).read_bytes()) for name in sorted(names)}
+
+
 def read_app(app):
     require((app / "Info.plist").is_file(), f"Compiled app Info.plist missing: {app}.")
     info = plistlib.loads((app / "Info.plist").read_bytes())
@@ -110,27 +116,74 @@ def png_files(icon, files, context):
     return sorted(result)
 
 
-def alternate_icon(info, files, entry, family):
+def catalog_evidence(app, cached=None, native_output=None):
+    info, files = read_app(app)
+    platforms = info.get("CFBundleSupportedPlatforms")
+    require(isinstance(platforms, list) and len(platforms) == 1, "Asset catalog evidence requires one compiled platform.")
+    executable = check_resources(info, files, platforms[0], "Asset catalog source")
+    catalog_hash = sha256((app / "Assets.car").read_bytes())
+    if cached:
+        evidence = json.loads(cached.read_text())
+        require(evidence.get("platform") == platforms[0], "Compiled icon evidence does not match this platform.")
+        require(evidence.get("executableSHA256") == sha256((app / executable).read_bytes()), "Compiled icon evidence does not match this executable.")
+        require(evidence.get("binarySHA256") == binary_hashes(app, executable), "Compiled icon evidence does not match this app's compiled libraries.")
+        require(evidence.get("assetCatalogSHA256") == catalog_hash, "Compiled icon evidence does not match this Assets.car.")
+        records = evidence.get("catalogRenditions")
+    else:
+        try:
+            records = json.loads(subprocess.check_output(["xcrun", "assetutil", "--info", str(app / "Assets.car")], stderr=subprocess.PIPE))
+        except (OSError, subprocess.CalledProcessError, ValueError) as error:
+            raise PackagingError("Catalog-backed icons require native xcrun assetutil --info evidence. "
+                                 "Run inspect-base on macOS, then pass its JSON using --catalog-evidence.") from error
+    require(isinstance(records, list), "Native asset catalog evidence must contain a rendition array.")
+    if native_output and not cached:
+        native_output.parent.mkdir(parents=True, exist_ok=True)
+        native_output.write_text(json.dumps({"platform": platforms[0], "assetCatalogSHA256": catalog_hash,
+                                            "catalogRenditions": records}, indent=2) + "\n")
+    return {"assetCatalogSHA256": catalog_hash, "catalogRenditions": records}
+
+
+def verify_icon(metadata, files, entry, context, catalog_names):
+    require(metadata.get("CFBundleIconName") == entry["appIcon"], f"Unexpected catalog name: {entry['appIcon']}.")
+    if "CFBundleIconFiles" in metadata:
+        return {"primaryIcon": {**metadata, "CFBundleIconName": entry["appIcon"]},
+                "pngFiles": png_files(metadata, files, context), "source": "compiled PNGs"}
+    require(entry["appIcon"] in catalog_names,
+            f"{context}: {entry['appIcon']} has no loose PNGs and is absent from native Assets.car rendition evidence.")
+    return {"primaryIcon": {**metadata, "CFBundleIconName": entry["appIcon"]},
+            "pngFiles": [], "source": "native Assets.car rendition"}
+
+
+def alternate_icon(info, files, entry, family, catalog_names):
     metadata = info.get(family, {}).get("CFBundleAlternateIcons", {}).get(entry["appIcon"])
     require(isinstance(metadata, dict),
             f"Base app lacks compiled {family} alternate icon {entry['appIcon']}. Rebuild once with all variant names in "
             "ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES and ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=YES.")
-    require(metadata.get("CFBundleIconName", entry["appIcon"]) == entry["appIcon"], f"Unexpected catalog name: {entry['appIcon']}.")
-    pngs = png_files(metadata, files, f"{entry['id']} {family}")
-    return {"primaryIcon": {**metadata, "CFBundleIconName": entry["appIcon"]}, "pngFiles": pngs}
+    return verify_icon(metadata, files, entry, f"{entry['id']} {family}", catalog_names)
 
 
-def inspect_base(app, entries, platform):
+def inspect_base(app, entries, platform, cached=None, native_output=None):
     info, files = read_app(app)
     require(info.get("CFBundleIdentifier") == "com.reverie.simulator", "Base bundle identifier must be com.reverie.simulator.")
     executable = check_resources(info, files, platform, "Base app")
+    catalog_needed = False
+    for entry in entries:
+        for family in FAMILIES:
+            metadata = info.get(family, {}).get("CFBundleAlternateIcons", {}).get(entry["appIcon"])
+            require(isinstance(metadata, dict), f"Base app lacks compiled {family} alternate icon {entry['appIcon']}. "
+                    "Rebuild once with all alternate icon names and ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=YES.")
+            catalog_needed |= "CFBundleIconFiles" not in metadata
+    catalog = catalog_evidence(app, cached, native_output) if catalog_needed else {"catalogRenditions": []}
+    catalog_names = {record.get("Name") for record in catalog["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
     return {"platform": platform, "baseBundleIdentifier": info["CFBundleIdentifier"], "executable": executable,
             "executableSHA256": sha256((app / executable).read_bytes()), "assetCatalogSHA256": sha256((app / "Assets.car").read_bytes()),
+            "binarySHA256": binary_hashes(app, executable),
+            "catalogRenditions": catalog["catalogRenditions"],
             "compiledVariantCount": len(entries),
-            "compiledIcons": {entry["id"]: {family: alternate_icon(info, files, entry, family) for family in FAMILIES} for entry in entries}}
+            "compiledIcons": {entry["id"]: {family: alternate_icon(info, files, entry, family, catalog_names) for family in FAMILIES} for entry in entries}}
 
 
-def check_variant(info, files, entry, platform):
+def check_variant(info, files, entry, platform, catalog_names=None):
     executable = check_resources(info, files, platform, entry["id"])
     expected = {"CFBundleIdentifier": entry["bundleIdentifier"], "CFBundleDisplayName": entry["displayName"],
                 "ReveriePlaybackKind": entry["playbackKind"]}
@@ -145,21 +198,25 @@ def check_variant(info, files, entry, platform):
     for family in FAMILIES:
         primary = info.get(family, {}).get("CFBundlePrimaryIcon", {})
         require(primary.get("CFBundleIconName") == entry["appIcon"], f"{entry['id']}: {family} primary icon does not match {entry['appIcon']}.")
-        icons[family] = {"primaryIcon": primary, "pngFiles": png_files(primary, files, f"{entry['id']} {family}")}
+        icons[family] = verify_icon(primary, files, entry, f"{entry['id']} {family}", catalog_names or set())
     return {**entry, "installedInfo": {**expected, "CFBundleSupportedPlatforms": info["CFBundleSupportedPlatforms"]},
             "installedIcon": icons["CFBundleIcons"]["primaryIcon"], "installedIPadIcon": icons["CFBundleIcons~ipad"]["primaryIcon"],
             "compiledIcons": icons, "executable": executable}
 
 
-def validate_app(app, entry, platform):
+def validate_app(app, entry, platform, cached=None):
     info, files = read_app(app)
-    record = check_variant(info, files, entry, platform)
+    catalog_needed = any("CFBundleIconFiles" not in info.get(family, {}).get("CFBundlePrimaryIcon", {}) for family in FAMILIES)
+    catalog = catalog_evidence(app, cached) if catalog_needed else {"catalogRenditions": []}
+    catalog_names = {record.get("Name") for record in catalog["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
+    record = check_variant(info, files, entry, platform, catalog_names)
     record.update(executableSHA256=sha256((app / record["executable"]).read_bytes()), assetCatalogSHA256=sha256((app / "Assets.car").read_bytes()))
+    record["binarySHA256"] = binary_hashes(app, record["executable"])
     return record
 
 
-def prepare(base, destination, entry, platform):
-    evidence = inspect_base(base, [entry], platform)
+def prepare(base, destination, entry, platform, cached=None):
+    evidence = inspect_base(base, [entry], platform, cached)
     require(not destination.exists(), f"Output app already exists: {destination}.")
     require(not destination.resolve().is_relative_to(base.resolve()), "Output app must be outside the compiled base bundle.")
     info, _ = read_app(base)
@@ -175,14 +232,22 @@ def prepare(base, destination, entry, platform):
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(base, destination, symlinks=True)
     (destination / "Info.plist").write_bytes(plistlib.dumps(info, fmt=plistlib.FMT_BINARY))
-    record = validate_app(destination, entry, platform)
+    # Reuse the evidence just checked against the exact source catalog.
+    info, files = read_app(destination)
+    names = {record.get("Name") for record in evidence["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
+    record = check_variant(info, files, entry, platform, names)
+    record.update(executableSHA256=sha256((destination / record["executable"]).read_bytes()),
+                  assetCatalogSHA256=sha256((destination / "Assets.car").read_bytes()))
+    record["binarySHA256"] = binary_hashes(destination, record["executable"])
     for key in ("executableSHA256", "assetCatalogSHA256"):
         require(record[key] == evidence[key], f"{entry['id']}: compiled bytes changed during packaging ({key}).")
+    require(record["binarySHA256"] == evidence["binarySHA256"], f"{entry['id']}: compiled libraries changed during packaging.")
     return record
 
 
-def validate_packages(directory, base, entries, platform):
-    evidence = inspect_base(base, entries, platform)
+def validate_packages(directory, base, entries, platform, cached=None):
+    evidence = inspect_base(base, entries, platform, cached)
+    names = {record.get("Name") for record in evidence["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
     records = []
     for entry in entries:
         archive = directory / f"Reverie-{entry['id']}-unsigned.ipa"
@@ -191,16 +256,19 @@ def validate_packages(directory, base, entries, platform):
             prefix = "Payload/Reverie.app/"
             files = {name.removeprefix(prefix) for name in payload.namelist() if name.startswith(prefix) and not name.endswith("/")}
             require("Info.plist" in files, f"{entry['id']}: IPA Info.plist missing.")
-            record = check_variant(plistlib.loads(payload.read(prefix + "Info.plist")), files, entry, platform)
+            record = check_variant(plistlib.loads(payload.read(prefix + "Info.plist")), files, entry, platform, names)
             hashes = {"executableSHA256": sha256(payload.read(prefix + record["executable"])), "assetCatalogSHA256": sha256(payload.read(prefix + "Assets.car"))}
             for key, value in hashes.items():
                 require(value == evidence[key], f"{entry['id']}: IPA compiled bytes differ from base ({key}).")
+            libraries = {name: sha256(payload.read(prefix + name)) for name in evidence["binarySHA256"]}
+            require(libraries == evidence["binarySHA256"], f"{entry['id']}: IPA compiled libraries differ from base.")
         records.append({**entry, "file": archive.name, "sizeBytes": archive.stat().st_size, "sha256": sha256(archive.read_bytes()),
-                        **hashes, "compiledIcons": record["compiledIcons"]})
+                        **hashes, "binarySHA256": libraries, "compiledIcons": record["compiledIcons"]})
     return {"generatedAt": datetime.now(timezone.utc).isoformat(), "platform": platform,
             "signing": "unsigned; Apple signing and provisioning required for installation",
             "packaging": "One compiled executable and icon catalog; per-app runtime Info.plist metadata",
-            "sharedExecutableSHA256": evidence["executableSHA256"], "sharedAssetCatalogSHA256": evidence["assetCatalogSHA256"], "variants": records}
+            "sharedExecutableSHA256": evidence["executableSHA256"], "sharedBinarySHA256": evidence["binarySHA256"],
+            "sharedAssetCatalogSHA256": evidence["assetCatalogSHA256"], "variants": records}
 
 
 def main():
@@ -214,6 +282,7 @@ def main():
         command = commands.add_parser(name)
         command.add_argument("--platform", choices=("iPhoneOS", "iPhoneSimulator"), required=True)
         command.add_argument("--output-json", type=Path, required=name == "validate-packages")
+        command.add_argument("--catalog-evidence", type=Path)
         if name == "validate":
             command.add_argument("--app", type=Path, required=True)
         else:
@@ -236,16 +305,17 @@ def main():
                 print("\t".join(entry[key] for key in ("id", "displayName", "bundleIdentifier", "appIcon", "playbackKind")))
         return
     if args.command == "inspect-base":
-        result = inspect_base(args.base_app, entries, args.platform)
+        native_output = args.output_json.with_name(args.output_json.stem + "-native-renditions.json") if args.output_json else None
+        result = inspect_base(args.base_app, entries, args.platform, args.catalog_evidence, native_output)
         message = f"Verified {len(entries)} compiled alternate icons for {args.platform}."
     elif args.command == "prepare":
-        result = prepare(args.base_app, args.output_app, entries[0], args.platform)
+        result = prepare(args.base_app, args.output_app, entries[0], args.platform, args.catalog_evidence)
         message = f"Prepared {entries[0]['displayName']} from the shared compiled {args.platform} application."
     elif args.command == "validate":
-        result = validate_app(args.app, entries[0], args.platform)
+        result = validate_app(args.app, entries[0], args.platform, args.catalog_evidence)
         message = f"Verified installed {entries[0]['displayName']} metadata, compiled icons, executable, and resources."
     else:
-        result = validate_packages(args.directory, args.base_app, entries, args.platform)
+        result = validate_packages(args.directory, args.base_app, entries, args.platform, args.catalog_evidence)
         message = f"Verified {len(entries)} unsigned packages with the shared executable and icon catalog."
     if args.output_json:
         args.output_json.parent.mkdir(parents=True, exist_ok=True)

@@ -12,6 +12,7 @@ struct WalletPlayback: View {
     @State private var sheet: WalletDestination?
     @State private var search = ""
     @State private var hiddenBalance = false
+    @State private var showProfileActions = false
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: WalletProfile { store.walletProfile(for: sceneID) }
@@ -30,10 +31,12 @@ struct WalletPlayback: View {
                         case .assets: assetPage(scene)
                         case .activity: activityPage(scene)
                         case .settings: settingsPage(scene)
+                        case .money: moneyPage(scene)
+                        case .rewards: rewardsPage
                         }
                     }
                     .background(palette.background)
-                    .safeAreaInset(edge: .bottom, spacing: 0) { bottomNavigation }
+                    .safeAreaInset(edge: .bottom, spacing: 0) { if profile.theme != .phantom { bottomNavigation } }
                 } else {
                     ContentUnavailableView("Wallet unavailable", systemImage: "wallet.bifold")
                         .overlay(alignment: .topTrailing) { Button("Close") { dismiss() }.padding() }
@@ -45,6 +48,14 @@ struct WalletPlayback: View {
             .preferredColorScheme(profile.theme == .trustWallet ? .light : .dark)
             .sheet(item: $sheet) { destination in
                 if let scene { sheetView(destination, scene: scene) }
+            }
+            .confirmationDialog("Wallet actions", isPresented: $showProfileActions, titleVisibility: .hidden) {
+                Button("Edit wallet") { sheet = .edit }
+                Button("Receive") { sheet = .receive }
+                Button("Activity") { tab = .activity }.accessibilityIdentifier("wallet-tab-activity")
+                Button("Settings") { tab = .settings }.accessibilityIdentifier("wallet-tab-settings")
+                Button("Close scene") { dismiss() }
+                Button("Cancel", role: .cancel) { }
             }
             .alert("Unable to update wallet", isPresented: Binding(get: { store.error != nil && sheet?.id == nil }, set: { if !$0 { store.error = nil } })) {
                 Button("OK") { store.error = nil }
@@ -58,7 +69,7 @@ struct WalletPlayback: View {
         HStack(spacing: 8) {
             profileMenu
             if profile.theme == .phantom {
-                Button { tab = .assets } label: { Text("Home").font(.system(size: 15, weight: .medium)).padding(.horizontal, 16).frame(minHeight: 44).background(palette.accent, in: Capsule()).foregroundStyle(.black) }
+                Button { tab = .assets } label: { Text("Home").font(.system(size: 15, weight: .medium)).padding(.horizontal, 16).frame(minHeight: 44).background(tab == .assets ? palette.accent : palette.card, in: Capsule()).foregroundStyle(tab == .assets ? .black : palette.ink) }.accessibilityIdentifier("wallet-tab-assets")
                 Button { sheet = .swap(.swap) } label: { Text("Trade").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(palette.card, in: Capsule()) }
                 Button { sheet = .explore } label: { Text("Explore").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(palette.card, in: Capsule()) }
                 Spacer(minLength: 0)
@@ -82,11 +93,7 @@ struct WalletPlayback: View {
         .padding(.horizontal, 16).padding(.vertical, 5)
     }
     private var profileMenu: some View {
-        Menu {
-            Button("Edit wallet") { sheet = .edit }
-            Button("Receive") { sheet = .receive }
-            Button("Close scene") { dismiss() }
-        } label: {
+        Button { showProfileActions = true } label: {
             HStack(spacing: 7) {
                 if profile.theme == .trustWallet { Image(systemName: "gearshape.fill").font(.system(size: 21)).frame(width: 44, height: 44) }
                 else if profile.theme == .phantom { WalletBrandMark(theme: profile.theme).frame(width: 36, height: 36).frame(width: 44, height: 44) }
@@ -94,8 +101,10 @@ struct WalletPlayback: View {
                     Text("Account 1").font(.system(size: 15, weight: .semibold)).lineLimit(1)
                     Image(systemName: "chevron.down").font(.system(size: 11))
                 }
-            }.frame(minHeight: 44).contentShape(Rectangle())
+            }.frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Wallet profile and close scene").accessibilityIdentifier("wallet-profile-menu")
     }
 
@@ -103,7 +112,7 @@ struct WalletPlayback: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 balanceHeader(scene)
-                actionRow
+                if profile.theme != .phantom { actionRow }
                 stablecoinCard(scene)
                 if profile.theme == .trustWallet {
                     HStack {
@@ -303,9 +312,35 @@ struct WalletPlayback: View {
         .accessibilityIdentifier("wallet-settings")
     }
 
-    private var bottomNavigation: some View {
+    @ViewBuilder private var bottomNavigation: some View {
+        if profile.theme == .metamask {
+            HStack(spacing: 0) {
+                metaNavigationButton("Home", symbol: "house.fill", page: .assets, identifier: "wallet-tab-assets") { tab = .assets }
+                metaNavigationButton("Explore", symbol: "safari", page: nil, identifier: "wallet-tab-explore") { sheet = .explore }
+                Button { sheet = .swap(.swap) } label: {
+                    VStack(spacing: 5) {
+                        Image(systemName: "plus").font(.system(size: 22, weight: .regular)).frame(width: 39, height: 39).background(palette.accent, in: Circle()).foregroundStyle(.white)
+                        Text("Trade").font(.system(size: 10, weight: .medium)).foregroundStyle(palette.secondary)
+                    }.frame(maxWidth: .infinity, minHeight: 56).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("wallet-tab-trade")
+                metaNavigationButton("Money", symbol: "banknote", page: .money, identifier: "wallet-tab-money") { tab = .money }
+                metaNavigationButton("Rewards", symbol: "gift", page: .rewards, identifier: "wallet-tab-rewards") { tab = .rewards }
+            }
+            .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 3).background(palette.background)
+            .overlay(alignment: .top) { Rectangle().fill(palette.separator).frame(height: 0.5) }
+        } else { standardBottomNavigation }
+    }
+    private func metaNavigationButton(_ title: String, symbol: String, page: WalletPage?, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: symbol).font(.system(size: 20, weight: .regular))
+                Text(title).font(.system(size: 10, weight: .medium))
+            }.foregroundStyle(page == tab ? palette.ink : palette.secondary).frame(maxWidth: .infinity, minHeight: 56).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityIdentifier(identifier)
+    }
+    private var standardBottomNavigation: some View {
         HStack {
-            ForEach(WalletPage.allCases) { page in
+            ForEach([WalletPage.assets, .activity, .settings]) { page in
                 Button { tab = page } label: {
                     VStack(spacing: 5) {
                         Image(systemName: page.symbol).font(.system(size: 20, weight: .medium))
@@ -321,6 +356,35 @@ struct WalletPlayback: View {
         .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 3)
         .background(palette.background)
         .overlay(alignment: .top) { Rectangle().fill(palette.separator).frame(height: 0.5) }
+    }
+
+    private func moneyPage(_ scene: StudioScene) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Money").font(.system(size: 25, weight: .semibold))
+                let stablecoins = profile.holdings.filter { ["USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }
+                Text(scene.money(stablecoins.reduce(0) { $0 + $1.value })).font(.system(size: 39, weight: .semibold)).monospacedDigit()
+                HStack(spacing: 12) {
+                    Button { sheet = .swap(.sell) } label: { Label("Add", systemImage: "plus").frame(maxWidth: .infinity, minHeight: 48).background(palette.card, in: RoundedRectangle(cornerRadius: 13)) }
+                    Button { sheet = .send(stablecoins.first?.id) } label: { Label("Transfer", systemImage: "arrow.up.right").frame(maxWidth: .infinity, minHeight: 48).background(palette.card, in: RoundedRectangle(cornerRadius: 13)) }
+                }.font(.system(size: 14, weight: .medium)).buttonStyle(.plain)
+                Text("Balances").font(.system(size: 19, weight: .semibold))
+                if stablecoins.isEmpty { Text("No stablecoin balance").foregroundStyle(palette.secondary) }
+                ForEach(stablecoins) { holding in
+                    Button { sheet = .token(holding.id) } label: { WalletAssetRow(holding: holding, currency: scene.currency, theme: profile.theme) }.buttonStyle(.plain)
+                }
+                Button { tab = .activity } label: { HStack { Text("Activity"); Spacer(); Image(systemName: "chevron.right").font(.caption) }.frame(minHeight: 48) }.buttonStyle(.plain)
+            }.padding(22).foregroundStyle(palette.ink)
+        }.accessibilityIdentifier("wallet-money")
+    }
+    private var rewardsPage: some View {
+        VStack(spacing: 22) {
+            Spacer()
+            Image(systemName: "gift").font(.system(size: 54, weight: .light)).foregroundStyle(palette.secondary)
+            Text("No rewards yet").font(.system(size: 23, weight: .semibold))
+            Button("Wallet overview") { tab = .settings }.font(.system(size: 15, weight: .medium)).frame(minHeight: 44)
+            Spacer()
+        }.frame(maxWidth: .infinity).foregroundStyle(palette.ink)
     }
 
     @ViewBuilder private func sheetView(_ destination: WalletDestination, scene: StudioScene) -> some View {
@@ -349,7 +413,7 @@ struct WalletPlayback: View {
 }
 
 private enum WalletPage: String, CaseIterable, Identifiable {
-    case assets, activity, settings
+    case assets, activity, settings, money, rewards
     var id: String { rawValue }
     var title: String { self == .assets ? "Home" : rawValue.capitalized }
     var symbol: String { self == .assets ? "wallet.bifold.fill" : self == .activity ? "clock" : "gearshape" }

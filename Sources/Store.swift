@@ -94,19 +94,30 @@ import UserNotifications
             await refreshNotifications()
         }
     }
-    @discardableResult func emit(kind: EventKind, amount: Double, detail: String, sceneID: UUID? = nil, customerName: String? = nil, itemCount: Int? = nil) -> SceneEvent? {
+    @discardableResult func emit(kind: EventKind, amount: Double, detail: String, sceneID: UUID? = nil,
+                                customerName: String? = nil, itemCount: Int? = nil, orderNumber: Int? = nil,
+                                style: NotificationStyle? = nil, customTitle: String? = nil) -> SceneEvent? {
         let value = kind == .subscriber ? 0.01 : amount
         guard Simulation.validAmount(value), detail.count <= 240 else {
             error = "Enter an amount between 0.01 and 1 billion and details up to 240 characters."; return nil
         }
         let targetID = sceneID ?? activeID
         guard let index = scenes.firstIndex(where: { $0.id == targetID }) else { return nil }
+        if let style, !style.canEmit || style.eventKind != kind || !style.isAvailable(for: scenes[index].kind) {
+            error = "This notification style can be queued but cannot change this dashboard's totals."; return nil
+        }
         var event = SceneEvent(sceneID: targetID, kind: kind, amount: value, detail: detail.trimmingCharacters(in: .whitespacesAndNewlines))
+        event.style = style
+        event.customTitle = customTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        event.customerName = customerName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        event.itemCount = itemCount
+        event.orderNumber = orderNumber
         if kind == .order {
-            event.orderNumber = 1001 + scenes[index].orders
-            event.customerName = customerName ?? "Online customer"
+            event.orderNumber = orderNumber ?? 1001 + scenes[index].orders
+            event.customerName = event.customerName ?? "Online customer"
             event.itemCount = itemCount ?? 2
         }
+        guard event.isValid else { error = "Check the title, customer name, item count, and order number."; return nil }
         let updated = Simulation.applying(event, to: scenes[index])
         guard updated != scenes[index] else { error = "This event would exceed the dashboard limits or available balance. Adjust the amount or totals in Edit scene."; return nil }
         var updatedScenes = scenes
@@ -134,11 +145,15 @@ import UserNotifications
         }.sorted { ($0.date ?? .distantFuture) < ($1.date ?? .distantFuture) }
         pendingCount = queuedAlerts.count
     }
-    func schedule(kind: EventKind, amount: Double, detail: String, delay: Double, count: Int) async -> Bool {
+    func schedule(kind: EventKind, amount: Double, detail: String, delay: Double, count: Int,
+                  style: NotificationStyle? = nil, interval: Double = 10, customerName: String? = nil,
+                  itemCount: Int? = nil, orderNumber: Int? = nil, customTitle: String? = nil) async -> Bool {
         guard !isScheduling, !isResetting else { error = "Wait for the current session operation to finish."; return false }
         let scheduledScene = active
-        guard NotificationPlan.make(scene: scheduledScene, kind: kind, amount: amount, detail: detail, delay: delay, count: count, pendingCount: 0) != nil else {
-            error = "Check the amount, details, delay, and notification count."; return false
+        guard NotificationPlan.make(scene: scheduledScene, kind: kind, amount: amount, detail: detail, delay: delay,
+            count: count, pendingCount: 0, style: style, interval: interval, customerName: customerName,
+            itemCount: itemCount, orderNumber: orderNumber, customTitle: customTitle) != nil else {
+            error = "Check the notification style, amount, details, order fields, delay, count, and interval."; return false
         }
         isScheduling = true
         defer { isScheduling = false }
@@ -155,7 +170,9 @@ import UserNotifications
             }
             let pending = await center.pendingNotificationRequests()
             guard stillValid() else { return false }
-            guard let plan = NotificationPlan.make(scene: scheduledScene, kind: kind, amount: amount, detail: detail, delay: delay, count: count, pendingCount: pending.count) else {
+            guard let plan = NotificationPlan.make(scene: scheduledScene, kind: kind, amount: amount, detail: detail,
+                delay: delay, count: count, pendingCount: pending.count, style: style, interval: interval,
+                customerName: customerName, itemCount: itemCount, orderNumber: orderNumber, customTitle: customTitle) else {
                 error = "Cancel queued notifications before adding this session."; return false
             }
             for cue in plan {
@@ -164,7 +181,7 @@ import UserNotifications
                 }
                 let content = UNMutableNotificationContent()
                 content.title = cue.event.title; content.body = cue.event.body(scene: scheduledScene)
-                content.sound = scheduledScene.kind == .commerce && kind == .order
+                content.sound = scheduledScene.kind == .commerce && cue.event.kind == .order && (style == nil || style == .shopifyOrder)
                     ? UNNotificationSound(named: UNNotificationSoundName("Order.caf")) : .default
                 content.threadIdentifier = scheduledScene.id.uuidString
                 content.userInfo = ["sceneID": scheduledScene.id.uuidString, "scheduledAt": Date().addingTimeInterval(cue.delay).timeIntervalSince1970]

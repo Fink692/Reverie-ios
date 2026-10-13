@@ -47,6 +47,10 @@ jobs:
             ditto "$DEVICE_APP_PATH" build-device/package/Payload/Reverie.app
             ditto -c -k --keepParent build-device/package/Payload Reverie-unsigned.ipa
           fi
+      - name: Build all unsigned brand variants
+        run: |
+          set -o pipefail
+          ./scripts/build-brand-variants.sh 2>&1 | tee variants-build.log
       - name: Build and run unit and UI tests
         env:
           IOS_TEST_DESTINATION: platform=iOS Simulator,id=${{ env.SIMULATOR_ID }}
@@ -69,10 +73,6 @@ jobs:
           sleep 3
           xcrun simctl io "$SIMULATOR_ID" screenshot simulator.png
           ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/Reverie.app Reverie-simulator.zip
-      - name: Build all unsigned brand variants
-        run: |
-          set -o pipefail
-          ./scripts/build-brand-variants.sh 2>&1 | tee variants-build.log
       - name: Capture installed startup for all five scene styles
         run: |
           set -o pipefail

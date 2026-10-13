@@ -514,12 +514,14 @@ struct EventRow: View {
 }
 
 private enum ComposerSheet: Identifiable {
+    case templates
     case savedCues
     case saveCue(NotificationPreset)
     case queue
 
     var id: String {
         switch self {
+        case .templates: return "notification-templates"
         case .savedCues: return "saved-cues"
         case .saveCue(let preset): return preset.id.uuidString
         case .queue: return "notification-queue"
@@ -530,6 +532,12 @@ private enum ComposerSheet: Identifiable {
 struct ComposerView: View {
     @EnvironmentObject var store: StudioStore
     @State private var kind: EventKind = .order
+    @State private var style: NotificationStyle?
+    @State private var customTitle = ""
+    @State private var customerName = ""
+    @State private var itemCount = 2
+    @State private var orderNumber = ""
+    @State private var interval = 10.0
     @State private var amount = "149.00"
     @State private var detail = "Everyday essentials · Order #1048"
     @State private var delay = 5.0
@@ -539,12 +547,35 @@ struct ComposerView: View {
     @State private var composedSceneID: UUID?
     @State private var composedSceneKind: SceneKind?
     @State private var presentedSheet: ComposerSheet?
-    private enum InputField: Hashable { case amount, details }
+    private enum InputField: Hashable { case amount, details, customer, orderNumber, title }
     @FocusState private var focusedInput: InputField?
 
-    private var eventAmount: Double { kind == .subscriber ? 0.01 : Simulation.parseAmount(amount) ?? 0 }
-    private var valid: Bool { (kind == .subscriber || Simulation.validAmount(eventAmount)) && detail.count <= 240 }
-    private var preview: SceneEvent { SceneEvent(sceneID: store.activeID, kind: kind, amount: eventAmount, detail: detail) }
+    private var requiresAmount: Bool {
+        guard let style else { return kind != .subscriber }
+        return style.isCustom ? detail.contains("{amount}") : style.usesAmount
+    }
+    private var eventAmount: Double { requiresAmount ? Simulation.parseAmount(amount) ?? 0 : 0.01 }
+    private var availableStyles: [NotificationStyle] { NotificationStyle.allCases.filter { $0.isAvailable(for: store.active.kind) } }
+    private var parsedOrderNumber: Int? { cueWholeNumber(orderNumber, minimum: 1, maximum: 2_000_000) }
+    private var orderFieldsVisible: Bool { (store.active.kind == .commerce && (kind == .order || style != nil)) || style?.isCustom == true }
+    private var preparedCustomer: String? {
+        let text = customerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? nil : text
+    }
+    private var canEmit: Bool { store.active.kind != .wallet && (style?.canEmit ?? true) }
+    private var valid: Bool {
+        (!requiresAmount || Simulation.validAmount(eventAmount)) && detail.count <= 240 && customTitle.count <= 80
+        && (style?.isCustom != true || !detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        && (style?.isAvailable(for: store.active.kind) ?? true)
+        && customerName.count <= 80
+        && (orderNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || parsedOrderNumber != nil)
+    }
+    private var preview: SceneEvent {
+        SceneEvent(sceneID: store.activeID, kind: kind, amount: eventAmount, detail: detail,
+                   orderNumber: parsedOrderNumber, customerName: preparedCustomer,
+                   itemCount: (orderFieldsVisible || style != nil) ? itemCount : nil, style: style,
+                   customTitle: customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : customTitle.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
 
     var body: some View {
         NavigationStack {
@@ -560,9 +591,15 @@ struct ComposerView: View {
                     Picker("Type", selection: $kind) {
                         ForEach(EventKind.allCases) { Text($0.title).tag($0) }
                     }
-                    if kind != .subscriber {
+                    Picker("Notification style", selection: $style) {
+                        Text("Automatic").tag(Optional<NotificationStyle>.none)
+                        ForEach(availableStyles) { Text($0.name).tag(Optional($0)) }
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("notification-style")
+                    if requiresAmount {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Amount · \(store.active.currency)").font(.caption).foregroundStyle(.secondary)
+                            Text("\(style?.amountLabel ?? "Amount") · \(store.active.currency)").font(.caption).foregroundStyle(.secondary)
                             TextField("Amount", text: $amount)
                                 .keyboardType(.decimalPad)
                                 .focused($focusedInput, equals: .amount)
@@ -574,21 +611,40 @@ struct ComposerView: View {
                         TextField("Details", text: $detail, axis: .vertical)
                             .lineLimit(2...4)
                             .focused($focusedInput, equals: .details)
+                            .accessibilityIdentifier("notification-details")
                     }
                 } header: {
                     Text("Event")
                 } footer: {
-                    if kind != .subscriber && !Simulation.validAmount(eventAmount) {
+                    if requiresAmount && !Simulation.validAmount(eventAmount) {
                         Text("Enter an amount between 0.01 and 1 billion. Use your decimal separator and omit grouping separators.")
                     }
                     if detail.count > 240 { Text("Keep event details to 240 characters or fewer.") }
+                    if style?.isCustom == true {
+                        Text("Personalize the message with {scene}, {amount}, {customer}, {items}, and {order}.")
+                    }
+                }
+                templateSection
+                if style != nil {
+                    Section {
+                        TextField("Notification title (optional)", text: $customTitle)
+                            .focused($focusedInput, equals: .title)
+                            .accessibilityIdentifier("custom-title")
+                    } header: { Text("Title") } footer: {
+                        if customTitle.count > 80 { Text("Keep notification titles to 80 characters or fewer.") }
+                    }
+                }
+                if orderFieldsVisible { orderDetailsSection }
+                else if style == .creatorSubscriber || style == .predictionResolved {
+                    Section(style == .predictionResolved ? "Outcome" : "Subscriber") {
+                        TextField(style == .predictionResolved ? "Outcome (optional)" : "Subscriber name (optional)", text: $customerName)
+                            .focused($focusedInput, equals: .customer).accessibilityIdentifier("customer")
+                    }
                 }
                 Section("Preview") {
                     HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: store.active.kind.symbol)
-                            .foregroundStyle(.white)
+                        InstalledNotificationIcon()
                             .frame(width: 42, height: 42)
-                            .background(accent, in: RoundedRectangle(cornerRadius: 12))
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
@@ -596,7 +652,7 @@ struct ComposerView: View {
                                 Spacer()
                                 Text("now").font(.caption).foregroundStyle(.secondary)
                             }
-                            Text(kind.title).font(.headline)
+                            Text(preview.title).font(.headline)
                             Text(preview.body(scene: store.active)).font(.subheadline)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -607,10 +663,13 @@ struct ComposerView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                if store.active.kind != .wallet { Section {
+                if canEmit { Section {
                     Button {
                         focusedInput = nil
-                        if store.emit(kind: kind, amount: eventAmount, detail: detail) != nil {
+                        if store.emit(kind: kind, amount: eventAmount, detail: detail, sceneID: store.activeID,
+                                      customerName: preparedCustomer, itemCount: (orderFieldsVisible || style != nil) ? itemCount : nil,
+                                      orderNumber: parsedOrderNumber, style: style,
+                                      customTitle: customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : customTitle.trimmingCharacters(in: .whitespacesAndNewlines)) != nil {
                             confirmation = "Added to your dashboard."
                         }
                     } label: {
@@ -620,7 +679,12 @@ struct ComposerView: View {
                 } footer: {
                     Text("Scheduled alerts are a separate performance cue and do not change dashboard totals.")
                 } } else {
-                    Section { Text("Send and receive tokens inside the wallet. Studio alerts do not change token balances.").font(.footnote).foregroundStyle(.secondary) }
+                    Section {
+                        Text(store.active.kind == .wallet
+                             ? "Send and receive tokens inside the wallet. Studio alerts do not change token balances."
+                             : "This notification style is an alert only. It leaves dashboard totals unchanged.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
                 notificationSession
                 savedCueSection
@@ -629,6 +693,11 @@ struct ComposerView: View {
             .scrollDismissesKeyboard(.interactively)
             .sheet(item: $presentedSheet) { destination in
                 switch destination {
+                case .templates:
+                    BuiltinNotificationTemplates(scene: store.active) { template in
+                        loadTemplate(template)
+                        presentedSheet = nil
+                    }
                 case .savedCues:
                     SavedCuesView { preset in
                         loadPreset(preset)
@@ -639,6 +708,13 @@ struct ComposerView: View {
                 case .queue:
                     QueuedAlertsView()
                 }
+            }
+            .onChange(of: kind) { _, updated in
+                if let style, style.eventKind != updated { self.style = nil; customTitle = "" }
+            }
+            .onChange(of: style) { _, updated in
+                if let updated { kind = updated.eventKind }
+                else { customTitle = "" }
             }
             .task(id: "\(store.activeID)-\(store.active.kind.rawValue)") {
                 applyScenePreset()
@@ -656,10 +732,51 @@ struct ComposerView: View {
         }
     }
 
+    private var templateSection: some View {
+        Section {
+            Button {
+                focusedInput = nil
+                presentedSheet = .templates
+            } label: {
+                LabeledContent("Browse notification templates", value: NotificationTemplate.templates(for: store.active.kind).count.formatted())
+            }
+            .accessibilityIdentifier("template-library").disabled(working)
+        } header: { Text("Templates") } footer: {
+            Text("Choose a ready-made notification, then customize its amount, message, and timing.")
+        }
+    }
+    private var orderDetailsSection: some View {
+        Section {
+            TextField("Customer name (optional)", text: $customerName)
+                .textContentType(.name).focused($focusedInput, equals: .customer)
+                .accessibilityIdentifier("customer")
+            Stepper("\(itemCount) \(itemCount == 1 ? "item" : "items")", value: $itemCount, in: 1...1000)
+                .accessibilityIdentifier("item-count")
+            TextField("Order number (optional)", text: $orderNumber)
+                .keyboardType(.numberPad).focused($focusedInput, equals: .orderNumber)
+                .accessibilityIdentifier("order-number")
+        } header: { Text(style?.isCustom == true ? "Message variables" : "Order details") } footer: {
+            if customerName.count > 80 { Text("Keep customer names to 80 characters or fewer.") }
+            if !orderNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && parsedOrderNumber == nil {
+                Text("Use a whole order number from 1 to 2 million.")
+            }
+        }
+    }
+    private func loadTemplate(_ template: NotificationTemplate) {
+        focusedInput = nil
+        kind = template.kind; style = template.style
+        amount = localizedEntry(template.amount); detail = template.detail
+        delay = template.delay; count = template.count; interval = template.interval
+        customerName = template.customerName ?? ""; itemCount = template.itemCount ?? 2
+        orderNumber = template.orderNumber.map { localizedEntry(Double($0)) } ?? ""
+        customTitle = template.customTitle ?? ""
+        composedSceneID = store.activeID; composedSceneKind = store.active.kind
+    }
+
     private var notificationSession: some View {
         Section("Notification session") {
             Stepper("\(count) notification\(count == 1 ? "" : "s")", value: $count, in: 1...20)
-                .disabled(working)
+                .accessibilityIdentifier("notification-count").disabled(working)
             Picker("Start after", selection: $delay) {
                 Text("5 seconds").tag(5.0)
                 Text("30 seconds").tag(30.0)
@@ -672,7 +789,12 @@ struct ComposerView: View {
             .pickerStyle(.menu)
             .accessibilityIdentifier("notification-delay")
             .disabled(working)
-            Text("Multiple alerts arrive 10 seconds apart.").font(.caption).foregroundStyle(.secondary)
+            Picker("Repeat interval", selection: $interval) {
+                ForEach([5.0, 10.0, 15.0, 20.0, 30.0, 60.0], id: \.self) { Text("\(Int($0)) seconds").tag($0) }
+                if ![5.0, 10.0, 15.0, 20.0, 30.0, 60.0].contains(interval) { Text(cueDelayLabel(interval)).tag(interval) }
+            }
+            .pickerStyle(.menu).accessibilityIdentifier("repeat-interval").disabled(working)
+            Text("Multiple alerts arrive \(cueDelayLabel(interval)) apart.").font(.caption).foregroundStyle(.secondary)
             Button {
                 cueNotifications()
             } label: {
@@ -719,8 +841,11 @@ struct ComposerView: View {
             Button {
                 focusedInput = nil
                 presentedSheet = .saveCue(NotificationPreset(
-                    name: kind.title, kind: kind, amount: eventAmount,
-                    detail: detail, delay: delay, count: count
+                    name: style?.name ?? kind.title, kind: kind, amount: eventAmount,
+                    detail: detail, delay: delay, count: count, style: style, interval: interval,
+                    customerName: preparedCustomer, itemCount: (orderFieldsVisible || style != nil) ? itemCount : nil,
+                    orderNumber: parsedOrderNumber,
+                    customTitle: customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : customTitle.trimmingCharacters(in: .whitespacesAndNewlines)
                 ))
             } label: {
                 Label("Save current cue", systemImage: "bookmark")
@@ -732,13 +857,19 @@ struct ComposerView: View {
         } footer: {
             Text(store.presets.count >= 50
                  ? "You have 50 saved cues. Delete one to save another."
-                 : "Saved cues remember the event, amount, details, timing, and alert count. Amounts use the active scene's currency.")
+                 : "Saved cues remember the style, amount, details, order information, timing, and alert count. Amounts use the active scene's currency.")
         }
     }
 
     private func loadPreset(_ preset: NotificationPreset) {
         focusedInput = nil
         kind = preset.kind
+        style = preset.style
+        interval = preset.interval
+        customerName = preset.customerName ?? ""
+        itemCount = preset.itemCount ?? 2
+        orderNumber = preset.orderNumber.map { localizedEntry(Double($0)) } ?? ""
+        customTitle = preset.customTitle ?? ""
         amount = localizedEntry(preset.amount)
         detail = preset.detail
         delay = preset.delay
@@ -751,6 +882,7 @@ struct ComposerView: View {
         guard composedSceneID != store.activeID || composedSceneKind != store.active.kind else { return }
         composedSceneID = store.activeID
         composedSceneKind = store.active.kind
+        style = nil; customTitle = ""; customerName = ""; itemCount = 2; orderNumber = ""; interval = 10
         switch store.active.kind {
         case .commerce:
             kind = .order
@@ -780,20 +912,111 @@ struct ComposerView: View {
     }
 
     private func cueNotifications() {
+        guard valid, !working else { return }
         focusedInput = nil
         working = true
+        let queuedSceneID = store.activeID
         let queuedCount = count
         let queuedKind = kind
         let queuedAmount = eventAmount
         let queuedDetail = detail
         let queuedDelay = delay
+        let queuedStyle = style
+        let queuedInterval = interval
+        let queuedCustomer = preparedCustomer
+        let queuedItems = (orderFieldsVisible || style != nil) ? itemCount : nil
+        let queuedOrder = parsedOrderNumber
+        let queuedTitle = customTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         Task {
-            let success = await store.schedule(kind: queuedKind, amount: queuedAmount, detail: queuedDetail, delay: queuedDelay, count: queuedCount)
+            guard store.activeID == queuedSceneID else {
+                working = false
+                store.error = "The selected scene changed. Review this cue before scheduling it."
+                return
+            }
+            let success = await store.schedule(kind: queuedKind, amount: queuedAmount, detail: queuedDetail, delay: queuedDelay, count: queuedCount,
+                                               style: queuedStyle, interval: queuedInterval, customerName: queuedCustomer,
+                                               itemCount: queuedItems, orderNumber: queuedOrder, customTitle: queuedTitle.isEmpty ? nil : queuedTitle)
             working = false
             if success {
                 confirmation = "\(queuedCount) alert\(queuedCount == 1 ? "" : "s") queued. You can lock your phone or leave the app."
             }
         }
+    }
+}
+
+private func cueWholeNumber(_ text: String, minimum: Int, maximum: Int) -> Int? {
+    guard let value = Simulation.parseAmount(text), value >= Double(minimum), value <= Double(maximum), value.rounded(.down) == value else { return nil }
+    return Int(value)
+}
+
+private struct InstalledNotificationIcon: View {
+    private var icon: UIImage? {
+        let icons = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any]
+        let primary = icons?["CFBundlePrimaryIcon"] as? [String: Any]
+        if let names = primary?["CFBundleIconFiles"] as? [String],
+           let image = names.reversed().compactMap({ UIImage(named: $0) }).first { return image }
+        if let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleIconFile") as? String,
+           let image = UIImage(named: name) { return image }
+        return Bundle.main.urls(forResourcesWithExtension: "png", subdirectory: nil)?
+            .filter { $0.lastPathComponent.hasPrefix("AppIcon") }
+            .compactMap { UIImage(contentsOfFile: $0.path) }.first
+    }
+    var body: some View {
+        Group {
+            if let icon { Image(uiImage: icon).resizable().scaledToFit() }
+            else {
+                Image(systemName: "sparkles").foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(accent)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+private struct BuiltinNotificationTemplates: View {
+    @Environment(\.dismiss) private var dismiss
+    let scene: StudioScene
+    let onApply: (NotificationTemplate) -> Void
+    @State private var query = ""
+    private var templates: [NotificationTemplate] {
+        NotificationTemplate.templates(for: scene.kind).filter {
+            query.isEmpty || "\($0.name) \($0.style.name) \($0.detail)".localizedCaseInsensitiveContains(query)
+        }
+    }
+    var body: some View {
+        NavigationStack {
+            List {
+                if templates.isEmpty { ContentUnavailableView.search(text: query) }
+                Section("For \(scene.name)") {
+                    ForEach(templates) { template in
+                        Button { onApply(template) } label: {
+                            VStack(alignment: .leading, spacing: 7) {
+                                HStack {
+                                    Text(template.name).font(.headline).foregroundStyle(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right").font(.system(size: 11)).foregroundStyle(.secondary)
+                                }
+                                Text(template.style.name).font(.caption.weight(.semibold)).foregroundStyle(accent)
+                                Text(template.style.body(scene: scene, amount: template.amount, detail: template.detail,
+                                                         customerName: template.customerName, itemCount: template.itemCount, orderNumber: template.orderNumber))
+                                    .font(.subheadline).foregroundStyle(.secondary).lineLimit(3)
+                                Text("\(template.count) alert\(template.count == 1 ? "" : "s") · \(cueDelayLabel(template.delay)) delay")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(template.name)
+                        .accessibilityHint("Loads this editable template into Studio")
+                        .accessibilityIdentifier("builtin-template-" + template.id)
+                    }
+                }
+            }
+            .searchable(text: $query, prompt: "Search notification templates")
+            .navigationTitle("Notification templates").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+        .accessibilityIdentifier("notification-template-library")
     }
 }
 
@@ -1213,18 +1436,21 @@ private struct SavedCuesView: View {
                         Button { onApply(preset) } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(preset.name).font(.headline).foregroundStyle(.primary)
-                                Text("\(preset.kind.title) · \(preset.count) alert\(preset.count == 1 ? "" : "s")")
+                                Text("\(preset.style?.name ?? preset.kind.title) · \(preset.count) alert\(preset.count == 1 ? "" : "s")")
                                     .font(.subheadline).foregroundStyle(.secondary)
-                                Text("Starts after \(cueDelayLabel(preset.delay))")
+                                Text("Starts after \(cueDelayLabel(preset.delay)) · \(cueDelayLabel(preset.interval)) apart")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 6)
                         }
+                        .disabled(!(preset.style?.isAvailable(for: store.active.kind) ?? true))
                         .buttonStyle(.borderless)
                         .accessibilityLabel(preset.name)
-                        .accessibilityValue("\(preset.kind.title), \(preset.count) alerts after \(cueDelayLabel(preset.delay))")
-                        .accessibilityHint("Loads this cue into Studio without scheduling it")
+                        .accessibilityValue("\(preset.style?.name ?? preset.kind.title), \(preset.count) alerts after \(cueDelayLabel(preset.delay))")
+                        .accessibilityHint(preset.style?.isAvailable(for: store.active.kind) == false
+                                           ? "Choose a compatible scene to use this cue"
+                                           : "Loads this cue into Studio without scheduling it")
                         .accessibilityIdentifier("load-cue-\(preset.id.uuidString)")
                         Button { editing = preset } label: {
                             Image(systemName: "pencil").frame(width: 44, height: 44)
@@ -1253,18 +1479,39 @@ private struct CuePresetEditor: View {
     @State var preset: NotificationPreset
     @State private var amount = ""
     @State private var startAfter = ""
-    private enum InputField: Hashable { case name, amount, details, delay }
+    @State private var customerName = ""
+    @State private var itemCount = 2
+    @State private var orderNumber = ""
+    @State private var customTitle = ""
+    @State private var loaded = false
+    private enum InputField: Hashable { case name, amount, details, delay, customer, order, title }
     @FocusState private var focusedInput: InputField?
 
     private var prepared: NotificationPreset {
         var value = preset
         value.name = preset.name.trimmingCharacters(in: .whitespacesAndNewlines)
         value.detail = preset.detail.trimmingCharacters(in: .whitespacesAndNewlines)
-        value.amount = preset.kind == .subscriber ? 0.01 : Simulation.parseAmount(amount) ?? 0
+        value.amount = requiresAmount ? Simulation.parseAmount(amount) ?? 0 : 0.01
+        let customer = customerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = customTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        value.customerName = !customer.isEmpty ? customer : nil
+        value.itemCount = (orderFieldsVisible || preset.style != nil) ? itemCount : nil
+        value.orderNumber = cueWholeNumber(orderNumber, minimum: 1, maximum: 2_000_000)
+        value.customTitle = preset.style != nil && !title.isEmpty ? title : nil
         value.delay = Simulation.parseAmount(startAfter) ?? 0
         return value
     }
-    private var valid: Bool { prepared.isValid && preset.name.count <= 60 && preset.detail.count <= 240 }
+    private var requiresAmount: Bool {
+        guard let style = preset.style else { return preset.kind != .subscriber }
+        return style.isCustom ? preset.detail.contains("{amount}") : style.usesAmount
+    }
+    private var orderFieldsVisible: Bool { preset.kind == .order || preset.style?.applicableKinds.contains(.commerce) == true || preset.style?.isCustom == true }
+    private var valid: Bool {
+        prepared.isValid && preset.name.count <= 60 && preset.detail.count <= 240 && customTitle.count <= 80
+        && (preset.style?.isCustom != true || !preset.detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        && customerName.count <= 80
+        && (orderNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || cueWholeNumber(orderNumber, minimum: 1, maximum: 2_000_000) != nil)
+    }
 
     var body: some View {
         NavigationStack {
@@ -1283,9 +1530,14 @@ private struct CuePresetEditor: View {
                         ForEach(EventKind.allCases) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.menu)
-                    if preset.kind != .subscriber {
+                    Picker("Notification style", selection: $preset.style) {
+                        Text("Automatic").tag(Optional<NotificationStyle>.none)
+                        ForEach(NotificationStyle.allCases) { Text($0.name).tag(Optional($0)) }
+                    }
+                    .pickerStyle(.menu).accessibilityIdentifier("notification-style")
+                    if requiresAmount {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Amount · \(store.active.currency)").font(.caption).foregroundStyle(.secondary)
+                            Text("\(preset.style?.amountLabel ?? "Amount") · \(store.active.currency)").font(.caption).foregroundStyle(.secondary)
                             TextField("Amount", text: $amount)
                                 .keyboardType(.decimalPad)
                                 .focused($focusedInput, equals: .amount)
@@ -1294,7 +1546,7 @@ private struct CuePresetEditor: View {
                     }
                     TextField("Details", text: $preset.detail, axis: .vertical)
                         .lineLimit(2...4)
-                        .focused($focusedInput, equals: .details)
+                        .focused($focusedInput, equals: .details).accessibilityIdentifier("notification-details")
                 } header: {
                     Text("Event")
                 } footer: {
@@ -1302,8 +1554,31 @@ private struct CuePresetEditor: View {
                          ? "Keep event details to 240 characters or fewer."
                          : "Amounts use the active scene's currency when you load this cue.")
                 }
+                if preset.style != nil {
+                    Section("Title") {
+                        TextField("Notification title (optional)", text: $customTitle)
+                            .focused($focusedInput, equals: .title).accessibilityIdentifier("custom-title")
+                    }
+                }
+                if orderFieldsVisible {
+                    Section(preset.style?.isCustom == true ? "Message variables" : "Order details") {
+                        TextField("Customer name (optional)", text: $customerName)
+                            .textContentType(.name).focused($focusedInput, equals: .customer).accessibilityIdentifier("customer")
+                        Stepper("\(itemCount) \(itemCount == 1 ? "item" : "items")", value: $itemCount, in: 1...1000)
+                            .accessibilityIdentifier("item-count")
+                        TextField("Order number (optional)", text: $orderNumber).keyboardType(.numberPad)
+                            .focused($focusedInput, equals: .order).accessibilityIdentifier("order-number")
+                    }
+                }
+                else if preset.style == .creatorSubscriber || preset.style == .predictionResolved {
+                    Section(preset.style == .predictionResolved ? "Outcome" : "Subscriber") {
+                        TextField(preset.style == .predictionResolved ? "Outcome (optional)" : "Subscriber name (optional)", text: $customerName)
+                            .focused($focusedInput, equals: .customer).accessibilityIdentifier("customer")
+                    }
+                }
                 Section {
                     Stepper("\(preset.count) notification\(preset.count == 1 ? "" : "s")", value: $preset.count, in: 1...20)
+                        .accessibilityIdentifier("notification-count")
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Start after · seconds").font(.caption).foregroundStyle(.secondary)
                         TextField("Seconds", text: $startAfter)
@@ -1311,10 +1586,15 @@ private struct CuePresetEditor: View {
                             .focused($focusedInput, equals: .delay)
                             .accessibilityLabel("Start after in seconds")
                     }
+                    Picker("Repeat interval", selection: $preset.interval) {
+                        ForEach([5.0, 10.0, 15.0, 20.0, 30.0, 60.0], id: \.self) { Text("\(Int($0)) seconds").tag($0) }
+                        if ![5.0, 10.0, 15.0, 20.0, 30.0, 60.0].contains(preset.interval) { Text(cueDelayLabel(preset.interval)).tag(preset.interval) }
+                    }
+                    .pickerStyle(.menu).accessibilityIdentifier("repeat-interval")
                 } header: {
                     Text("Timing")
                 } footer: {
-                    Text("Start after 2 seconds to 24 hours. Multiple alerts arrive 10 seconds apart. Saving a cue does not schedule notifications.")
+                    Text("Start after 2 seconds to 24 hours. Multiple alerts arrive \(cueDelayLabel(preset.interval)) apart. Saving a cue does not schedule notifications.")
                 }
             }
             .navigationTitle("Save cue")
@@ -1335,9 +1615,21 @@ private struct CuePresetEditor: View {
                     Button("Done") { focusedInput = nil }
                 }
             }
+            .onChange(of: preset.kind) { _, updated in
+                if let style = preset.style, style.eventKind != updated { preset.style = nil; customTitle = "" }
+            }
+            .onChange(of: preset.style) { _, updated in
+                if let updated { preset.kind = updated.eventKind }
+                else { customTitle = "" }
+            }
             .onAppear {
+                guard !loaded else { return }
+                loaded = true
                 amount = localizedEntry(preset.amount)
                 startAfter = localizedEntry(preset.delay)
+                customerName = preset.customerName ?? ""; itemCount = preset.itemCount ?? 2
+                orderNumber = preset.orderNumber.map { localizedEntry(Double($0)) } ?? ""
+                customTitle = preset.customTitle ?? ""
             }
         }
     }
