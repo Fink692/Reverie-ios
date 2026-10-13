@@ -1,30 +1,46 @@
 # Verification status
 
-The next precision revision is awaiting Apple verification. It refines bank, investing, wallet, commerce and prediction layouts; seeds seven Wealthsimple reference holdings only for new profiles; and adds Chase/Bank of America payment review/commit/relaunch UI coverage. Results below remain the previously verified native baseline until the new hosted run completes.
+The precision revision passes its native build, all 137 tests, and independent checks of all 20 branded packages. All 20 production startup and SpringBoard originals and five additional checkpoints were visually reviewed. Complete 1:1 parity is not established.
 
-The fidelity revision passes its native build, all 136 tests, and independent checks of all 20 branded packages. Complete 1:1 parity is not established. The remaining visible differences and missing reference states are recorded in [VISUAL-COVERAGE.md](VISUAL-COVERAGE.md).
-
-Repository: https://github.com/Fink692/Reverie-ios. Native build: [38411196377](https://github.com/Fink692/Reverie-ios/actions/runs/38411196377), commit `261945d1a99a7828d8dc551467ccf2819fc12f94`. Application source and artwork are unchanged in subsequent verification/documentation commits. The readiness harness was verified separately on commit `5b5c752481ac50639ba0a0fb036b75306e62908e`.
+Native build: [38444892650](https://github.com/Fink692/Reverie-ios/actions/runs/38444892650), application commit `2c8d82c247f9a6a7cd55c82fededd2ab03148fe2`. Subsequent documentation changes preserve this application source and artwork.
 
 | Check | Result |
 | --- | --- |
 | Shared Swift logic | 47 tests, zero failures |
-| Native model, persistence, and Store unit tests | 71 tests, zero failures |
-| Native iPhone Simulator UI flows | 18 tests, zero failures |
+| Native model, persistence and Store unit tests | 71 tests, zero failures |
+| Native iPhone Simulator UI flows | 19 tests, zero failures |
 | Unsigned physical-device compilation | Passed |
-| Branded IPA identity, icon, resources, and checksum checks | All 20 passed |
-| Independent downloaded IPA validation | All 20 passed |
-| Production-metadata install and SpringBoard presentation | All 20 installed; all 20 names/icons visually reviewed |
-| Production startup readiness recheck | All 20 passed using the unchanged archived executable |
+| Branded IPA identity, icon, resources and checksum checks | All 20 passed |
+| Independent downloaded IPA validation | All 20 passed; [receipt](final-package-checks.json) |
+| Production-metadata startup readiness | All 20 passed; [receipt](startup-readiness-checks.json) |
+| Visual inspection of final captures | All 20 startup/SpringBoard originals and five checkpoints reviewed |
 
-The UI suite covers all 12 bank themes, commerce navigation, seven investing/wallet/prediction homes, trading and transfer persistence, and customized Shopify cue save/relaunch/system-queue/cancellation. The new Trust Wallet flow verifies token search, Crypto/NFT tabs, collectible navigation and unchanged balances. The customized Shopify payload includes its title, amount, customer, item count, order information, and timing. Scheduled alerts preserve accounting totals.
+The functional total is 137 tests. Complete 1:1 parity is not established. [VISUAL-COVERAGE.md](VISUAL-COVERAGE.md) records visible differences and unpictured states; [MATCHING-INPUTS.md](MATCHING-INPUTS.md) identifies the target-version recordings needed for exact comparisons.
 
-All branded packages share the exact compiled executable, libraries, and icon catalog. Each has its own bundle identifier, display name, playback metadata, selected compiled primary icon for iPhone and iPad, and notification-preview PNG matching the official source bytes. Independent ZIP CRC, SHA-256, size, metadata, native icon-rendition and resource checks passed for all 20. Every resource except the variant metadata and selected preview PNG matches the base app byte-for-byte. The arm64 executable targets iOS 17, uses SDK 18.5, and contains no code signature. Evidence is in [final-package-checks.json](final-package-checks.json). The base Reverie IPA is included separately.
+## Functional coverage
 
-The production checks use installed Info.plist metadata rather than UI-test brand overrides. All 20 original SpringBoard captures were visually reviewed for the configured names/icons. The first Shopify image from the native run was blank after five seconds; its interactive commerce screenshots and UI tests passed. The capture-only [readiness recheck, run 38418631787](https://github.com/Fink692/Reverie-ios/actions/runs/38418631787), reuses the exact archived executable, debug libraries and asset catalog, with matching SHA-256 values. Shopify's first frame was rejected as uniformly white; the second frame rendered seven seconds later. The other 19 variants passed on their first capture. All 20 accepted startup and SpringBoard captures are preserved; visual review confirms the expected clean startup scenes. The archived simulator app also retains two XCTest support libraries from the native test build. Application executable, debug-library, catalog and configuration checks match the earlier run; details and image hashes are in [startup-readiness-checks.json](startup-readiness-checks.json). This resolves premature screenshot acceptance without changing the application. The checker detects blank content; it does not certify correct screen semantics or visual parity.
+The UI suite covers all 12 bank themes, commerce navigation, seven investing/wallet/prediction homes, trading and transfer persistence, Trust Wallet search/Crypto/NFT/collectible navigation, and customized Shopify cue save/relaunch/accepted-system-queue/cancellation.
 
-Environment: Xcode 16.4 (16F6), iPhoneOS/iPhoneSimulator 18.5 SDK (22F76), deployment target iOS 17. Native runtime: iPhone 17 Pro Max Simulator running iOS 26.2. Native compiler: Swift 6.1.2. Shared compiler: official Swift 6.0.3 Linux. The included Xcode project was generated with official XcodeGen 2.46.0.
+The added Chase and Bank of America payment test rejects an overdraft, enters Jordan Lee and $36.25 with reference Invoice 241, captures review and receipt, verifies that editing review leaves the balance unchanged, commits one payment, verifies the new balance after relaunch, and checks that activity contains one saved payment. The receipt reflects an immediate fictional local payment; the Bank of America tutorial’s scheduled-payment/enrollment process is not implemented.
 
-The app provides 20 reference styles, 33 notification styles, and 35 editable templates. Playback screens hide Studio chrome and DEMO labels. The visual revision adds individual bank headers and account layouts, Wealthsimple Holdings, Robinhood discovery/Crypto controls, Coinbase layout refinements, Trust Wallet search/rewards/NFT/receive states, Phantom and MetaMask refinements, Shopify chart/order spacing, and Polymarket public sports artwork. These changes improve resemblance to pictured public states. Artwork, secondary navigation, sample account products and unpictured flows still differ; tests do not establish visual equivalence to complete current apps.
+The Shopify test saves and reloads amount 179.25, title Checkout completed, customer Morgan Hale, quantity 3, order number 2088, a five-minute delay and a thirty-second repeat interval. It then checks the accepted system request title and exact plain new-order body: `[Studio Supply] You have a new order for 3 items totaling $179.25. From Morgan Hale.` The saved order number is not part of that body. Cancelling the queued request clears the queue. These checks establish saved settings and pending requests, not locked-device delivery or authentic notification appearance.
 
-Physical iPhone installation, locked-device notification delivery/audio, iPad runtime, a full VoiceOver audit, and Apple distribution signing remain unverified. The IPAs require Apple signing and provisioning before installation. Exact genuine installed display-name values and the Shopify Cha-Ching recording are unverified; commerce uses an original cash-register approximation. All scenes and transactions are fictional and local.
+The app provides 20 reference styles, 33 notification styles and 35 editable templates. Styles cover commerce, banking, investing, crypto, predictions, creators and custom text. Wording is shared within categories; no genuine notification-copy equivalence is established separately for every brand. Each session supports 1–20 alerts, delays of 2 seconds to 24 hours, intervals of 5–3,600 seconds, and a maximum of 60 queued alerts per installed app. Scheduling leaves accounting totals unchanged.
+
+## Packages and captures
+
+All branded packages reuse the compiled executable, libraries and asset catalog, with separate bundle identifiers, names, selected primary icons, playback metadata and notification-preview PNGs. The independent receipt records ZIP CRC, SHA-256, sizes, identity, icon renditions and resources for each downloaded package. Public preview images preserve the cited source bytes. The base Reverie IPA is included separately. Unsigned packages require Apple signing and provisioning before physical installation.
+
+Startup verification installs production metadata and checks rendered content before accepting a capture. It rejects uniformly blank screens and retries; this detects premature capture acceptance, not correct screen semantics or pixel equivalence. The receipt records accepted image hashes and attempts for the final run. All 20 startup and SpringBoard originals were reviewed, including the corrected Bank of America and Starling headers. Each startup passed on its first capture. The simulator archive includes two XCTest support libraries; its application executable, debug libraries and catalog match the production startup base exactly. These extra test libraries are recorded separately in the receipt.
+
+The validated comparison gallery contains 25 pairs with 50 unaltered images: 20 startup/reference pairs, Chase and Bank of America review/result checkpoints, and a Trust Wallet NFT checkpoint. A promotional or dated guide reference remains evidence of the pictured composition, not proof of a current authenticated application.
+
+## Precision changes and limits
+
+Fresh Wealthsimple profiles seed the seven fully visible reference holdings; saved profiles are preserved. The revision uses seven public company glyphs, four token images, and 11 dated guide captures with recorded source hashes. It refines individual bank headers, portfolio/wallet controls, Shopify toolbar marks and Polymarket colors/tickets. Chase and Bank of America payment guides support those specific compositions. Other bank product/navigation flows, Coinbase secondary products, Polymarket combos/chat/livestreams and wallet artwork retain material differences.
+
+Playback hides Studio chrome and DEMO labels. All account data and transactions remain fictional and local. Exact installed names, genuine app geometry across versions and all authenticated flows are not verified. Shopify new-order alerts use an original 1.65-second cash-register approximation; the genuine Cha-Ching recording is unverified, and other alerts use default sound.
+
+Physical iPhone installation, foreground/background/locked-device delivery and audio, Focus/Silent-mode behavior, denied-permission behavior on the intended device, delivered-alert routing, iPad runtime, full accessibility coverage and Apple distribution signing remain unverified. [DEVICE-CHECKLIST.md](../DEVICE-CHECKLIST.md) separates executed hosted checks from physical-device work.
+
+Verified native environment: Xcode 16.4 (16F6), iPhoneOS/iPhoneSimulator 18.5 SDK, iOS 17 deployment target, Swift 6.1.2 and iPhone 17 Pro Max Simulator running iOS 26.2. The shared suite uses official Swift 6.0.3 Linux. The included project was generated with official XcodeGen 2.46.0.

@@ -1,16 +1,19 @@
 {
-  "generatedAt": "2026-10-13T14:53:23.637503+00:00",
-  "workflowRun": 38411196377,
-  "nativeCommit": "261945d1a99a7828d8dc551467ccf2819fc12f94",
+  "generatedAt": "2026-10-13T18:58:07.981116+00:00",
+  "workflowRun": 38444892650,
+  "nativeCommit": "2c8d82c247f9a6a7cd55c82fededd2ab03148fe2",
+  "sourceCommitPinned": true,
+  "baseIPACRCVerified": true,
+  "baseIPASHA256": "4d0f069c000172202444d7a6735f3fd3ab7a865860cedc60fa76a31e2197876f",
   "result": "passed",
   "nativeAndIndependentManifestExactMatchExceptTimestamp": true,
   "variantCount": 20,
   "uniqueIdentifiers": 20,
   "sourceIdenticalPreviewPNGCount": 20,
-  "mainExecutableSHA256": "27e73cad0f4b41d5517ca77accced38fc3dd65362bbb8bc800caefb962ede4de",
-  "assetCatalogSHA256": "282493f00e63377fbf58b2ed6c77bb696520350ce5c516b5301442824f3329da",
+  "mainExecutableSHA256": "0f64c71f874eb1c03889263b95924f8d57bd60db7668ed4a954f37feaecc1a0e",
+  "assetCatalogSHA256": "fbbc93e11d598c355038a2e6ba30d9bf8e0e77a0311cf910f1ea2bb422c43fe9",
   "compiledLibrariesSHA256": {
-    "Reverie": "27e73cad0f4b41d5517ca77accced38fc3dd65362bbb8bc800caefb962ede4de"
+    "Reverie": "0f64c71f874eb1c03889263b95924f8d57bd60db7668ed4a954f37feaecc1a0e"
   },
   "machO": {
     "architecture": "arm64",
@@ -31,8 +34,8 @@
     {
       "id": "commerce",
       "file": "Reverie-commerce-unsigned.ipa",
-      "sizeBytes": 15792064,
-      "sha256": "973e664445577e6d7d9ce46db04f5e935aa4a795ce4b4f21a5cc2d3c32eb1488",
+      "sizeBytes": 16085648,
+      "sha256": "720fc32d8f7a8aad0f5cd1d004e2a2865e0862dbf40e9439043e6e15f82b22bc",
       "crcVerified": true,
       "sourcePreviewSHA256": "25bd3ffd082b2b08df298a77c2085ad1236e23473b85f359381ea967f92fd1ba",
       "bundleIdentifier": "com.reverie.brand.commerce",
@@ -58,8 +61,8 @@
     {
       "id": "chase",
       "file": "Reverie-chase-unsigned.ipa",
-      "sizeBytes": 15742613,
-      "sha256": "8aa946cbfe09d58b0f131ea084da8f92d75898d0da4fed60a44dc84014026632",
+      "sizeBytes": 16036197,
+      "sha256": "eb2b5596cc09e012b9871481a442d82a678a59aa428e5a1cfca13d9b0593e741",
       "crcVerified": true,
       "sourcePreviewSHA256": "cc19606c5474f21b1a84315ae343427c47eba949c1a13c9ad44f213320a50f89",
       "bundleIdentifier": "com.reverie.brand.chase",
@@ -87,8 +90,8 @@
     {
       "id": "bankOfAmerica",
       "file": "Reverie-bankOfAmerica-unsigned.ipa",
-      "sizeBytes": 15190678,
-      "sha256": "43e0f1ac7c8dbcc7b648d7c70e60bcb54780a5201ee860eb25b08ab85f14e96c",
+      "sizeBytes": 15484262,
+      "sha256": "b1a50d78b4d63428469b2b7646afded1975626090937e9326d439dc62e187365",
       "crcVerified": true,
       "sourcePreviewSHA256": "9b75fdc0636c2c75ff245823e81347014bb48c4f0d6c83acf8ede47a0c489047",
       "bundleIdentifier": "com.reverie.brand.bankofamerica",
@@ -116,8 +119,8 @@
     {
       "id": "wellsFargo",
       "file": "Reverie-wellsFargo-unsigned.ipa",
-      "sizeBytes": 15200120,
-      "sha256": "322454cd5b3adae11ea001402e1baa4827d9e7f829a5f87444ce64186d56e0ca",
+      "sizeBytes": 15493704,
+      "sha256": "941be7c15bdca06443b7e413bfb8b834061e5525ac3328f617baab3a95d9ba06",
       "crcVerified": true,
       "sourcePreviewSHA256": "0ffbdeaa2b76b11c75a0ae4881d958e8f1bdb37c8245ce02162c04f5b6d7a009",
       "bundleIdentifier": "com.reverie.brand.wellsfargo",
@@ -145,8 +148,8 @@
     {
       "id": "citi",
       "file": "Reverie-citi-unsigned.ipa",
-      "sizeBytes": 15168368,
-      "sha256": "4190d409353350f56acb104d982ed9f14d69577c56928bfe5dabd28ec203d831",
+      "sizeBytes": 15461952,
+      "sha256": "50083836e6f435197182304a61e5a090f22d01b32b9e0eb6e8757ab3ffef4471",
       "crcVerified": true,
       "sourcePreviewSHA256": "1f55379b3aa95b62957a3df06e6363cdaceac371e050ced3f669fedec655fcee",
       "bundleIdentifier": "com.reverie.brand.citi",
@@ -174,8 +177,8 @@
     {
       "id": "capitalOne",
       "file": "Reverie-capitalOne-unsigned.ipa",
-      "sizeBytes": 15411766,
-      "sha256": "423aa66e887274bc7a083797015aa792f6ac5c9d7d2310d1b6c1de85a39b4f5d",
+      "sizeBytes": 15705350,
+      "sha256": "14638f0bd8d97878ffe21075504c459e3bafd2aaaf871420aa96e432ff9604c7",
       "crcVerified": true,
       "sourcePreviewSHA256": "dbdb4b2f4bfeb82f16801d6c53fe48e09cf5d0253fe3135f39de25125cd4a881",
       "bundleIdentifier": "com.reverie.brand.capitalone",
@@ -203,8 +206,8 @@
     {
       "id": "hsbc",
       "file": "Reverie-hsbc-unsigned.ipa",
-      "sizeBytes": 15161478,
-      "sha256": "d0cdac16e99e0881027831c425feddf04dfaf2b5d343ccf8c24d102a6139fac2",
+      "sizeBytes": 15455062,
+      "sha256": "7ec4a55fb07b8f027d6421f343a0eeb10d17493d0c071fbec1384869af82af2b",
       "crcVerified": true,
       "sourcePreviewSHA256": "121dc9ba0fd73ae606399a638b2370d28d92457dd73febbe5bbc739ab42a1525",
       "bundleIdentifier": "com.reverie.brand.hsbc",
@@ -232,8 +235,8 @@
     {
       "id": "barclays",
       "file": "Reverie-barclays-unsigned.ipa",
-      "sizeBytes": 15706848,
-      "sha256": "273d347b5f204832d093b78392196ad927063f0381699d274252bcc266f38471",
+      "sizeBytes": 16000432,
+      "sha256": "ab48e85cd5c652aa2b1ad3cb386ccaab5e6dad9c12118add975e881d4fd9fded",
       "crcVerified": true,
       "sourcePreviewSHA256": "46560ed033644fc0b9f71e409b34ac5b47c0a3f3680d6ca199bd75df93a118fc",
       "bundleIdentifier": "com.reverie.brand.barclays",
@@ -261,8 +264,8 @@
     {
       "id": "lloyds",
       "file": "Reverie-lloyds-unsigned.ipa",
-      "sizeBytes": 15192760,
-      "sha256": "c874ea20a79f5f87445c775d46d89ec49bff6a820c41626b5a5e471f05ce1e2a",
+      "sizeBytes": 15486344,
+      "sha256": "acfd2eb1bd1cb88090844e862250869e6f9e8552e66f162245796ae1d0a562c9",
       "crcVerified": true,
       "sourcePreviewSHA256": "2a969d2b358df566e9041169c757c3637c1ed3b9827d3fd1617359a44e13290d",
       "bundleIdentifier": "com.reverie.brand.lloyds",
@@ -290,8 +293,8 @@
     {
       "id": "natWest",
       "file": "Reverie-natWest-unsigned.ipa",
-      "sizeBytes": 15241629,
-      "sha256": "4cd7ef196d62c4e5e44c2359d51668df95d3ec8f76434ca454d3e9b44af0305b",
+      "sizeBytes": 15535213,
+      "sha256": "1c1930c86f3265a32bd81ecf1a1958a8db485067da7ddc306e6dc428d49d5bf1",
       "crcVerified": true,
       "sourcePreviewSHA256": "899eb62b519a7d375d60ea9264b708d356e09ac50fa19501c08a6609f6f750d9",
       "bundleIdentifier": "com.reverie.brand.natwest",
@@ -319,8 +322,8 @@
     {
       "id": "monzo",
       "file": "Reverie-monzo-unsigned.ipa",
-      "sizeBytes": 15368457,
-      "sha256": "bc4a7312f6d34c9bdb66a08bcc5f7c0a514480b436056e1afa0453176bde883e",
+      "sizeBytes": 15662041,
+      "sha256": "cc4cf7ee04ffc133cba2410c4606b41aac2f96d584f1f10b26300fd04b2e4b19",
       "crcVerified": true,
       "sourcePreviewSHA256": "95be56f0f315d623c3b904e62d085939184391afadc4d2496f4544021604d6f3",
       "bundleIdentifier": "com.reverie.brand.monzo",
@@ -348,8 +351,8 @@
     {
       "id": "revolut",
       "file": "Reverie-revolut-unsigned.ipa",
-      "sizeBytes": 15163199,
-      "sha256": "c65e9883c95e7cf1f2aada6a92b955580c397de1a8108f3a73c7aab364e62bea",
+      "sizeBytes": 15456783,
+      "sha256": "e9c8665f811879e5d961806979bd05fc3ddd1412a1fa57deecf2b35297c24757",
       "crcVerified": true,
       "sourcePreviewSHA256": "2602694c741351e37953f0a8c95ce2c37ee73f29c83d1a7e3e500b0c715f9169",
       "bundleIdentifier": "com.reverie.brand.revolut",
@@ -377,8 +380,8 @@
     {
       "id": "starling",
       "file": "Reverie-starling-unsigned.ipa",
-      "sizeBytes": 15730198,
-      "sha256": "c59db3562f525ed65848df09b99fde1a8eee8a492975d5d18511c5c1f114f46c",
+      "sizeBytes": 16023782,
+      "sha256": "f871e6e34199a13a798d0a11edb298dbe5771b28f68bec887f17a2c153e956bb",
       "crcVerified": true,
       "sourcePreviewSHA256": "76b0fb2e0973928a3d056a93aba28c4e7d2589f309b46471c596a22647929ce9",
       "bundleIdentifier": "com.reverie.brand.starling",
@@ -406,8 +409,8 @@
     {
       "id": "robinhood",
       "file": "Reverie-robinhood-unsigned.ipa",
-      "sizeBytes": 16153567,
-      "sha256": "abd7ad3f8e2428662403b42cf94b351fda36cb1b87c2aec278f11f29d4b64010",
+      "sizeBytes": 16447151,
+      "sha256": "150449ad9486931e13d6541e231e3fcef48735bc74db787b86e2fa5d83f5da49",
       "crcVerified": true,
       "sourcePreviewSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5",
       "bundleIdentifier": "com.reverie.brand.robinhood",
@@ -435,8 +438,8 @@
     {
       "id": "wealthsimple",
       "file": "Reverie-wealthsimple-unsigned.ipa",
-      "sizeBytes": 15273526,
-      "sha256": "845a2e96e6ac5a409df7fc474cd8b8a0e452dde27b0eda72580c821905c7cd61",
+      "sizeBytes": 15567110,
+      "sha256": "527f67773ae892f4f6f063e586a0ead6a17fcb54baeec4b73d1136151a6ae041",
       "crcVerified": true,
       "sourcePreviewSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4",
       "bundleIdentifier": "com.reverie.brand.wealthsimple",
@@ -464,8 +467,8 @@
     {
       "id": "coinbase",
       "file": "Reverie-coinbase-unsigned.ipa",
-      "sizeBytes": 15171235,
-      "sha256": "44f932d3c5ac157190e3e5e433268c69b05aa85fcf88dcefcc203d01038d4351",
+      "sizeBytes": 15464819,
+      "sha256": "d79688d2155ec986280f5c1a94d2e62b90d770823b7bdda56df554d655e86916",
       "crcVerified": true,
       "sourcePreviewSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a",
       "bundleIdentifier": "com.reverie.brand.coinbase",
@@ -493,8 +496,8 @@
     {
       "id": "polymarket",
       "file": "Reverie-polymarket-unsigned.ipa",
-      "sizeBytes": 16578282,
-      "sha256": "b4c11214b2ffb47a60415da7da7c199a384883416e6e03d70c3b73b9ea6ea1e2",
+      "sizeBytes": 16871866,
+      "sha256": "03667a32c1717dfecdd7bd213cf9edf07088436f594480acc96f51ae0f6a4eb9",
       "crcVerified": true,
       "sourcePreviewSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b",
       "bundleIdentifier": "com.reverie.brand.polymarket",
@@ -522,8 +525,8 @@
     {
       "id": "metamask",
       "file": "Reverie-metamask-unsigned.ipa",
-      "sizeBytes": 15194059,
-      "sha256": "a012b61b25447c31f6ea96187f492696f630426ebd9a9b28121fe8a5cda8a250",
+      "sizeBytes": 15487643,
+      "sha256": "f9791e670fa597e1ab9081246b922562a25a5411c5283563ed431c6ce37f4475",
       "crcVerified": true,
       "sourcePreviewSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8",
       "bundleIdentifier": "com.reverie.brand.metamask",
@@ -551,8 +554,8 @@
     {
       "id": "phantom",
       "file": "Reverie-phantom-unsigned.ipa",
-      "sizeBytes": 15168935,
-      "sha256": "a5b79dc1b4a663cd97e8d45a7c93cf164172524bb0124f9ad7f681b2910ca791",
+      "sizeBytes": 15462519,
+      "sha256": "26c035aa21b97863ab2a58ec59027f880adc860fba6a19e6d7c7bc0234f3406a",
       "crcVerified": true,
       "sourcePreviewSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e",
       "bundleIdentifier": "com.reverie.brand.phantom",
@@ -580,8 +583,8 @@
     {
       "id": "trustWallet",
       "file": "Reverie-trustWallet-unsigned.ipa",
-      "sizeBytes": 15276683,
-      "sha256": "907bf0c8ea15fcf17baefcc74c389494795f9d8f80c576998ffda54a288b518a",
+      "sizeBytes": 15570267,
+      "sha256": "a2a40b002882e645ae0ea3afe3d5915a771874e2b7bb46ddd2ae16cacba3a83a",
       "crcVerified": true,
       "sourcePreviewSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785",
       "bundleIdentifier": "com.reverie.brand.trustwallet",
@@ -606,6 +609,5 @@
       "allOtherResourcesByteIdenticalToBase": true,
       "codeSignatureAbsent": true
     }
-  ],
-  "workflowRunURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38411196377"
+  ]
 }

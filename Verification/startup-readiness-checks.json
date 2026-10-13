@@ -1,160 +1,634 @@
 {
-  "captureRun": 38418631787,
-  "captureRunURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38418631787",
-  "captureWorkflowCommit": "5b5c752481ac50639ba0a0fb036b75306e62908e",
-  "nativeBuildRun": 38411196377,
-  "nativeBuildCommit": "261945d1a99a7828d8dc551467ccf2819fc12f94",
-  "artifactSHA256": "16beb23de7ad53ca58e204c8dd1fc6a9e2355b583533ff6ef368a46600974a2f",
-  "artifactSizeBytes": 82510722,
+  "generatedAt": "2026-10-13T19:07:41.757405+00:00",
+  "captureRun": 38444892650,
+  "captureRunURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38444892650",
+  "captureWorkflowCommit": "2c8d82c247f9a6a7cd55c82fededd2ab03148fe2",
+  "nativeBuildRun": 38444892650,
+  "nativeBuildCommit": "2c8d82c247f9a6a7cd55c82fededd2ab03148fe2",
+  "workflowRunStatus": "completed",
+  "workflowRunConclusion": "success",
+  "artifactSHA256": "26a59065932bc5e760907c851913b473afd95e91e246775a6269b1b30664041d",
+  "artifactSizeBytes": 133415521,
   "artifactCRCVerified": true,
+  "simulatorArchiveCRCVerified": true,
+  "extractedStartupEvidenceMatchesOriginalArtifact": true,
   "variantCount": 20,
+  "uniqueIdentifiers": 20,
   "allStartupScreensVisuallyReviewed": true,
-  "initialBlankShopifyFrameRejected": true,
+  "reviewedStartupIDs": [
+    "bankOfAmerica",
+    "barclays",
+    "capitalOne",
+    "chase",
+    "citi",
+    "coinbase",
+    "commerce",
+    "hsbc",
+    "lloyds",
+    "metamask",
+    "monzo",
+    "natWest",
+    "phantom",
+    "polymarket",
+    "revolut",
+    "robinhood",
+    "starling",
+    "trustWallet",
+    "wealthsimple",
+    "wellsFargo"
+  ],
+  "missingVisualReviewIDs": [],
+  "initialBlankShopifyFrameRejected": false,
+  "blankStartupFramesRejected": 0,
   "unchangedApplicationExecutableDebugLibrariesAndCatalog": true,
   "archivedSimulatorAdditionalTestSupportLibraries": [
     "Frameworks/libXCTestBundleInject.dylib",
     "Frameworks/libXCTestSwiftSupport.dylib"
   ],
+  "archivedSimulatorAdditionalTestSupportBinarySHA256": {
+    "Frameworks/libXCTestBundleInject.dylib": "5df3d135d234765ef935c63097e7ceb1a40d1272811613db9bbd6d392d48aac1",
+    "Frameworks/libXCTestSwiftSupport.dylib": "5bb8ef8eb07d16fc703e2e71a206292cb3acb6d860be688a374287b166b2e88f"
+  },
+  "archivedSimulatorBinarySHA256": {
+    "Reverie.debug.dylib": "abead1d5cdde8bb20cf65ea86cd3fb58f7c085fb3b2281775a4b48359b6786fb",
+    "__preview.dylib": "25637d2ce935cfdbfe9904daab2b692e1ba1616ce3749578ba4b7b56b7f4ad47",
+    "Reverie": "069c96388d14d1a7ad8e93d6fb962ab39c3ce7c9946d38edb0acdbed4698af7d",
+    "Frameworks/libXCTestSwiftSupport.dylib": "5bb8ef8eb07d16fc703e2e71a206292cb3acb6d860be688a374287b166b2e88f",
+    "Frameworks/libXCTestBundleInject.dylib": "5df3d135d234765ef935c63097e7ceb1a40d1272811613db9bbd6d392d48aac1"
+  },
+  "simulatorExecutableSHA256": "069c96388d14d1a7ad8e93d6fb962ab39c3ce7c9946d38edb0acdbed4698af7d",
+  "simulatorAssetCatalogSHA256": "fbbc93e11d598c355038a2e6ba30d9bf8e0e77a0311cf910f1ea2bb422c43fe9",
+  "simulatorBinarySHA256": {
+    "Reverie": "069c96388d14d1a7ad8e93d6fb962ab39c3ce7c9946d38edb0acdbed4698af7d",
+    "Reverie.debug.dylib": "abead1d5cdde8bb20cf65ea86cd3fb58f7c085fb3b2281775a4b48359b6786fb",
+    "__preview.dylib": "25637d2ce935cfdbfe9904daab2b692e1ba1616ce3749578ba4b7b56b7f4ad47"
+  },
+  "nativeReadinessLogSHA256": "59ff34d5320db234b3109426ca76760c6b2d3e9f96603580953e18ee1b331b77",
   "variants": [
     {
       "id": "commerce",
       "displayName": "Shopify",
-      "acceptedAttempt": 2,
+      "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 18,
+          "dominantFraction": 0.5485,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "083991df9b0eee0f971999484e66e576010f1d5947ad0dd88369a965989bccaf"
+      "startupScreenshotSHA256": "b347867a556f4fd30db10856c359f03f0b48db8e5a7cf92c24377ddaf799c8a5",
+      "springboardScreenshotSHA256": "695f21c14585ca23d0fad248a1b80465649b5497ea833534c7fb62b35a914d38",
+      "installedMetadataSHA256": "d177c6b2d54e7934589ba01c686d54ecd44837d814a44e48ba876259f600bb2a",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 18,
+        "dominantFraction": 0.5484375
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "chase",
       "displayName": "Chase",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 5,
+          "dominantFraction": 0.42468,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "c8e62b942e0d4a6168d4490116033d0d323b5c581d75b4872f02a66f6914a23d"
+      "startupScreenshotSHA256": "266eb1c6d611b8cfbe7f40cf2a0e7689f2d3df2f1d7e0b5a1a031c9e016993e0",
+      "springboardScreenshotSHA256": "b10a91f7a6b81ce800303c88623244d5a562f22c4447979de68874a6550f382b",
+      "installedMetadataSHA256": "6259423775152232d757f684bcbb623d9008737341f77384355010915d67a552",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 5,
+        "dominantFraction": 0.4246849279835391
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "bankOfAmerica",
       "displayName": "Bank of America",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 10,
+          "dominantFraction": 0.57276,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "2bad08a61bb68762c43c6775c975c31076b686f4197e443519fef65101bcde4d"
+      "startupScreenshotSHA256": "c16d102e7d57052bf9870d2ac147a6ceac46d62cb8c759af95c5b5e6da99f6cf",
+      "springboardScreenshotSHA256": "15c1466fe8007d9d8d86e609bd1d91654ee5f34c63b2b52077c768c5e11407d6",
+      "installedMetadataSHA256": "948c28925a2313c6f09d1e2ef6cbcf50d20a06f29aeb8258cd0de47d3edac163",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 10,
+        "dominantFraction": 0.5728137860082304
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "wellsFargo",
       "displayName": "Wells Fargo",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 10,
+          "dominantFraction": 0.48262,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "8e657c982d140340bc93917fc2195c828bf5054901602b58b82da055d8a6d704"
+      "startupScreenshotSHA256": "7418f6270710c56a986279e85497c78bb61c6ba83bf1b99d033b8aafd400ee2c",
+      "springboardScreenshotSHA256": "3bc9d42e3ffc235fb5260cbefeb59a2399fe3064d0e855784a54540dbfa2792c",
+      "installedMetadataSHA256": "644b05a869c41db6da88e86ed2fa548372bbc18e460d094d9fc8f2ffe7016bb5",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 10,
+        "dominantFraction": 0.4826195987654321
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "citi",
       "displayName": "Citi",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 51,
+          "dominantFraction": 0.41842,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "ac8de34d6a16c3d89376c82f9efdb5708e83473dff699a78878ff4c98b3eca40"
+      "startupScreenshotSHA256": "f9192234e8c01560444ee1f166fb39a1f794444305dd2a9dcad56cf0773e5cb3",
+      "springboardScreenshotSHA256": "30da577dfcedd0f231f2ff98ecdfcaa1a5d92754f69f3dbde73910f884d31211",
+      "installedMetadataSHA256": "5ecf46d34471fcebe8eaeff55604f682e736dbd267f70cd1a5b45fc18655c9f7",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 51,
+        "dominantFraction": 0.4184220679012346
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "capitalOne",
       "displayName": "Capital One",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 25,
+          "dominantFraction": 0.39776,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "299c686209e499db354e3c185f19d626cab05ee4a7d66bd8a199a7b9e5c2771d"
+      "startupScreenshotSHA256": "6183961028dd42764d35c4aaaf3157b9adeaa9f44d2a03e2fe535717498adc6f",
+      "springboardScreenshotSHA256": "392612f24370ed18faba67d160648949864b78b678331b2602fc7d2aec9a38d1",
+      "installedMetadataSHA256": "ab247d52262b7183a4433dc4e95f8dea0c3c23649f4a7a6e5f4cabeb5e504ecd",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 25,
+        "dominantFraction": 0.39776234567901236
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "hsbc",
       "displayName": "HSBC",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 7,
+          "dominantFraction": 0.45846,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "e0e32adc82b5430599b387eb514af9cc77014796ae35d5b5e7eae124b7f9db53"
+      "startupScreenshotSHA256": "21dfea20881c29be0fd2d907c93a0592c09188c78adf095fbf089dac6c971b5b",
+      "springboardScreenshotSHA256": "c4b9c308c996fd33f293ac13a5b322af6a1fb4e8e43194d7e3cd42648f7a2687",
+      "installedMetadataSHA256": "540cc941ba1652f720a36a1df9b4c21f72ad70eafa9530ebbfe080734e6a7301",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 7,
+        "dominantFraction": 0.4584490740740741
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "barclays",
       "displayName": "Barclays",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 9,
+          "dominantFraction": 0.48823,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "29475238dfeaaf74fa791e98d9ac7d779960242467c31dd34ed00ecc2a72c99c"
+      "startupScreenshotSHA256": "a9b7f6dd6990f56a3c999ec03dbb23ed09c5c1977ff6a46570f779714b2938f8",
+      "springboardScreenshotSHA256": "cf6adcddbcb12e2754a5a126b2b29a61088b7eed9ee6e3c5d077547087ba1359",
+      "installedMetadataSHA256": "30d9142cccd1f2e843f9a2904157febe1d8e7f0945f19e17549003df81e0eb93",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 9,
+        "dominantFraction": 0.48823302469135804
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "lloyds",
       "displayName": "Lloyds Bank",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 7,
+          "dominantFraction": 0.63894,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "a57a2e2932630c9004274931e6b7e60ac8ecddc4dd37b5c0eabe3f71937913be"
+      "startupScreenshotSHA256": "af5ab25693cad27956419f3569e2e6f8bb76a7823a012deba3d909647ab5e7dc",
+      "springboardScreenshotSHA256": "e94a13177a026e8940a63d95c6dfa179f121de2e071a220125705ccf2c899c8a",
+      "installedMetadataSHA256": "9fd1be800577cb6b8f4a6afa49b4b9348c09b742d5753e8b8c3df59f6e1ee3f0",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 7,
+        "dominantFraction": 0.6389467592592593
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "natWest",
       "displayName": "NatWest",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 8,
+          "dominantFraction": 0.64192,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "f2d8a99a7b195f1e4a4f77ce43cacdfa0be00c9f3f1398b0743a405c48120e0d"
+      "startupScreenshotSHA256": "32915682148e9df23fc7b28ae68a084710053bb04cdeed527f672cff761c842f",
+      "springboardScreenshotSHA256": "19327071e03a60a1b0ac71f722bf79ded5c0f7651b59889e6be70eaf5074b94c",
+      "installedMetadataSHA256": "33c28f4287674281cb8ab8a257d5638b8aa4f3fe7fec4535c2c9d4ba3366bc92",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 8,
+        "dominantFraction": 0.6419238683127572
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "monzo",
       "displayName": "Monzo",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 7,
+          "dominantFraction": 0.65048,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "1f7439720db6abca3d581d84384d1247fe3a5abc081def7db35cd5122e3e9c99"
+      "startupScreenshotSHA256": "51dfc3f51480ceb03ac413b36254801b27be7ec178bec650398cf64ba71505e8",
+      "springboardScreenshotSHA256": "e62b6d980fc136f73074d6d4c66206f21ec5459532b181b73616d2c3b9d80db5",
+      "installedMetadataSHA256": "a021b469f670bcaffa92684d98e9619f1ced8e55412c73e5ec262fc76e756916",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 7,
+        "dominantFraction": 0.6504822530864197
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "revolut",
       "displayName": "Revolut",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 23,
+          "dominantFraction": 0.43371,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "7a39005652a4af751dccf60c7b20b7be7b6502d0e04777adfedcd78aa4e99a61"
+      "startupScreenshotSHA256": "96752c8b8513a4d7894d3bee78a32238dd91a681f68fc20bb2ded232b439f1c6",
+      "springboardScreenshotSHA256": "e057bcc3fd066af851886c754b1ab2413c1e90a097e2aa822ec3e818c5aaf652",
+      "installedMetadataSHA256": "f729ab9998883f6a44ed9d6ce639363bc625160024b24613dd3cd2be50d4a45c",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 23,
+        "dominantFraction": 0.4337127057613169
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "starling",
       "displayName": "Starling Bank",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 22,
+          "dominantFraction": 0.5249,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "5821f455434e81e7b219c143458fdaeba816e98b53eb27f6e1b3bef4cd6445cb"
+      "startupScreenshotSHA256": "b9f61549a71c79f34af39c3f26da08945ff78c3d79f335af9b5eec9519b5cfa4",
+      "springboardScreenshotSHA256": "bc7e80af0fb9b7fa5d9ef6c3b3d200edf6e963cb8321faa540fa387a7ab468de",
+      "installedMetadataSHA256": "d24a297a96881c1d0af80e216911da2f4a0008dbb2de6006cd68063854daae05",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 22,
+        "dominantFraction": 0.524903549382716
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "robinhood",
       "displayName": "Robinhood",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 4,
+          "dominantFraction": 0.96925,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "29fade2d4e2bc819542e8022ae25d9bcf1a65df9c342960a3865bed93789627b"
+      "startupScreenshotSHA256": "f2b753832998d22f37a437e4eff83137ee02a7dea56eb6b3d9789aa3c71d15c0",
+      "springboardScreenshotSHA256": "06db395b05ea206b5b70c8a818aca13b27b7682cfe4e437c50b000706c8cade8",
+      "installedMetadataSHA256": "4857ca6472da2fd82269c17a0b0e75d2cc3842cf37704752cb10dde8e5893ec8",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 4,
+        "dominantFraction": 0.9692451131687243
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "wealthsimple",
       "displayName": "Wealthsimple",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 13,
+          "dominantFraction": 0.91401,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "7594cf95e0dd0d9c56383b13f7362404b8c453a28a8d5657b73ddcdd80655a8c"
+      "startupScreenshotSHA256": "519a00d6e96067189586b27abeedf3e91bb5255208e0d43fdb7de11d9258d09b",
+      "springboardScreenshotSHA256": "8767dbb2931beafd4e030546924570f73956ae030e367e71bb3eb479b8ae77d2",
+      "installedMetadataSHA256": "216dfd000c8af4cfd2def7ef77355572884c5da4e8df0ee5f5088b8fb4159a0e",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 13,
+        "dominantFraction": 0.9140110596707819
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "coinbase",
       "displayName": "Coinbase",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 8,
+          "dominantFraction": 0.91055,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "bb2087a651dfde55161dd6392a53a12d4e96e575a5bc251f98589b13ef7eb799"
+      "startupScreenshotSHA256": "77a8d32f78ada7aab625fd01204575dae9c041f35e5e9cc157f72bf155cf343c",
+      "springboardScreenshotSHA256": "426f7799d54488b3f6124f381c5fded6efd9072a7996ca166c5e5c9884fbee23",
+      "installedMetadataSHA256": "671d3e95029d9f487033c4b7b3c10eca9a13d65c060f9393073bc0cb39d2201c",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 8,
+        "dominantFraction": 0.910545267489712
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "polymarket",
       "displayName": "Polymarket",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 34,
+          "dominantFraction": 0.7555,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "b2232948dfae33fcceecaec85d3cb1c8a81f92c5a8e43095b30a671750c37baa"
+      "startupScreenshotSHA256": "1876467f9a3c41fba3db0fdd29eaecb3233df1ceeec836da33d2523cf5617ca1",
+      "springboardScreenshotSHA256": "60bb21dc26fdf9972bcc656459dda297fd0307bf25ae8c81885d963f1046f2e8",
+      "installedMetadataSHA256": "999b9ddf24b8c0911a8025de515901bada7ff839bd0a072edc0a715d15708780",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 33,
+        "dominantFraction": 0.7555041152263374
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "metamask",
       "displayName": "MetaMask",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 7,
+          "dominantFraction": 0.77633,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "2daf102b5cb997581ed7322f5cc5b6e600c9e0707de220767b646f82c88fd489"
+      "startupScreenshotSHA256": "12f91357cd667b1904a4de8f48cce57232a817e508ee836df8b4342dcdf1360d",
+      "springboardScreenshotSHA256": "50010ede25eb442dbdc9c241e93656e585b620113d995a39776f9dad4b8eacdb",
+      "installedMetadataSHA256": "a4b52fe5e45418c2d8eaf20ba95b47a90df88db3044e04bb0483e31672b73a0d",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 7,
+        "dominantFraction": 0.7763310185185185
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "phantom",
       "displayName": "Phantom",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 7,
+          "dominantFraction": 0.54489,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "1c87bd60e79c50e79c5da640dc92fd412cf04b98a09a95acdac5cc1e73531a3d"
+      "startupScreenshotSHA256": "2715fb2539ec2f0d97aafa81f04ba44e6ed425caa337a71468f1335ade142983",
+      "springboardScreenshotSHA256": "9ea9481bd09827e58e2768ebf80aba794f8d9654d795240664703a05ee38ee81",
+      "installedMetadataSHA256": "f331a670d182190a7fa8f06911ed423b9c53cd906340895fc8a7ed596e77a45b",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 7,
+        "dominantFraction": 0.5448945473251029
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     },
     {
       "id": "trustWallet",
       "displayName": "Trust Wallet",
       "acceptedAttempt": 1,
+      "readinessAttempts": [
+        {
+          "attempt": 1,
+          "significantColorBins": 10,
+          "dominantFraction": 0.77524,
+          "accepted": true
+        }
+      ],
       "applicationMetadataAndHashesMatchNativeRun": true,
-      "startupScreenshotSHA256": "476876495618ed42bb277319c19ee9b5b6a48c8865d6bd3acb06d614fc3d4b02"
+      "startupScreenshotSHA256": "71d435e57cb993d4bd35e32890ad800af87c14b62dfc42a88de5324d645a8581",
+      "springboardScreenshotSHA256": "0b2cc8b2c095d44a2eaa8168c98f69b0b43e8599ef550361963f88c902b6d24f",
+      "installedMetadataSHA256": "64bf927d17bfc74bbd18bc1b853b99b726bc59a0563a4392c5344a8e4d888522",
+      "startupPNG": {
+        "width": 1320,
+        "height": 2868,
+        "significantColorBins": 10,
+        "dominantFraction": 0.7752507716049383
+      },
+      "springboardPNG": {
+        "width": 1320,
+        "height": 2868
+      },
+      "startupScreenVisuallyReviewed": true
     }
+  ],
+  "limits": [
+    "Pixel diversity establishes nonblank content, not screen semantics or 1:1 parity.",
+    "Visual-review flags reflect only the separately supplied reviewed style IDs.",
+    "Simulator checks do not establish physical-device installation or delivered notification audio."
   ]
 }
