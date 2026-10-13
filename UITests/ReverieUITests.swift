@@ -366,7 +366,7 @@ final class ReverieUITests: XCTestCase {
         let welcome = app.buttons["Enter your studio"]
         if welcome.waitForExistence(timeout: 3) { welcome.tap() }
         let openScene = app.buttons["open-scene"]
-        scrollTo(openScene, in: app)
+        waitForHittable(openScene)
         openScene.tap()
         let closeScene = app.buttons["close-scene"]
         XCTAssertTrue(closeScene.waitForExistence(timeout: 5))
@@ -648,13 +648,13 @@ extension ReverieUITests {
         let search = app.textFields["wallet-home-search"]
         scrollTo(search, in: app, upwards: false)
         search.tap()
-        search.typeText("Ethereum")
+        search.typeText("USDC")
         let submit = app.keyboards.buttons["Search"]
         waitForHittable(submit)
         submit.tap()
         let ethereum = app.buttons["wallet-asset-eth"]
-        scrollTo(ethereum, in: app)
-        XCTAssertFalse(usdCoin.exists)
+        scrollTo(usdCoin, in: app)
+        XCTAssertFalse(ethereum.exists)
         captureScreen("Trust Wallet filtered assets", in: app)
 
         let clear = app.buttons["wallet-clear-search"]
