@@ -40,3 +40,13 @@ The serif headlines belong to the promotional poster, not the Holdings screen. T
 ## Fidelity limits
 
 These are the current public listing's screenshots. Their publication dates are not separately supplied, and their appearance is not proof that every image came from the exact current binary version. They do not establish all interactive states, ordinary buy/sell tickets, notification wording/sound, gestures, typography metrics, or device-specific spacing. Treat inferred routes as custom local simulation behavior. Full 1:1 fidelity requires running both apps on matching iPhone/iOS configurations and comparing their screenshots.
+
+## Implemented account routes
+
+The original screenshots for Coinbase Rewards, account security, and advanced trade; Wealthsimple Chequing, Visa Infinite, Crypto, and Security; and Robinhood cash earnings were individually inspected at original detail before implementation. [account-reference-provenance.json](account-reference-provenance.json) maps each native view to its exact retained public Apple CDN URL and SHA-256. Native illustrations are SwiftUI shapes; reference screenshot bytes are unchanged and are not playback assets. The official Wealthsimple credit-card page returned HTTP 403 during an asset check; no artwork was downloaded from that page.
+
+- Coinbase Rewards opens the USDC overview and the existing Buy ticket. An absent USDC asset can be added at zero units without changing funds. The separate advanced route has Candle/Line/Area, interval, indicator, and star controls; its buy/sell buttons use the existing authoritative order flow.
+- Wealthsimple's centered account menu now selects Holdings, Chequing, Visa Infinite, Crypto, and Security. Chequing reads available cash and completed cash events; Add/Transfer/e-Transfer/Pay bill use the same cash ledger. Visa summary fields, freeze, and auto-pay use persisted account state. Crypto shows actual saved crypto holdings, available-asset additions, and the referenced staking overview. No staking credits, pending requests, or card transactions are fabricated.
+- Security action states and the account summaries persist through the validated portfolio account-state API. Financial account summaries are separate from spendable cash and can be edited under Portfolio settings. Robinhood's cash-earnings view uses persisted high-yield cash and IRA-match totals, while Add/Withdraw and cash activity use the actual cash ledger.
+
+The screenshots expose overview states, not the complete interaction sequences. The transfer and management sheets, security action behavior, and account-state editor are local inferred flows. Exact 1:1 fidelity has not been established by these public promotional references alone.

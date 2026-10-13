@@ -1,6 +1,6 @@
 # Crypto wallet iPhone references
 
-Retrieved 2026-10-13 from the actual wallet sellers' public Apple App Store listings. Raw individual listing results are saved in `<id>.json`; `<id>-image-sources.json` maps each downloaded screenshot to its exact public Apple CDN URL, dimensions, local path, and SHA-256. URLs were restricted to HTTPS `mzstatic.com` hosts. These screenshots are research material rather than application assets.
+Retrieved 2026-10-13 from the actual wallet sellers' public Apple App Store listings. Raw individual listing results are saved in `<id>.json`; `<id>-image-sources.json` maps each downloaded screenshot to its exact public Apple CDN URL, dimensions, local path, and SHA-256. URLs were restricted to HTTPS `mzstatic.com` hosts. The full screenshots are reference material. A small set is also bundled as unchanged original bytes solely for bounded decorative-art viewports; those uses are recorded in `viewport-artwork-sources.json`. The app never displays a complete screenshot as its interface.
 
 | Theme | Official listing | Seller | Listed version | Listed release |
 | --- | --- | --- | --- | --- |
@@ -41,7 +41,9 @@ The public listing uses an older iPhone physical frame in this marketing artwork
 
 The app uses unchanged Bitcoin, Ethereum, Solana and USDC PNG files from the public Trust Wallet assets repository at immutable revision `d541ca5c51609e24966712403e10a4b438c47982`. [implemented-artwork-sources.json](implemented-artwork-sources.json) records the exact download URLs, byte counts, dimensions and SHA-256 values. The gray Ethereum asset is used by Phantom; MetaMask and Trust Wallet use a separately drawn white Ethereum diamond on the blue circular background shown in their references. These token files provide artwork provenance, not proof of complete wallet UI parity.
 
-The Phantom account avatar, Trust rewards chest and Trust collectible images remain original vector approximations. The public references do not supply complete original artwork for those elements. The roleplay NFT titles and collection details remain fictional. Home token rows and Receive rows preserve the saved account's assets and quantities rather than replacing them with promotional screenshot balances.
+The Phantom account avatar, Trust rewards chest, connection/risk illustrations, staking/provider icons, Phantom discovery icons and MetaMask card now use bounded SwiftUI viewports of unchanged original public listing JPEG bytes. [viewport-artwork-sources.json](viewport-artwork-sources.json) records the complete source file hashes, dimensions and each visible source rectangle. No image files are edited or generated, and surrounding screenshot UI and balances are excluded from these viewports.
+
+The Trust NFT listing ends after the top 126 source pixels of two artworks. Those two fragments are displayed at their actual visible aspect ratio; unseen artwork is not invented. NFT titles and collection details remain fictional. Home and Receive rows preserve saved assets and quantities. Phantom Trade and MetaMask swap/confirmation continue to use saved holding prices and balances, including actual zero-fee local math. Phantom discovery prices/market caps and Trust staking APR retain the frozen values visibly established by their listing references; they never update wallet quotes. Trust Buy displays the pictured provider identity while its local confirmation spends the saved stablecoin balance; the fiat entry is divided by that saved funding token price before any swap. The MetaMask Money page uses the pictured 4% APY to calculate estimated earnings from saved mUSD value without crediting earnings or changing funds.
 
 ## Fidelity limits
 

@@ -44,7 +44,7 @@ enum WalletTransferKind: String, Codable, CaseIterable, Identifiable {
     var title: String { self == .send ? "Sent" : "Received" }
 }
 
-enum PredictionOutcome: String, Codable, CaseIterable, Identifiable {
+enum PredictionOutcome: String, Codable, CaseIterable, Identifiable, Hashable {
     case yes, no
     var id: String { rawValue }
     var title: String { rawValue.capitalized }
@@ -92,7 +92,7 @@ struct MarketPosition: Codable, Identifiable, Equatable {
     var transferNetwork: String {
         switch symbol.uppercased() {
         case "BTC": return "Bitcoin"
-        case "ETH", "USDC", "USDT", "DAI": return "Ethereum"
+        case "ETH", "USDC", "USDT", "DAI", "MUSD": return "Ethereum"
         case "SOL": return "Solana"
         default: return symbol.uppercased()
         }
@@ -120,6 +120,27 @@ struct MarketTransaction: Codable, Identifiable, Equatable {
     }
 }
 
+/// Local account presentation. These values never credit portfolio cash or holdings.
+struct PortfolioAccountState: Codable, Equatable {
+    var twoStepEnabled = false
+    var cardBalance = 0.0
+    var availableCredit = 0.0
+    var cashBack = 0.0
+    var monthCashBack = 0.0
+    var statementAmount = 0.0
+    var autopay = false
+    var locked = false
+    var chequingInterestRate = 2.0
+    var monthlyInterest = 0.0
+    var highYieldCashEarnings = 0.0
+    var iraMatchEarnings = 0.0
+    var isValid: Bool {
+        [cardBalance, availableCredit, cashBack, monthCashBack, statementAmount, monthlyInterest,
+         highYieldCashEarnings, iraMatchEarnings].allSatisfy(MarketValidation.nonnegative) &&
+        chequingInterestRate.isFinite && (0...100).contains(chequingInterestRate)
+    }
+}
+
 struct PortfolioProfile: Codable, Identifiable, Equatable {
     var sceneID: UUID
     var id: UUID { sceneID }
@@ -130,7 +151,8 @@ struct PortfolioProfile: Codable, Identifiable, Equatable {
     var positions: [MarketPosition]
     var transactions: [MarketTransaction]
     var transfers: [WalletTransaction] = []
-    private enum CodingKeys: String, CodingKey { case sceneID, theme, dailyChange, chart, positions, transactions, transfers }
+    var accountState = PortfolioAccountState()
+    private enum CodingKeys: String, CodingKey { case sceneID, theme, dailyChange, chart, positions, transactions, transfers, accountState }
     var holdingsValue: Double { positions.reduce(0) { $0 + $1.value } }
     func total(cash: Double) -> Double { cash + holdingsValue }
     func portfolioTotal(cash: Double) -> Double { total(cash: cash) }
@@ -139,7 +161,7 @@ struct PortfolioProfile: Codable, Identifiable, Equatable {
         guard assetIDs.count == positions.count else { return false }
         let assetsByID = Dictionary(uniqueKeysWithValues: positions.map { ($0.id, $0) })
         let cryptoAssets = Dictionary(uniqueKeysWithValues: positions.filter { $0.kind == .crypto }.map { ($0.id, $0) })
-        return MarketValidation.percentage(dailyChange) && MarketValidation.chart(chart) &&
+        return accountState.isValid && MarketValidation.percentage(dailyChange) && MarketValidation.chart(chart) &&
         positions.count <= 100 && positions.allSatisfy(\.isValid) && assetIDs.count == positions.count &&
         Set(positions.map { $0.symbol.uppercased() }).count == positions.count && MarketValidation.nonnegative(holdingsValue) &&
         transactions.count <= 1000 && transactions.allSatisfy { transaction in
@@ -158,10 +180,28 @@ struct PortfolioProfile: Codable, Identifiable, Equatable {
         switch theme {
         case .robinhood: positions = positions.filter { $0.kind == .stock }
         case .wealthsimple: positions = MarketSamples.wealthsimpleHoldings
-        case .coinbase: positions = positions.filter { $0.kind == .crypto }
+        case .coinbase:
+            positions = positions.filter { $0.kind == .crypto }
+            positions.append(MarketSamples.usdc)
+        }
+        var state = PortfolioAccountState()
+        if theme == .wealthsimple {
+            state.cardBalance = 137.38; state.availableCredit = 2962.02
+            state.cashBack = 37.01; state.monthCashBack = 22.02; state.statementAmount = 369.91
+            state.chequingInterestRate = 2.25; state.monthlyInterest = 37.50
+        } else if theme == .robinhood {
+            state.highYieldCashEarnings = 1000.32; state.iraMatchEarnings = 225
         }
         return PortfolioProfile(sceneID: sceneID, theme: theme, dailyChange: 1.84,
-            chart: MarketSamples.risingChart, positions: positions, transactions: [])
+            chart: MarketSamples.risingChart, positions: positions, transactions: [], accountState: state)
+    }
+    static func availableAsset(symbol: String) -> MarketPosition? {
+        guard var asset = (MarketSamples.positions + [MarketSamples.usdc]).first(where: {
+            $0.symbol.caseInsensitiveCompare(symbol) == .orderedSame
+        }) else { return nil }
+        asset.units = 0
+        asset.averageCost = asset.price
+        return asset
     }
 }
 
@@ -175,6 +215,7 @@ extension PortfolioProfile {
         positions = try container.decode([MarketPosition].self, forKey: .positions)
         transactions = try container.decode([MarketTransaction].self, forKey: .transactions)
         transfers = try container.decodeIfPresent([WalletTransaction].self, forKey: .transfers) ?? []
+        accountState = try container.decodeIfPresent(PortfolioAccountState.self, forKey: .accountState) ?? PortfolioAccountState()
     }
 }
 
@@ -249,7 +290,12 @@ struct WalletProfile: Codable, Identifiable, Equatable {
             WalletHolding(id: MarketSamples.id("13"), symbol: "SOL", name: "Solana", network: "Solana", quantity: 52.2, price: 142.80, changePercent: 3.24, chart: MarketSamples.risingChart, address: solana),
             WalletHolding(id: MarketSamples.id("14"), symbol: "BTC", name: "Bitcoin", network: "Bitcoin", quantity: 0.08, price: 67420, changePercent: 1.42, chart: MarketSamples.risingChart, address: bitcoin)
         ]
-        if theme == .metamask { holdings = holdings.filter { $0.network == "Ethereum" } }
+        if theme == .metamask {
+            holdings = holdings.filter { $0.network == "Ethereum" && $0.symbol != "USDC" }
+            holdings.append(WalletHolding(id: MarketSamples.id("15"), symbol: "MUSD", name: "MetaMask USD",
+                network: "Ethereum", quantity: 1480, price: 1, changePercent: 0,
+                chart: MarketSamples.flatChart, address: ethereum))
+        }
         return WalletProfile(sceneID: sceneID, theme: theme, address: theme == .phantom ? solana : ethereum, holdings: holdings, transactions: [])
     }
 }
@@ -311,12 +357,65 @@ struct PredictionGame: Codable, Identifiable, Equatable {
     var awayScore: Int
     var status: String
     var isLive: Bool
+    var homeSetScores: [Int]? = nil
+    var awaySetScores: [Int]? = nil
+    var homePoint: String? = nil
+    var awayPoint: String? = nil
+    var homeRank: Int? = nil
+    var awayRank: Int? = nil
     var isValid: Bool {
         MarketValidation.name(league, maximum: 16) && MarketValidation.name(homeTeam, maximum: 40) &&
         MarketValidation.name(awayTeam, maximum: 40) && MarketValidation.name(status, maximum: 32) &&
-        (0...999).contains(homeScore) && (0...999).contains(awayScore)
+        (0...999).contains(homeScore) && (0...999).contains(awayScore) &&
+        ((homeSetScores == nil && awaySetScores == nil) ||
+            (homeSetScores.map { (1...5).contains($0.count) && $0.allSatisfy { (0...99).contains($0) } } == true &&
+             awaySetScores.map { (1...5).contains($0.count) && $0.allSatisfy { (0...99).contains($0) } } == true &&
+             homeSetScores?.count == awaySetScores?.count)) &&
+        [homePoint, awayPoint].allSatisfy { $0.map { ["0", "15", "30", "40", "AD"].contains($0) } ?? true } &&
+        [homeRank, awayRank].allSatisfy { $0.map { (1...9999).contains($0) } ?? true }
     }
 }
+
+struct PredictionComboLeg: Codable, Equatable, Hashable {
+    var marketID: UUID
+    var outcome: PredictionOutcome
+}
+
+struct PredictionComboQuote: Equatable {
+    var legs: [PredictionComboLeg]
+    var questions: [String]
+    var legPrices: [Double]
+    var totalCost: Double
+    var combinedPrice: Double { legPrices.reduce(1, *) }
+    var potentialPayout: Double { totalCost / combinedPrice }
+    var multiplier: Double { 1 / combinedPrice }
+}
+
+/// Immutable purchase snapshot. Potential payout is not credited before settlement.
+struct PredictionComboTrade: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var legs: [PredictionComboLeg]
+    var questions: [String]
+    var legPrices: [Double]
+    var totalCost: Double
+    var date = Date()
+    var combinedPrice: Double { legPrices.reduce(1, *) }
+    var price: Double { combinedPrice }
+    var potentialPayout: Double { totalCost / combinedPrice }
+    var shares: Double { potentialPayout }
+    var multiplier: Double { 1 / combinedPrice }
+    var entryCost: Double { totalCost }
+    var isValid: Bool {
+        (2...8).contains(legs.count) && Set(legs.map(\.marketID)).count == legs.count &&
+        questions.count == legs.count && legPrices.count == legs.count &&
+        questions.allSatisfy { MarketValidation.name($0, maximum: 180) } &&
+        legPrices.allSatisfy { $0.isFinite && $0 > 0 && $0 < 1 } &&
+        Simulation.validAmount(totalCost) && MarketValidation.quantity(shares, allowZero: false) &&
+        MarketValidation.date(date)
+    }
+}
+
+typealias PredictionComboPosition = PredictionComboTrade
 
 struct PredictionProfile: Codable, Identifiable, Equatable {
     var sceneID: UUID
@@ -326,14 +425,28 @@ struct PredictionProfile: Codable, Identifiable, Equatable {
     var positions: [PredictionPosition]
     var transactions: [PredictionTrade]
     var games: [PredictionGame]? = nil
+    var comboPositions: [PredictionComboPosition]? = nil
+    var comboTransactions: [PredictionComboTrade]? = nil
     func market(for id: UUID) -> PredictionMarket? { markets.first { $0.id == id } }
     func value(of position: PredictionPosition) -> Double { position.shares * (market(for: position.marketID)?.price(for: position.outcome) ?? 0) }
-    var positionsValue: Double { positions.reduce(0) { $0 + value(of: $1) } }
+    func value(of combo: PredictionComboPosition) -> Double {
+        combo.shares * combo.legs.reduce(1) { value, leg in
+            value * (market(for: leg.marketID)?.price(for: leg.outcome) ?? 0)
+        }
+    }
+    var positionsValue: Double {
+        positions.reduce(0) { $0 + value(of: $1) } + (comboPositions ?? []).reduce(0) { $0 + value(of: $1) }
+    }
     func total(cash: Double) -> Double { cash + positionsValue }
     var isValid: Bool {
         let marketIDs = Set(markets.map(\.id))
         let identities = positions.map { $0.marketID.uuidString + "|" + $0.outcome.rawValue }
-        return markets.count <= 100 && markets.allSatisfy(\.isValid) && marketIDs.count == markets.count &&
+        let combos = comboPositions ?? []
+        let comboTrades = comboTransactions ?? []
+        return combos.count <= 100 && Set(combos.map(\.id)).count == combos.count &&
+        comboTrades.count <= 1000 && Set(comboTrades.map(\.id)).count == comboTrades.count &&
+        (combos + comboTrades).allSatisfy { $0.isValid && $0.legs.allSatisfy { marketIDs.contains($0.marketID) } } &&
+        markets.count <= 100 && markets.allSatisfy(\.isValid) && marketIDs.count == markets.count &&
         positions.count <= 200 && positions.allSatisfy { $0.isValid && marketIDs.contains($0.marketID) } &&
         Set(positions.map(\.id)).count == positions.count && Set(identities).count == positions.count &&
         MarketValidation.nonnegative(positionsValue) &&
@@ -351,13 +464,16 @@ struct PredictionProfile: Codable, Identifiable, Equatable {
             PredictionMarket(id: MarketSamples.id("23"), question: "Will Los Angeles defeat Denver?", category: "Sports", yesPrice: 0.48, volume: 326_500, closeDate: close, chart: MarketSamples.fallingChart),
             PredictionMarket(id: MarketSamples.id("24"), question: "Will the new launch sell out in 24 hours?", category: "Culture", yesPrice: 0.81, volume: 198_750, closeDate: close, chart: MarketSamples.risingChart),
             PredictionMarket(id: MarketSamples.id("25"), question: "Will the Dodgers defeat the Rangers?", category: "Sports", yesPrice: 0.71, volume: 487_200, closeDate: close, chart: MarketSamples.risingChart),
-            PredictionMarket(id: MarketSamples.id("26"), question: "Will the Rangers defeat the Bruins?", category: "Sports", yesPrice: 0.56, volume: 264_500, closeDate: close, chart: MarketSamples.flatChart)
+            PredictionMarket(id: MarketSamples.id("26"), question: "Will the Rangers defeat the Bruins?", category: "Sports", yesPrice: 0.56, volume: 264_500, closeDate: close, chart: MarketSamples.flatChart),
+            PredictionMarket(id: MarketSamples.id("27"), question: "Will Carlos Alcaraz defeat Arthur Fils?", category: "Sports", yesPrice: 0.67, volume: 312_800, closeDate: close, chart: MarketSamples.risingChart)
         ]
         let positions = [PredictionPosition(id: MarketSamples.id("31"), marketID: markets[0].id, outcome: .yes, shares: 250, averagePrice: 0.58)]
         let games = [
             PredictionGame(id: MarketSamples.id("41"), marketID: markets[2].id, league: "Pro", homeTeam: "Los Angeles", awayTeam: "Denver", homeScore: 24, awayScore: 21, status: "Q4 12:43", isLive: true),
             PredictionGame(id: MarketSamples.id("42"), marketID: markets[4].id, league: "MLB", homeTeam: "Dodgers", awayTeam: "Rangers", homeScore: 4, awayScore: 2, status: "Top 7th", isLive: true),
-            PredictionGame(id: MarketSamples.id("43"), marketID: markets[5].id, league: "NHL", homeTeam: "Rangers", awayTeam: "Bruins", homeScore: 2, awayScore: 1, status: "P2 14:37", isLive: true)
+            PredictionGame(id: MarketSamples.id("43"), marketID: markets[5].id, league: "NHL", homeTeam: "Rangers", awayTeam: "Bruins", homeScore: 2, awayScore: 1, status: "P2 14:37", isLive: true),
+            PredictionGame(id: MarketSamples.id("44"), marketID: markets[6].id, league: "Tennis", homeTeam: "Carlos Alcaraz", awayTeam: "Arthur Fils", homeScore: 6, awayScore: 2, status: "2nd Set", isLive: true,
+                homeSetScores: [6, 4], awaySetScores: [2, 1], homePoint: "15", awayPoint: "30", homeRank: 1, awayRank: 10)
         ]
         return PredictionProfile(sceneID: sceneID, theme: .polymarket, markets: markets, positions: positions, transactions: [], games: games)
     }
@@ -368,6 +484,8 @@ private enum MarketSamples {
     static let fallingChart = [0.88, 0.76, 0.82, 0.73, 0.68, 0.75, 0.57, 0.54, 0.65, 0.46, 0.42, 0.49, 0.34, 0.38, 0.28, 0.30]
     static let flatChart = [0.5, 0.501, 0.499, 0.5, 0.501, 0.5, 0.499, 0.5]
     static func id(_ suffix: String) -> UUID { UUID(uuidString: "5A110000-0000-4000-8000-0000000000" + suffix)! }
+    static let usdc = MarketPosition(id: id("08"), symbol: "USDC", name: "USD Coin", kind: .crypto,
+        units: 0, price: 1, averageCost: 1, changePercent: 0, chart: flatChart)
     static let positions = [
         MarketPosition(id: id("01"), symbol: "AAPL", name: "Apple", kind: .stock, units: 12, price: 218.35, averageCost: 192.40, changePercent: 1.36, chart: risingChart),
         MarketPosition(id: id("02"), symbol: "NVDA", name: "NVIDIA", kind: .stock, units: 18, price: 126.80, averageCost: 104.10, changePercent: 2.14, chart: risingChart),

@@ -37,6 +37,8 @@ struct WalletPlayback: View {
                         case .settings: settingsPage(scene)
                         case .money: moneyPage(scene)
                         case .rewards: rewardsPage
+                        case .trade: WalletSwapSheet(sceneID: sceneID, mode: .swap, embedded: true)
+                        case .explore: WalletExploreSheet(sceneID: sceneID, embedded: true)
                         }
                     }
                     .background(palette.background)
@@ -84,8 +86,8 @@ struct WalletPlayback: View {
             profileMenu
             if profile.theme == .phantom {
                 Button { tab = .assets } label: { Text("Home").font(.system(size: 15, weight: .medium)).padding(.horizontal, 16).frame(minHeight: 44).background(tab == .assets ? palette.accent : palette.card, in: Capsule()).foregroundStyle(tab == .assets ? .black : palette.ink) }.accessibilityIdentifier("wallet-tab-assets")
-                Button { sheet = .swap(.swap) } label: { Text("Trade").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(palette.card, in: Capsule()) }
-                Button { sheet = .explore } label: { Text("Explore").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(palette.card, in: Capsule()) }
+                Button { tab = .trade } label: { Text("Trade").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(tab == .trade ? palette.accent : palette.card, in: Capsule()).foregroundStyle(tab == .trade ? .black : palette.ink) }.accessibilityIdentifier("wallet-tab-trade")
+                Button { tab = .explore } label: { Text("Explore").font(.system(size: 15, weight: .medium)).padding(.horizontal, 13).frame(minHeight: 44).background(tab == .explore ? palette.accent : palette.card, in: Capsule()).foregroundStyle(tab == .explore ? .black : palette.ink) }.accessibilityIdentifier("wallet-tab-explore")
                 Spacer(minLength: 0)
             } else if profile.theme == .trustWallet {
                 Spacer()
@@ -110,7 +112,7 @@ struct WalletPlayback: View {
         Button { showProfileActions = true } label: {
             HStack(spacing: 7) {
                 if profile.theme == .trustWallet { Image(systemName: "gearshape.fill").font(.system(size: 21)).foregroundStyle(palette.secondary).frame(width: 44, height: 44) }
-                else if profile.theme == .phantom { PhantomAccountAvatar().frame(width: 40, height: 40).frame(width: 44, height: 44) }
+                else if profile.theme == .phantom { WalletReferencePhantomAvatar().frame(width: 40, height: 40).frame(width: 44, height: 44) }
                 else {
                     Text("Account 1").font(.system(size: 15, weight: .semibold)).lineLimit(1)
                     Image(systemName: "chevron.down").font(.system(size: 11))
@@ -153,7 +155,7 @@ struct WalletPlayback: View {
                                 WalletAssetRow(holding: holding, currency: scene.currency, theme: profile.theme)
                             }
                             .buttonStyle(.plain)
-                            .accessibilityIdentifier("wallet-asset-" + holding.symbol.lowercased())
+                            .accessibilityIdentifier("wallet-asset-" + walletSymbol(holding.symbol).lowercased())
                             if profile.theme == .trustWallet && holding.id != holdings.last?.id {
                                 Divider().overlay(palette.separator).padding(.leading, 59)
                             }
@@ -216,7 +218,7 @@ struct WalletPlayback: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     @ViewBuilder private func stablecoinCard(_ scene: StudioScene) -> some View {
-        if profile.theme != .trustWallet, let stable = profile.holdings.first(where: { $0.symbol.uppercased() == "USDC" || $0.symbol.uppercased() == "USDT" }) {
+        if profile.theme != .trustWallet, let stable = profile.holdings.first(where: { ["MUSD", "USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }) {
             HStack {
                 if profile.theme == .phantom { PhantomCashMark().frame(width: 25, height: 19).padding(.trailing, 7).accessibilityHidden(true) }
                 VStack(alignment: .leading, spacing: 8) {
@@ -227,7 +229,7 @@ struct WalletPlayback: View {
                     if profile.theme == .metamask {
                         HStack(spacing: 8) {
                             Text(scene.money(stable.value)).font(.system(size: 20, weight: .semibold))
-                            Text(stable.symbol).font(.system(size: 12)).foregroundStyle(palette.secondary)
+                            Text(walletSymbol(stable.symbol)).font(.system(size: 12)).foregroundStyle(palette.secondary)
                         }
                     }
                 }
@@ -308,7 +310,7 @@ struct WalletPlayback: View {
 
     private var trustRewardsBanner: some View {
         HStack(alignment: .center, spacing: 12) {
-            TrustRewardsArtwork().frame(width: 55, height: 60).accessibilityHidden(true)
+            WalletReferenceTrustRewards().frame(width: 55, height: 60).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Earn up to 210 Trust Points daily to unlock future rewards")
                     .font(.system(size: 13, weight: .medium)).fixedSize(horizontal: false, vertical: true)
@@ -359,7 +361,7 @@ struct WalletPlayback: View {
                     ForEach(collectibles) { collectible in
                         Button { sheet = .collectible(collectible) } label: {
                             VStack(alignment: .leading, spacing: 8) {
-                                TrustCollectibleArtwork(collectible: collectible).aspectRatio(1, contentMode: .fit)
+                                TrustCollectibleArtwork(collectible: collectible)
                                     .clipShape(RoundedRectangle(cornerRadius: 11))
                                 Text(collectible.title).font(.system(size: 13, weight: .semibold))
                                 Text("Ethereum").font(.system(size: 11)).foregroundStyle(palette.secondary)
@@ -397,7 +399,7 @@ struct WalletPlayback: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 5) {
-                            Text((transaction.kind == .send ? "−" : "+") + walletQuantity(transaction.quantity) + " " + transaction.symbol)
+                            Text((transaction.kind == .send ? "−" : "+") + walletQuantity(transaction.quantity) + " " + walletSymbol(transaction.symbol))
                                 .font(.system(size: 13, weight: .medium))
                             Text(scene.money(transaction.value)).font(.system(size: 11)).foregroundStyle(palette.secondary)
                         }
@@ -427,6 +429,13 @@ struct WalletPlayback: View {
                 Button { sheet = .edit } label: { Label("Edit wallet and assets", systemImage: "slider.horizontal.3") }.frame(minHeight: 44)
                 Button { sheet = .receive } label: { Label("Address and QR code", systemImage: "qrcode") }.frame(minHeight: 44)
                 Button { tab = .activity } label: { Label("Activity", systemImage: "clock") }.frame(minHeight: 44)
+            }
+            if profile.theme == .trustWallet {
+                Section {
+                    Button { sheet = .staking } label: { Label("Earn", systemImage: "percent").frame(minHeight: 44) }.accessibilityIdentifier("wallet-staking")
+                    Button { sheet = .connections } label: { Label("Connections", systemImage: "link").frame(minHeight: 44) }
+                    Button { sheet = .risk } label: { Label("Security alert", systemImage: "shield").frame(minHeight: 44) }.accessibilityIdentifier("wallet-security-alert")
+                }
             }
             Section {
                 Button { dismiss() } label: { Label("Close scene", systemImage: "xmark.circle") }.frame(minHeight: 44)
@@ -485,23 +494,77 @@ struct WalletPlayback: View {
     }
 
     private func moneyPage(_ scene: StudioScene) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Text("Money").font(.system(size: 25, weight: .semibold))
-                let stablecoins = profile.holdings.filter { ["USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }
-                Text(scene.money(stablecoins.reduce(0) { $0 + $1.value })).font(.system(size: 39, weight: .semibold)).monospacedDigit()
-                HStack(spacing: 12) {
-                    Button { sheet = .swap(.sell) } label: { Label("Add", systemImage: "plus").frame(maxWidth: .infinity, minHeight: 48).background(palette.card, in: RoundedRectangle(cornerRadius: 13)) }
-                    Button { sheet = .send(stablecoins.first?.id) } label: { Label("Transfer", systemImage: "arrow.up.right").frame(maxWidth: .infinity, minHeight: 48).background(palette.card, in: RoundedRectangle(cornerRadius: 13)) }
-                }.font(.system(size: 14, weight: .medium)).buttonStyle(.plain)
-                Text("Balances").font(.system(size: 19, weight: .semibold))
-                if stablecoins.isEmpty { Text("No stablecoin balance").foregroundStyle(palette.secondary) }
-                ForEach(stablecoins) { holding in
-                    Button { sheet = .token(holding.id) } label: { WalletAssetRow(holding: holding, currency: scene.currency, theme: profile.theme) }.buttonStyle(.plain)
+        let stablecoins = profile.holdings.filter { ["MUSD", "USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }
+        let balance = stablecoins.reduce(0) { $0 + $1.value }
+        let mUSD = stablecoins.first { $0.symbol.uppercased() == "MUSD" }
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 23) {
+                Text("Money").font(.system(size: 24, weight: .semibold))
+                VStack(alignment: .leading, spacing: 9) {
+                    Text(scene.money(balance)).font(.system(size: 39, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                    HStack(spacing: 5) {
+                        if mUSD != nil { Text("4% APY").foregroundStyle(palette.positive); Text("· mUSD").foregroundStyle(palette.secondary) }
+                        else { Text(stablecoins.map { walletSymbol($0.symbol) }.joined(separator: " · ")).foregroundStyle(palette.secondary) }
+                        Image(systemName: "info.circle").font(.system(size: 12)).foregroundStyle(palette.secondary)
+                    }.font(.system(size: 15))
+                }.padding(.vertical, 9)
+                HStack(spacing: 8) {
+                    moneyAction("Add", symbol: "plus") { sheet = .swap(.sell) }
+                    moneyAction("Transfer", symbol: "arrow.left.arrow.right") { sheet = .send(stablecoins.first?.id) }
+                    moneyAction("Card", symbol: "creditcard") { sheet = .card }
                 }
-                Button { tab = .activity } label: { HStack { Text("Activity"); Spacer(); Image(systemName: "chevron.right").font(.caption) }.frame(minHeight: 48) }.buttonStyle(.plain)
-            }.padding(22).foregroundStyle(palette.ink)
-        }.accessibilityIdentifier("wallet-money")
+                if let mUSD {
+                    VStack(alignment: .leading, spacing: 20) {
+                        HStack(spacing: 6) { Text("Estimated earnings").font(.system(size: 19, weight: .semibold)); Image(systemName: "info.circle").font(.system(size: 12)).foregroundStyle(palette.secondary) }
+                        HStack { Text("Monthly").foregroundStyle(palette.secondary); Spacer(); Text("+" + scene.money(mUSD.value * 0.04 / 12)).foregroundStyle(palette.positive) }
+                        HStack { Text("Annual").foregroundStyle(palette.secondary); Spacer(); Text("+" + scene.money(mUSD.value * 0.04)).foregroundStyle(palette.positive) }
+                    }.font(.system(size: 15)).padding(.vertical, 13)
+                }
+                Divider().overlay(palette.separator)
+                VStack(alignment: .leading, spacing: 18) {
+                    Button { sheet = .card } label: {
+                        HStack(spacing: 6) { Text("MetaMask Card").font(.system(size: 19, weight: .semibold)); Image(systemName: "chevron.right").font(.system(size: 14)) }
+                            .frame(minHeight: 44)
+                    }.buttonStyle(.plain).accessibilityIdentifier("wallet-money-card-overview")
+                    HStack(spacing: 13) {
+                        WalletReferenceMetaMaskCard().frame(width: 89)
+                        VStack(alignment: .leading, spacing: 7) {
+                            Text("Avail. balance").font(.system(size: 12)).foregroundStyle(palette.secondary)
+                            Text(scene.money(mUSD?.value ?? balance)).font(.system(size: 16, weight: .semibold))
+                            if mUSD != nil { Text("3% mUSD back").font(.system(size: 11)).foregroundStyle(palette.positive).padding(3).background(palette.positive.opacity(0.1), in: RoundedRectangle(cornerRadius: 3)) }
+                        }
+                        Spacer(minLength: 3)
+                        Button { sheet = .card } label: { Text("Manage").font(.system(size: 14, weight: .medium)).padding(.horizontal, 12).frame(minHeight: 44).background(palette.card, in: RoundedRectangle(cornerRadius: 12)) }.buttonStyle(.plain)
+                    }
+                }
+                Divider().overlay(palette.separator).padding(.top, 10)
+                Button { tab = .activity } label: {
+                    HStack(spacing: 7) { Text("Activity").font(.system(size: 19, weight: .semibold)); Image(systemName: "chevron.right").font(.system(size: 14)) }.frame(minHeight: 44)
+                }.buttonStyle(.plain).accessibilityIdentifier("wallet-money-activity")
+                if profile.transactions.isEmpty { Text("No activity yet").font(.system(size: 14)).foregroundStyle(palette.secondary) }
+                ForEach(profile.transactions.sorted { $0.date > $1.date }.prefix(3)) { transaction in
+                    Button { sheet = .transaction(transaction.id) } label: {
+                        HStack(spacing: 13) {
+                            Image(systemName: transaction.kind == .receive ? "plus" : "arrow.up.right").frame(width: 35, height: 35).background(palette.card, in: Circle()).foregroundStyle(palette.secondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(transaction.kind == .receive ? "Deposited" : "Transferred").font(.system(size: 14))
+                                Text(transaction.network).font(.system(size: 12)).foregroundStyle(palette.secondary)
+                            }
+                            Spacer()
+                            Text((transaction.kind == .receive ? "+" : "−") + walletQuantity(transaction.quantity) + " " + walletSymbol(transaction.symbol)).font(.system(size: 14)).foregroundStyle(transaction.kind == .receive ? palette.positive : palette.ink)
+                        }.frame(minHeight: 44)
+                    }.buttonStyle(.plain)
+                }
+            }.padding(20).foregroundStyle(palette.ink)
+        }.scrollIndicators(.hidden)
+    }
+    private func moneyAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(palette.secondary)
+                Text(title).font(.system(size: 13, weight: .medium))
+            }.frame(maxWidth: .infinity, minHeight: 70).background(palette.card, in: RoundedRectangle(cornerRadius: 14))
+        }.buttonStyle(.plain).accessibilityIdentifier("wallet-money-" + title.lowercased())
     }
     private var rewardsPage: some View {
         VStack(spacing: 22) {
@@ -523,7 +586,10 @@ struct WalletPlayback: View {
         case .transaction(let id): WalletTransactionDetail(sceneID: sceneID, transactionID: id)
         case .swap(let mode): WalletSwapSheet(sceneID: sceneID, mode: mode)
         case .explore: WalletExploreSheet(sceneID: sceneID)
-        case .connections: TrustConnectionsSheet()
+        case .connections: WalletTrustConnectionsSheet(walletName: scene.name, address: profile.address)
+        case .staking: WalletTrustStakingSheet()
+        case .risk: WalletTrustRiskSheet()
+        case .card: WalletMetaMaskCardSheet(sceneID: sceneID)
         case .trustRewards: TrustRewardsSheet()
         case .collectible(let collectible): TrustCollectibleSheet(collectible: collectible)
         }
@@ -543,13 +609,13 @@ struct WalletPlayback: View {
 }
 
 private enum WalletPage: String, CaseIterable, Identifiable {
-    case assets, activity, settings, money, rewards
+    case assets, activity, settings, money, rewards, trade, explore
     var id: String { rawValue }
     var title: String { self == .assets ? "Home" : rawValue.capitalized }
     var symbol: String { self == .assets ? "wallet.bifold.fill" : self == .activity ? "clock" : "gearshape" }
 }
 private enum WalletDestination: Identifiable {
-    case edit, token(UUID), send(UUID?), receive, addressDetails, transaction(UUID), swap(WalletSwapMode), explore, connections, trustRewards, collectible(TrustCollectible)
+    case edit, token(UUID), send(UUID?), receive, addressDetails, transaction(UUID), swap(WalletSwapMode), explore, connections, staking, risk, card, trustRewards, collectible(TrustCollectible)
     var id: String {
         switch self {
         case .edit: return "edit"
@@ -561,6 +627,9 @@ private enum WalletDestination: Identifiable {
         case .swap(let mode): return "swap-" + mode.rawValue
         case .explore: return "explore"
         case .connections: return "connections"
+        case .staking: return "staking"
+        case .risk: return "risk"
+        case .card: return "card"
         case .trustRewards: return "trustRewards"
         case .collectible(let collectible): return "collectible-" + collectible.rawValue
         }
@@ -576,6 +645,7 @@ private struct WalletPalette {
     var positive: Color { theme == .metamask ? Color(red: 0.74, green: 0.91, blue: 0.29) : Color(red: 0.12, green: 0.85, blue: 0.39) }
     var separator: Color { theme != .trustWallet ? .white.opacity(0.07) : .black.opacity(0.06) }
 }
+private func walletSymbol(_ symbol: String) -> String { symbol.uppercased() == "MUSD" ? "mUSD" : symbol }
 private func compactAddress(_ address: String) -> String { address.count > 17 ? String(address.prefix(7)) + "…" + String(address.suffix(5)) : address }
 private func walletQuantity(_ value: Double) -> String { value.formatted(.number.grouping(.never).precision(.fractionLength(0...12))) }
 /// Expands Swift's round-tripping decimal representation so Max never rounds above the
@@ -612,26 +682,6 @@ private struct WalletBrandMark: View {
                     .background(theme == .phantom ? Color(red: 0.16, green: 0.15, blue: 0.22) : Color.white, in: RoundedRectangle(cornerRadius: 10))
             }
         }
-    }
-}
-
-private struct PhantomAccountAvatar: View {
-    var body: some View {
-        Canvas { context, size in
-            let w = size.width, h = size.height
-            context.fill(Path(ellipseIn: CGRect(x: 0, y: 0, width: w, height: h)), with: .color(Color(red: 1, green: 0.98, blue: 0.69)))
-            context.fill(Path(ellipseIn: CGRect(x: w * 0.25, y: h * 0.4, width: w * 0.61, height: h * 0.68)), with: .color(Color(red: 1, green: 0.34, blue: 0.15)))
-            context.fill(Path(ellipseIn: CGRect(x: w * 0.21, y: h * 0.23, width: w * 0.59, height: h * 0.31)), with: .color(Color(red: 0.08, green: 0.08, blue: 0.1)))
-            var brim = Path(); brim.move(to: CGPoint(x: w * 0.12, y: h * 0.53)); brim.addLine(to: CGPoint(x: w * 0.91, y: h * 0.37))
-            context.stroke(brim, with: .color(.black), style: StrokeStyle(lineWidth: w * 0.075, lineCap: .round))
-            for x in [0.45, 0.67] {
-                context.fill(Path(ellipseIn: CGRect(x: w * x, y: h * 0.54, width: w * 0.16, height: h * 0.19)), with: .color(Color(red: 0.08, green: 0.09, blue: 0.16)))
-                var shine = Path(); shine.move(to: CGPoint(x: w * (x + 0.035), y: h * 0.6)); shine.addLine(to: CGPoint(x: w * (x + 0.085), y: h * 0.56))
-                context.stroke(shine, with: .color(Color(red: 0.25, green: 0.45, blue: 0.75)), lineWidth: w * 0.025)
-            }
-            var bridge = Path(); bridge.move(to: CGPoint(x: w * 0.59, y: h * 0.61)); bridge.addLine(to: CGPoint(x: w * 0.7, y: h * 0.61))
-            context.stroke(bridge, with: .color(.black), lineWidth: w * 0.03)
-        }.clipShape(Circle()).accessibilityHidden(true)
     }
 }
 
@@ -770,65 +820,18 @@ private enum TrustWalletSection: String, CaseIterable, Identifiable {
     var title: String { self == .crypto ? "Crypto" : "NFTs" }
 }
 
-private struct TrustRewardsArtwork: View {
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                WalletVectorPolygon(points: [CGPoint(x: 0.08, y: 0.52), CGPoint(x: 0.65, y: 0.39), CGPoint(x: 0.88, y: 0.57), CGPoint(x: 0.32, y: 0.73)])
-                    .fill(Color(red: 0.1, green: 0.15, blue: 0.8))
-                WalletVectorPolygon(points: [CGPoint(x: 0.08, y: 0.52), CGPoint(x: 0.32, y: 0.73), CGPoint(x: 0.36, y: 0.99), CGPoint(x: 0.12, y: 0.81)])
-                    .fill(Color(red: 0.14, green: 0.45, blue: 1))
-                WalletVectorPolygon(points: [CGPoint(x: 0.32, y: 0.73), CGPoint(x: 0.88, y: 0.57), CGPoint(x: 0.87, y: 0.9), CGPoint(x: 0.36, y: 0.99)])
-                    .fill(Color(red: 0.24, green: 0.6, blue: 1))
-                WalletVectorPolygon(points: [CGPoint(x: 0.08, y: 0.49), CGPoint(x: 0.3, y: 0.14), CGPoint(x: 0.87, y: 0.03), CGPoint(x: 0.64, y: 0.4)])
-                    .fill(.white).overlay {
-                        WalletVectorPolygon(points: [CGPoint(x: 0.08, y: 0.49), CGPoint(x: 0.3, y: 0.14), CGPoint(x: 0.87, y: 0.03), CGPoint(x: 0.64, y: 0.4)])
-                            .stroke(Color(red: 0.23, green: 0.3, blue: 0.75), lineWidth: 0.8)
-                    }
-                RoundedRectangle(cornerRadius: 3).fill(Color(red: 0.07, green: 0.1, blue: 0.15))
-                    .frame(width: proxy.size.width * 0.28, height: proxy.size.height * 0.3)
-                    .rotationEffect(.degrees(-12)).position(x: proxy.size.width * 0.65, y: proxy.size.height * 0.74)
-                Text("?").font(.system(size: 21, weight: .bold)).foregroundStyle(.green)
-                    .rotationEffect(.degrees(-12)).position(x: proxy.size.width * 0.65, y: proxy.size.height * 0.74)
-                Ellipse().fill(Color(red: 0.68, green: 0.61, blue: 1)).frame(width: 6, height: 12)
-                    .rotationEffect(.degrees(-18)).position(x: proxy.size.width * 0.77, y: proxy.size.height * 0.21)
-            }
-        }
-    }
-}
-
 private enum TrustCollectible: String, CaseIterable, Identifiable {
-    case sunset, lagoon, orchid, cosmos
+    case sunset, lagoon
     var id: String { rawValue }
-    var title: String {
-        switch self { case .sunset: return "Sunset Ape #101"; case .lagoon: return "Lagoon Ape #408"; case .orchid: return "Orchid Ape #215"; case .cosmos: return "Cosmos Ape #702" }
-    }
-    var background: Color {
-        switch self { case .sunset: return Color(red: 0.26, green: 0.58, blue: 0.76); case .lagoon: return Color(red: 0.14, green: 0.75, blue: 0.62); case .orchid: return Color(red: 0.66, green: 0.48, blue: 0.82); case .cosmos: return Color(red: 0.13, green: 0.17, blue: 0.42) }
-    }
-    var fur: Color { self == .sunset || self == .orchid ? Color(red: 0.81, green: 0.33, blue: 0.15) : Color(red: 0.31, green: 0.76, blue: 0.81) }
+    var title: String { self == .sunset ? "Sunset Ape #101" : "Lagoon Ape #408" }
 }
 
 private struct TrustCollectibleArtwork: View {
     let collectible: TrustCollectible
     var body: some View {
-        GeometryReader { proxy in
-            let w = proxy.size.width, h = proxy.size.height
-            ZStack {
-                collectible.background
-                Ellipse().fill(collectible.fur).frame(width: w * 0.8, height: h * 0.69).position(x: w * 0.5, y: h * 0.99)
-                Circle().fill(collectible.fur).frame(width: w * 0.72).position(x: w * 0.5, y: h * 0.52)
-                Ellipse().fill(Color(red: 0.94, green: 0.74, blue: 0.5)).frame(width: w * 0.53, height: h * 0.34).position(x: w * 0.5, y: h * 0.68)
-                ForEach(0..<2) { index in
-                    Ellipse().fill(Color(red: 0.94, green: 0.74, blue: 0.5)).frame(width: w * 0.22, height: h * 0.19).position(x: w * (index == 0 ? 0.35 : 0.65), y: h * 0.46)
-                    Ellipse().fill(.black).frame(width: w * 0.105, height: h * 0.065).position(x: w * (index == 0 ? 0.35 : 0.65), y: h * 0.47)
-                }
-                Capsule().fill(.black.opacity(0.8)).frame(width: w * 0.13, height: h * 0.04).position(x: w * 0.5, y: h * 0.62)
-                Capsule().fill(.black.opacity(0.8)).frame(width: w * 0.28, height: h * 0.025).rotationEffect(.degrees(7)).position(x: w * 0.5, y: h * 0.76)
-                RoundedRectangle(cornerRadius: w * 0.06).fill(collectible == .lagoon ? Color(red: 0.14, green: 0.23, blue: 0.38) : Color(red: 0.82, green: 0.28, blue: 0.11))
-                    .frame(width: w * 0.66, height: h * 0.13).rotationEffect(.degrees(-7)).position(x: w * 0.51, y: h * 0.25)
-            }
-        }.accessibilityHidden(true)
+        WalletReferenceTrustNFT(lagoon: collectible == .lagoon)
+            .aspectRatio(453.0 / 126.0, contentMode: .fit)
+            .accessibilityHidden(true)
     }
 }
 
@@ -839,7 +842,7 @@ private struct TrustCollectibleSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    TrustCollectibleArtwork(collectible: collectible).aspectRatio(1, contentMode: .fit).clipShape(RoundedRectangle(cornerRadius: 16))
+                    TrustCollectibleArtwork(collectible: collectible).clipShape(RoundedRectangle(cornerRadius: 16))
                     Text(collectible.title).font(.system(size: 24, weight: .bold))
                     HStack { Text("Network").foregroundStyle(.secondary); Spacer(); Text("Ethereum") }
                     HStack { Text("Collection").foregroundStyle(.secondary); Spacer(); Text("Color Apes") }
@@ -850,28 +853,6 @@ private struct TrustCollectibleSheet: View {
     }
 }
 
-private struct TrustConnectionsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var connections: [String] = []
-    @State private var choosing = false
-    var body: some View {
-        NavigationStack {
-            List {
-                if connections.isEmpty { ContentUnavailableView("No connections", systemImage: "link", description: Text("Connected apps appear here.")) }
-                ForEach(connections, id: \.self) { connection in
-                    HStack { Text(connection); Spacer(); Button("Disconnect") { connections.removeAll { $0 == connection } }.font(.caption) }
-                }
-                Button { choosing = true } label: { Label("Connect app", systemImage: "plus").frame(minHeight: 44) }
-            }.navigationTitle("Connections").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-                .confirmationDialog("Choose app", isPresented: $choosing, titleVisibility: .visible) {
-                    ForEach(["Uniswap", "Aave", "OpenSea"], id: \.self) { name in Button(name) { if !connections.contains(name) { connections.append(name) } } }
-                    Button("Cancel", role: .cancel) { }
-                }
-        }.preferredColorScheme(.light).accessibilityIdentifier("wallet-connections-sheet")
-    }
-}
-
 private struct TrustRewardsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var checkedIn = false
@@ -879,7 +860,7 @@ private struct TrustRewardsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    TrustRewardsArtwork().frame(width: 120, height: 135).frame(maxWidth: .infinity)
+                    WalletReferenceTrustRewards().frame(width: 120, height: 135).frame(maxWidth: .infinity)
                     Text("Trust Points").font(.system(size: 28, weight: .bold))
                     Text(checkedIn ? "220" : "210").font(.system(size: 44, weight: .bold)).accessibilityIdentifier("wallet-trust-points")
                     Text("Earn points and unlock future rewards").foregroundStyle(.secondary)
@@ -945,7 +926,7 @@ private struct WalletAssetRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(holding.name).font(.system(size: theme == .phantom ? 16 : 15, weight: theme == .trustWallet ? .medium : .regular))
                 if theme != .trustWallet {
-                    Text(walletQuantity(holding.quantity) + " " + holding.symbol).font(.system(size: theme == .phantom ? 13 : 12)).foregroundStyle(palette.secondary)
+                    Text(walletQuantity(holding.quantity) + " " + walletSymbol(holding.symbol)).font(.system(size: theme == .phantom ? 13 : 12)).foregroundStyle(palette.secondary)
                 } else {
                     HStack(spacing: 5) {
                         Text(holding.price.formatted(.currency(code: currency))).foregroundStyle(palette.secondary)
@@ -958,7 +939,7 @@ private struct WalletAssetRow: View {
             VStack(alignment: .trailing, spacing: 6) {
                 Text(holding.value.formatted(.currency(code: currency))).font(.system(size: theme == .phantom ? 16 : 15, weight: theme == .phantom ? .regular : .medium))
                 if theme == .trustWallet {
-                    Text(walletQuantity(holding.quantity) + " " + holding.symbol).font(.system(size: 11)).foregroundStyle(palette.secondary)
+                    Text(walletQuantity(holding.quantity) + " " + walletSymbol(holding.symbol)).font(.system(size: 11)).foregroundStyle(palette.secondary)
                 } else {
                     Text((holding.changePercent >= 0 ? "+" : "") + (theme == .metamask
                         ? holding.changePercent.formatted(.number.precision(.fractionLength(2))) + "%"
@@ -1025,7 +1006,7 @@ private struct WalletAssetDetail: View {
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("Your balance").font(.system(size: 13)).foregroundStyle(palette.secondary)
                                 HStack {
-                                    Text(walletQuantity(holding.quantity) + " " + holding.symbol).font(.system(size: 21, weight: .semibold))
+                                    Text(walletQuantity(holding.quantity) + " " + walletSymbol(holding.symbol)).font(.system(size: 21, weight: .semibold))
                                     Spacer()
                                     Text(scene.money(holding.value)).font(.system(size: 15)).foregroundStyle(palette.secondary)
                                 }
@@ -1048,7 +1029,7 @@ private struct WalletAssetDetail: View {
                                         HStack {
                                             Text(transaction.kind == .send ? "Sent" : "Received").font(.system(size: 14, weight: .medium))
                                             Spacer()
-                                            Text(walletQuantity(transaction.quantity) + " " + transaction.symbol).font(.system(size: 13))
+                                            Text(walletQuantity(transaction.quantity) + " " + walletSymbol(transaction.symbol)).font(.system(size: 13))
                                         }
                                     }
                                 }
@@ -1127,10 +1108,11 @@ private struct WalletReceiveSheet: View {
             .background(palette.background)
             .navigationTitle("Receive").navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
-                if profile.theme == .trustWallet && initialAssetID == nil && selectedAssetID != nil {
-                    ToolbarItem(placement: .cancellationAction) { Button("Back") { selectedAssetID = nil } }
-                }
+                if profile.theme == .trustWallet {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { if initialAssetID == nil && selectedAssetID != nil { selectedAssetID = nil } else { dismiss() } } label: { Image(systemName: "arrow.left").foregroundStyle(palette.secondary) }.accessibilityLabel("Back")
+                    }
+                } else { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             }
             .sheet(isPresented: $recording) { WalletTransferSheet(sceneID: sceneID, initialAssetID: selectedAssetID, incoming: true) }
             .onAppear {
@@ -1170,14 +1152,14 @@ private struct WalletReceiveSheet: View {
                                             .padding(2).background(.white, in: Circle()).offset(x: 4, y: 3)
                                     }
                                 }
-                            Text(holding.symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(palette.ink)
+                            Text(walletSymbol(holding.symbol)).font(.system(size: 16, weight: .semibold)).foregroundStyle(palette.ink)
                             if !nativeNetwork(for: holding) {
                                 Text(holding.network).font(.system(size: 11)).foregroundStyle(palette.secondary)
                                     .padding(.horizontal, 5).padding(.vertical, 3).background(palette.card, in: RoundedRectangle(cornerRadius: 4))
                             }
                             Spacer()
-                        }.frame(minHeight: 44).contentShape(Rectangle())
-                    }.buttonStyle(.plain).accessibilityIdentifier("wallet-receive-asset-" + holding.symbol.lowercased())
+                        }.frame(minHeight: 47).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityIdentifier("wallet-receive-asset-" + walletSymbol(holding.symbol).lowercased())
                 }
             }.padding(16)
         }
@@ -1259,7 +1241,7 @@ private struct WalletTransferSheet: View {
                 else if reviewing, let holding, let scene { review(holding, scene: scene) }
                 else { form }
             }
-            .navigationTitle(result != nil ? "Complete" : reviewing ? "Review transfer" : incoming ? "Receive" : "Send")
+            .navigationTitle(result != nil ? "Complete" : reviewing ? profile.theme == .metamask && !incoming ? "Transfer request" : "Review transfer" : incoming ? "Receive" : "Send")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -1282,9 +1264,9 @@ private struct WalletTransferSheet: View {
         Form {
             Section("Asset") {
                 Picker("Token", selection: $assetID) {
-                    ForEach(profile.holdings) { holding in Text(holding.name + " (" + holding.symbol + ")").tag(Optional(holding.id)) }
+                    ForEach(profile.holdings) { holding in Text(holding.name + " (" + walletSymbol(holding.symbol) + ")").tag(Optional(holding.id)) }
                 }
-                if let holding { LabeledContent("Available", value: walletQuantity(holding.quantity) + " " + holding.symbol) }
+                if let holding { LabeledContent("Available", value: walletQuantity(holding.quantity) + " " + walletSymbol(holding.symbol)) }
             }
             Section(incoming ? "Address" : "Recipient") {
                 if incoming { Text(address).font(.system(size: 12, design: .monospaced)).textSelection(.enabled) }
@@ -1308,11 +1290,15 @@ private struct WalletTransferSheet: View {
             if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
         }
     }
-    private func review(_ holding: WalletHolding, scene: StudioScene) -> some View {
+    @ViewBuilder private func review(_ holding: WalletHolding, scene: StudioScene) -> some View {
+        if profile.theme == .metamask && !incoming { metaMaskRequest(holding, scene: scene) }
+        else { standardReview(holding, scene: scene) }
+    }
+    private func standardReview(_ holding: WalletHolding, scene: StudioScene) -> some View {
         VStack(spacing: 24) {
             WalletTokenMark(symbol: holding.symbol, theme: profile.theme).padding(.top, 25)
             VStack(spacing: 7) {
-                Text(walletQuantity(quantity ?? 0) + " " + holding.symbol).font(.system(size: 29, weight: .semibold)).minimumScaleFactor(0.7).lineLimit(1)
+                Text(walletQuantity(quantity ?? 0) + " " + walletSymbol(holding.symbol)).font(.system(size: 29, weight: .semibold)).minimumScaleFactor(0.7).lineLimit(1)
                 Text(scene.money((quantity ?? 0) * holding.price)).font(.system(size: 16)).foregroundStyle(palette.secondary)
             }
             VStack(alignment: .leading, spacing: 18) {
@@ -1321,7 +1307,7 @@ private struct WalletTransferSheet: View {
                     Text(incoming ? "Wallet address" : "To").font(.caption).foregroundStyle(palette.secondary)
                     Text(address).font(.system(size: 12, design: .monospaced)).textSelection(.enabled)
                 }
-                LabeledContent("Network fee", value: "0 " + holding.symbol)
+                LabeledContent("Network fee", value: "0 " + walletSymbol(holding.symbol))
             }
             .font(.system(size: 14)).padding(20).background(palette.card, in: RoundedRectangle(cornerRadius: 20))
             if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
@@ -1335,13 +1321,54 @@ private struct WalletTransferSheet: View {
         }
         .padding(24).foregroundStyle(palette.ink).background(palette.background)
     }
+    private func metaMaskRequest(_ holding: WalletHolding, scene: StudioScene) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 26) {
+                    WalletTokenMark(symbol: holding.symbol, theme: .metamask, size: 50)
+                        .padding(.top, 30)
+                    VStack(spacing: 8) {
+                        Text(walletQuantity(quantity ?? 0) + " " + walletSymbol(holding.symbol))
+                            .font(.system(size: 40, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.65)
+                        Text(scene.money((quantity ?? 0) * holding.price)).font(.system(size: 18)).foregroundStyle(palette.secondary)
+                    }
+                    HStack(spacing: 10) {
+                        Text("Account 1").font(.system(size: 14, weight: .medium))
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(palette.secondary)
+                        Spacer()
+                        Text(compactAddress(address)).font(.system(size: 13, weight: .medium)).lineLimit(1).minimumScaleFactor(0.7)
+                    }.padding(18).frame(minHeight: 55).background(palette.card, in: RoundedRectangle(cornerRadius: 11)).padding(.top, 15)
+                    VStack(spacing: 23) {
+                        HStack {
+                            Text("Estimated fee").foregroundStyle(palette.secondary)
+                            Spacer()
+                            Text(scene.money(0) + "  0 " + walletSymbol(holding.symbol))
+                        }
+                        HStack { Text("Network").foregroundStyle(palette.secondary); Spacer(); Text(holding.network) }
+                        HStack { Text("Speed").foregroundStyle(palette.secondary); Spacer(); Text("Instant") }
+                    }.font(.system(size: 14)).padding(18).background(palette.card, in: RoundedRectangle(cornerRadius: 11))
+                    if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+                }.padding(.horizontal, 20).padding(.bottom, 25)
+            }
+            HStack(spacing: 13) {
+                Button { reviewing = false } label: {
+                    Text("Cancel").frame(maxWidth: .infinity, minHeight: 49).background(palette.card, in: RoundedRectangle(cornerRadius: 11))
+                }.accessibilityIdentifier("wallet-cancel-transfer")
+                Button(action: confirm) {
+                    Text("Transfer").foregroundStyle(.black).frame(maxWidth: .infinity, minHeight: 49)
+                        .background(Color.white.opacity(valid && !submitting ? 1 : 0.5), in: RoundedRectangle(cornerRadius: 11))
+                }.disabled(!valid || submitting).accessibilityIdentifier("wallet-confirm-transfer")
+            }.font(.system(size: 16, weight: .medium)).buttonStyle(.plain).padding(20)
+        }.foregroundStyle(palette.ink).background(palette.background)
+    }
     private func completed(_ transaction: WalletTransaction) -> some View {
         VStack(spacing: 20) {
             Spacer()
             Image(systemName: "checkmark.circle.fill").font(.system(size: 65)).foregroundStyle(palette.positive)
             Text(incoming ? "Assets received" : "Transfer complete").font(.system(size: 27, weight: .semibold))
                 .accessibilityIdentifier("wallet-transfer-complete")
-            Text(walletQuantity(transaction.quantity) + " " + transaction.symbol).font(.system(size: 21))
+            Text(walletQuantity(transaction.quantity) + " " + walletSymbol(transaction.symbol)).font(.system(size: 21))
             Text(compactAddress(transaction.address)).font(.system(size: 13, design: .monospaced)).foregroundStyle(palette.secondary)
             Spacer()
             Button("Done") { dismiss() }.buttonStyle(.borderedProminent).frame(minHeight: 44)
@@ -1373,7 +1400,7 @@ private struct WalletTransactionDetail: View {
                             VStack(spacing: 12) {
                                 Image(systemName: "checkmark.circle.fill").font(.system(size: 45)).foregroundStyle(.green)
                                 Text(transaction.kind.title).font(.title2.weight(.semibold))
-                                Text(walletQuantity(transaction.quantity) + " " + transaction.symbol).font(.title3)
+                                Text(walletQuantity(transaction.quantity) + " " + walletSymbol(transaction.symbol)).font(.title3)
                             }.frame(maxWidth: .infinity).padding(.vertical, 16)
                         }
                         Section("Details") {
@@ -1421,7 +1448,7 @@ private struct WalletProfileEditor: View {
                                 WalletTokenMark(symbol: holding.symbol, theme: profile.theme).scaleEffect(0.75).frame(width: 35, height: 35)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(holding.name).font(.system(size: 15, weight: .medium))
-                                    Text(walletQuantity(holding.quantity) + " " + holding.symbol).font(.system(size: 12)).foregroundStyle(.secondary)
+                                    Text(walletQuantity(holding.quantity) + " " + walletSymbol(holding.symbol)).font(.system(size: 12)).foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.system(size: 11)).foregroundStyle(.secondary)
@@ -1549,6 +1576,8 @@ private enum WalletSwapMode: String {
 private struct WalletSwapSheet: View {
     let sceneID: UUID
     let mode: WalletSwapMode
+    let embedded: Bool
+    init(sceneID: UUID, mode: WalletSwapMode, embedded: Bool = false) { self.sceneID = sceneID; self.mode = mode; self.embedded = embedded }
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
     @State private var fromID: UUID?
@@ -1558,12 +1587,22 @@ private struct WalletSwapSheet: View {
     @State private var completed = false
     @State private var completedQuantity: Double?
     @State private var completedSymbol = ""
+    @State private var tradeFilter = "Featured"
+    @State private var ranking = "Rank"
     @FocusState private var editing: Bool
     private var profile: WalletProfile { store.walletProfile(for: sceneID) }
+    private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var palette: WalletPalette { WalletPalette(theme: profile.theme) }
     private var from: WalletHolding? { profile.holdings.first { $0.id == fromID } }
     private var to: WalletHolding? { profile.holdings.first { $0.id == toID } }
-    private var quantity: Double? { Simulation.parseAmount(amount) }
+    private var quantity: Double? {
+        guard let input = Simulation.parseAmount(amount) else { return nil }
+        if profile.theme == .trustWallet && mode == .buy {
+            guard let from, from.price > 0 else { return nil }
+            return input / from.price
+        }
+        return input
+    }
     private var received: Double? {
         guard let quantity, let from, let to else { return nil }
         return quantity * from.price / to.price
@@ -1576,79 +1615,238 @@ private struct WalletSwapSheet: View {
         return true
     }
     var body: some View {
-        NavigationStack {
-            Group {
-                if completed { completion }
-                else if reviewing { review }
-                else { entry }
-            }
-            .navigationTitle(completed ? "Complete" : reviewing ? "Review " + mode.rawValue : mode.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(completed ? "Done" : reviewing ? "Back" : "Cancel") {
-                        if reviewing && !completed { reviewing = false } else { dismiss() }
-                    }
+        Group {
+            if embedded { content }
+            else {
+                NavigationStack {
+                    content
+                        .navigationTitle(completed ? "Complete" : reviewing ? "Review " + mode.rawValue : profile.theme == .trustWallet && mode == .buy ? "Buy " + walletSymbol(to?.symbol ?? "crypto") : mode.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button {
+                                    if reviewing && !completed { reviewing = false } else { dismiss() }
+                                } label: {
+                                    if profile.theme == .trustWallet { Image(systemName: "arrow.left").foregroundStyle(palette.secondary) }
+                                    else { Text(completed ? "Done" : reviewing ? "Back" : "Cancel") }
+                                }.accessibilityLabel(completed ? "Done" : reviewing ? "Back" : "Cancel")
+                            }
+                        }
                 }
-                ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } }
             }
-            .onAppear(perform: selectAssets)
         }
+        .onAppear(perform: selectAssets)
+        .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } } }
         .tint(palette.accent).preferredColorScheme(profile.theme == .trustWallet ? .light : .dark)
-        .accessibilityIdentifier("wallet-swap-sheet")
+
+    }
+    @ViewBuilder private var content: some View {
+        if completed { completion }
+        else if reviewing { review }
+        else if profile.theme == .trustWallet && mode == .buy { trustBuyEntry }
+        else { entry }
     }
     private var entry: some View {
-        VStack(spacing: 16) {
-            assetCard(receiving: false)
-            Button {
-                let previous = fromID; fromID = toID; toID = previous; amount = ""
-            } label: {
-                Image(systemName: "arrow.up.arrow.down").font(.system(size: 21, weight: .semibold))
-                    .frame(width: 44, height: 44).background(palette.card, in: Circle())
-            }.buttonStyle(.plain).accessibilityLabel("Reverse assets")
-            assetCard(receiving: true)
-            if let from, let to {
-                Text("1 " + from.symbol + " = " + walletQuantity(from.price / to.price) + " " + to.symbol)
-                    .font(.system(size: 12)).foregroundStyle(palette.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: profile.theme == .metamask ? 0 : 20) {
+                if profile.theme == .phantom { phantomTradeFilters }
+                VStack(spacing: profile.theme == .metamask ? 36 : 7) {
+                    assetCard(receiving: false)
+                    if profile.theme == .metamask { Rectangle().fill(palette.separator).frame(height: 1) }
+                    assetCard(receiving: true)
+                }
+                .overlay {
+                    Button(reverseAssets) {
+                        Image(systemName: "arrow.up.arrow.down").font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(profile.theme == .phantom ? .black : profile.theme == .trustWallet ? palette.accent : palette.ink)
+                            .frame(width: 43, height: 43)
+                            .background(profile.theme == .phantom ? palette.accent : profile.theme == .trustWallet ? .white : palette.card, in: Circle())
+                    }.buttonStyle(.plain).accessibilityLabel("Reverse assets").accessibilityIdentifier("wallet-reverse-swap")
+                }
+                if profile.theme == .metamask {
+                    Spacer(minLength: 120)
+                    quoteDetails
+                    reviewButton.padding(.top, 18)
+                } else if profile.theme == .trustWallet {
+                    reviewButton
+                    quoteDetails
+                } else {
+                    reviewButton
+                    phantomRankings
+                }
+                if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
             }
-            if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
-            Spacer()
-            Button { editing = false; reviewing = true } label: {
-                Text("Review " + mode.rawValue).font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 48)
-            }
-            .buttonStyle(.borderedProminent).disabled(!valid).accessibilityIdentifier("wallet-review-swap")
-        }
-        .padding(22).foregroundStyle(palette.ink).background(palette.background)
+            .padding(.horizontal, profile.theme == .phantom ? 20 : 18).padding(.vertical, 20)
+        }.scrollIndicators(.hidden).foregroundStyle(palette.ink).background(palette.background)
     }
     private func assetCard(receiving: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 17) {
-            Text(receiving ? "You receive" : "You pay").font(.system(size: 13)).foregroundStyle(palette.secondary)
-            HStack {
-                if let holding = receiving ? to : from { WalletTokenMark(symbol: holding.symbol, theme: profile.theme) }
-                Picker(receiving ? "To asset" : "From asset", selection: receiving ? $toID : $fromID) {
-                    ForEach(profile.holdings) { Text($0.symbol).tag(Optional($0.id)) }
-                }.pickerStyle(.menu).font(.system(size: 16, weight: .semibold)).frame(minHeight: 44)
-                Spacer()
-                if receiving {
-                    Text(walletQuantity(received ?? 0)).font(.system(size: 25, weight: .semibold)).minimumScaleFactor(0.6).lineLimit(1)
-                } else {
-                    TextField("0", text: $amount).keyboardType(.decimalPad).focused($editing)
-                        .font(.system(size: 25, weight: .semibold)).multilineTextAlignment(.trailing)
-                        .accessibilityIdentifier("wallet-swap-amount")
-                }
+        let holding = receiving ? to : from
+        return VStack(alignment: .leading, spacing: profile.theme == .metamask ? 12 : 17) {
+            if profile.theme != .metamask {
+                Text(receiving ? profile.theme == .trustWallet ? "You Get" : "You Receive" : "You Pay")
+                    .font(.system(size: profile.theme == .phantom ? 17 : 14, weight: profile.theme == .phantom ? .semibold : .regular)).foregroundStyle(palette.secondary)
             }
-            if let holding = receiving ? to : from {
-                HStack {
-                    Text("Balance: " + walletQuantity(holding.quantity)).font(.system(size: 12)).foregroundStyle(palette.secondary)
-                    Spacer()
-                    if !receiving {
-                        Button("Max") { amount = walletMaximumInput(holding.quantity) }
-                            .font(.system(size: 12, weight: .semibold)).frame(minWidth: 44, minHeight: 44)
+            HStack(spacing: 12) {
+                Group {
+                    if receiving { Text(walletQuantity(received ?? 0)).lineLimit(1).minimumScaleFactor(0.55) }
+                    else {
+                        TextField("0", text: $amount).keyboardType(.decimalPad).focused($editing)
+                            .accessibilityIdentifier("wallet-swap-amount")
                     }
                 }
+                .font(.system(size: profile.theme == .metamask ? 35 : profile.theme == .phantom ? 32 : 26, weight: profile.theme == .trustWallet ? .semibold : .regular))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Menu {
+                    ForEach(profile.holdings) { asset in
+                        Button(walletSymbol(asset.symbol)) { if receiving { toID = asset.id } else { fromID = asset.id } }
+                    }
+                } label: {
+                    HStack(spacing: 7) {
+                        if let holding { WalletTokenMark(symbol: holding.symbol, theme: profile.theme, size: profile.theme == .trustWallet ? 42 : 32) }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(walletSymbol(holding?.symbol ?? "Token")).font(.system(size: 18, weight: .semibold)).foregroundStyle(palette.ink)
+                            if profile.theme == .trustWallet, let holding, holding.symbol.uppercased() == "USDT" {
+                                Text(holding.network == "Ethereum" ? "ERC20" : holding.network).font(.system(size: 11)).foregroundStyle(palette.secondary)
+                            }
+                        }
+                        Image(systemName: profile.theme == .trustWallet ? "chevron.right" : "chevron.down").font(.system(size: 12, weight: .medium)).foregroundStyle(palette.secondary)
+                    }
+                    .padding(.horizontal, profile.theme == .trustWallet ? 0 : 8).padding(.vertical, 5)
+                    .background(profile.theme == .trustWallet ? .clear : palette.card.opacity(0.7), in: Capsule())
+                    .frame(minHeight: 44)
+                }.accessibilityLabel(receiving ? "To asset" : "From asset").accessibilityIdentifier(receiving ? "wallet-swap-to-asset" : "wallet-swap-from-asset")
+            }
+            HStack(spacing: 6) {
+                if profile.theme == .trustWallet {
+                    Image(systemName: "wallet.bifold.fill").font(.system(size: 11))
+                    Text(walletQuantity(holding?.quantity ?? 0)).font(.system(size: 13))
+                } else {
+                    Text(scene?.money(receiving ? (received ?? 0) * (holding?.price ?? 0) : (quantity ?? 0) * (holding?.price ?? 0)) ?? "$0.00")
+                        .font(.system(size: 13))
+                }
+                Spacer()
+                if profile.theme != .trustWallet {
+                    Text(walletQuantity(holding?.quantity ?? 0) + " " + walletSymbol(holding?.symbol ?? "")).font(.system(size: 13))
+                }
+            }.foregroundStyle(palette.secondary)
+            if !receiving, let holding {
+                Button("Max") { amount = walletMaximumInput(holding.quantity) }
+                    .font(.system(size: 12, weight: .semibold)).frame(minWidth: 44, minHeight: 32)
+                    .accessibilityIdentifier("wallet-swap-max")
             }
         }
-        .padding(18).background(palette.card, in: RoundedRectangle(cornerRadius: 20))
+        .padding(profile.theme == .metamask ? 0 : 19)
+        .background(profile.theme == .metamask ? .clear : palette.card, in: RoundedRectangle(cornerRadius: profile.theme == .phantom ? 23 : 14))
+    }
+    private var reviewButton: some View {
+        Button { editing = false; reviewing = true } label: {
+            Text(profile.theme == .trustWallet ? "Preview " + mode.rawValue : profile.theme == .metamask ? mode.rawValue.capitalized : "Review " + mode.rawValue)
+                .font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 49)
+                .foregroundStyle(profile.theme == .metamask ? .black : valid ? .white : palette.secondary.opacity(0.65))
+                .background(profile.theme == .metamask ? Color.white.opacity(valid ? 1 : 0.5) : valid ? palette.accent : Color.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 13))
+        }.buttonStyle(.plain).disabled(!valid).accessibilityIdentifier("wallet-review-swap")
+    }
+    private var quoteDetails: some View {
+        VStack(spacing: 15) {
+            if let from, let to {
+                HStack {
+                    Text(profile.theme == .trustWallet ? "Quote" : "Rate").foregroundStyle(palette.secondary)
+                    Spacer()
+                    Text("1 " + walletSymbol(from.symbol) + " ≈ " + walletQuantity(from.price / to.price) + " " + walletSymbol(to.symbol)).lineLimit(1).minimumScaleFactor(0.7)
+                }
+            }
+            if profile.theme == .metamask {
+                HStack { Text("Network fee"); Spacer(); Text(scene?.money(0) ?? "$0.00") }
+                HStack { Text("Slippage"); Spacer(); Text("0%") }
+                HStack { Text("Minimum received"); Spacer(); Text(walletQuantity(received ?? 0) + " " + walletSymbol(to?.symbol ?? "")) }
+            }
+        }.font(.system(size: 13)).foregroundStyle(palette.secondary).padding(.top, 17)
+    }
+    private var phantomTradeFilters: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                ForEach(["Featured", "Top Volume", "Top Gainers"], id: \.self) { filter in
+                    Button { tradeFilter = filter } label: {
+                        Label(filter, systemImage: filter == "Featured" ? "sparkle" : filter == "Top Volume" ? "chart.xyaxis.line" : "arrow.up")
+                            .font(.system(size: 15)).padding(.horizontal, 16).frame(height: 42)
+                            .background(palette.card, in: Capsule()).foregroundStyle(tradeFilter == filter ? palette.ink : palette.secondary)
+                    }.buttonStyle(.plain).accessibilityIdentifier("wallet-trade-filter-" + filter.lowercased().replacingOccurrences(of: " ", with: "-"))
+                }
+            }
+        }.scrollIndicators(.hidden)
+    }
+    private var rankedHoldings: [WalletHolding] {
+        if tradeFilter == "Top Gainers" || ranking == "Change" { return profile.holdings.sorted { $0.changePercent > $1.changePercent } }
+        if tradeFilter == "Top Volume" { return [] }
+        if ranking == "Value" { return profile.holdings.sorted { $0.value > $1.value } }
+        return profile.holdings
+    }
+    private var phantomRankings: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Tokens").font(.system(size: 23, weight: .semibold)).padding(.top, 5)
+            HStack(spacing: 9) {
+                Menu { ForEach(["Rank", "Value", "Change"], id: \.self) { name in Button(name) { ranking = name } } } label: {
+                    HStack { Text(ranking); Image(systemName: "chevron.down").font(.system(size: 11)) }.padding(.horizontal, 17).frame(height: 42).background(palette.card, in: Capsule())
+                }
+                Text("All Networks").padding(.horizontal, 16).frame(height: 42).background(palette.card, in: Capsule())
+                Text("24h").padding(.horizontal, 16).frame(height: 42).background(palette.card, in: Capsule())
+            }.font(.system(size: 14)).foregroundStyle(palette.secondary)
+            HStack { Text("Token"); Spacer(); Text("Price").frame(width: 85, alignment: .trailing); Text("Change").frame(width: 80, alignment: .trailing) }.font(.system(size: 12)).foregroundStyle(palette.secondary)
+            if tradeFilter == "Top Volume" { Text("No volume data").font(.system(size: 14)).foregroundStyle(palette.secondary).frame(minHeight: 44) }
+            ForEach(rankedHoldings) { holding in
+                Button { if holding.id != fromID { toID = holding.id } } label: {
+                    HStack(spacing: 10) {
+                        WalletTokenMark(symbol: holding.symbol, theme: .phantom, size: 28)
+                        Text(walletSymbol(holding.symbol)).font(.system(size: 15))
+                        Spacer()
+                        Text(scene?.money(holding.price) ?? "").font(.system(size: 14)).frame(width: 85, alignment: .trailing)
+                        Text((holding.changePercent >= 0 ? "+" : "") + holding.changePercent.formatted(.number.precision(.fractionLength(2))) + "%")
+                            .font(.system(size: 14)).foregroundStyle(holding.changePercent >= 0 ? palette.positive : .red).frame(width: 80, alignment: .trailing)
+                    }.frame(minHeight: 44)
+                }.buttonStyle(.plain).accessibilityIdentifier("wallet-trade-token-" + walletSymbol(holding.symbol).lowercased())
+            }
+        }
+    }
+    private var trustBuyEntry: some View {
+        ScrollView {
+            VStack(spacing: 23) {
+                HStack(spacing: 12) {
+                    WalletReferenceTrustRewards().frame(width: 29, height: 31)
+                    Text("Reduced fees for holding 100+ TWT.").font(.system(size: 13, weight: .medium))
+                    Spacer()
+                }.padding(14).background(LinearGradient(colors: [Color(red: 0.94, green: 0.99, blue: 1), Color(red: 0.94, green: 0.93, blue: 1)], startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: 12))
+                HStack(spacing: 0) {
+                    Text(scene?.currency == "USD" ? "$" : scene?.currency ?? "$")
+                    TextField("0", text: $amount).keyboardType(.decimalPad).focused($editing).fixedSize(horizontal: true, vertical: false).accessibilityIdentifier("wallet-swap-amount")
+                }.font(.system(size: 49, weight: .semibold)).padding(.top, 15)
+                HStack(spacing: 9) {
+                    Text("≈ " + walletQuantity(received ?? 0) + " " + walletSymbol(to?.symbol ?? ""))
+                    Image(systemName: "arrow.up.arrow.down")
+                }.font(.system(size: 16)).foregroundStyle(palette.secondary)
+                Menu { ForEach(profile.holdings.filter { $0.id != fromID }) { asset in Button(asset.name) { toID = asset.id } } } label: {
+                    HStack { Text("Buy " + walletSymbol(to?.symbol ?? "crypto")); Spacer(); Image(systemName: "chevron.down") }.font(.system(size: 13)).frame(minHeight: 35)
+                }.accessibilityIdentifier("wallet-buy-asset")
+                HStack(spacing: 12) {
+                    WalletReferenceBinanceP2P().frame(width: 29, height: 29)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Binance P2P").font(.system(size: 15, weight: .medium))
+                        Text("Third-Party Provider").font(.system(size: 13)).foregroundStyle(palette.secondary)
+                    }
+                    Spacer()
+                    Text("Best rate").font(.system(size: 12)).foregroundStyle(palette.positive)
+                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(palette.secondary)
+                }.padding(16).frame(maxWidth: .infinity).background(palette.card, in: RoundedRectangle(cornerRadius: 10))
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 5) {
+                    ForEach(["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "⌫"], id: \.self) { digit in
+                        Button { appendBuyDigit(digit) } label: { Text(digit).font(.system(size: 26, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 49) }
+                            .buttonStyle(.plain).accessibilityIdentifier("wallet-buy-key-" + (digit == "⌫" ? "delete" : digit == "." ? "decimal" : digit))
+                    }
+                }
+                Text("Available: " + walletQuantity(from?.quantity ?? 0) + " " + walletSymbol(from?.symbol ?? "")).font(.system(size: 12)).foregroundStyle(palette.secondary)
+                reviewButton
+                if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+            }.padding(18)
+        }.foregroundStyle(palette.ink).background(palette.background)
     }
     private var review: some View {
         VStack(spacing: 25) {
@@ -1658,9 +1856,9 @@ private struct WalletSwapSheet: View {
                 Image(systemName: "arrow.right").font(.title2)
                 if let to { WalletTokenMark(symbol: to.symbol, theme: profile.theme) }
             }
-            Text(walletQuantity(quantity ?? 0) + " " + (from?.symbol ?? ""))
+            Text(walletQuantity(quantity ?? 0) + " " + walletSymbol(from?.symbol ?? ""))
                 .font(.system(size: 25, weight: .semibold))
-            Text("Receive " + walletQuantity(received ?? 0) + " " + (to?.symbol ?? ""))
+            Text("Receive " + walletQuantity(received ?? 0) + " " + walletSymbol(to?.symbol ?? ""))
                 .font(.system(size: 18)).foregroundStyle(palette.secondary)
             VStack(spacing: 16) {
                 if let from { LabeledContent("From", value: from.network) }
@@ -1671,6 +1869,7 @@ private struct WalletSwapSheet: View {
             .font(.system(size: 14)).padding(20).background(palette.card, in: RoundedRectangle(cornerRadius: 20))
             if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
             Spacer()
+            if embedded { Button("Back") { reviewing = false }.frame(minHeight: 44) }
             Button(action: confirm) {
                 Text("Confirm " + mode.rawValue).font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 48)
             }
@@ -1683,19 +1882,31 @@ private struct WalletSwapSheet: View {
             Spacer()
             Image(systemName: "checkmark.circle.fill").font(.system(size: 65)).foregroundStyle(palette.positive)
             Text("Swap complete").font(.system(size: 28, weight: .semibold)).accessibilityIdentifier("wallet-swap-complete")
-            Text(walletQuantity(completedQuantity ?? 0) + " " + completedSymbol).font(.system(size: 20))
+            Text(walletQuantity(completedQuantity ?? 0) + " " + walletSymbol(completedSymbol)).font(.system(size: 20))
             Spacer()
-            Button("Done") { dismiss() }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+            Button("Done") { if embedded { completed = false; reviewing = false; amount = "" } else { dismiss() } }.buttonStyle(.borderedProminent).frame(minHeight: 44)
         }
         .frame(maxWidth: .infinity).padding(24).foregroundStyle(palette.ink).background(palette.background)
     }
     private func selectAssets() {
         guard fromID == nil else { return }
-        let stable = profile.holdings.first { ["USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }
-        let crypto = profile.holdings.first { $0.id != stable?.id }
+        let stable = profile.holdings.first { ["MUSD", "USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) }
+        let crypto = profile.theme == .trustWallet ? profile.holdings.first { $0.symbol.uppercased() == "BTC" } ?? profile.holdings.first { $0.id != stable?.id } : profile.holdings.first { $0.id != stable?.id }
         if mode == .buy { fromID = stable?.id ?? profile.holdings.first?.id; toID = crypto?.id }
         else if mode == .sell { fromID = crypto?.id; toID = stable?.id ?? profile.holdings.last?.id }
-        else { fromID = profile.holdings.first?.id; toID = profile.holdings.dropFirst().first?.id }
+        else if profile.theme == .phantom {
+            fromID = profile.holdings.first { $0.symbol == "SOL" }?.id ?? profile.holdings.first?.id
+            toID = profile.holdings.first { $0.symbol == "ETH" }?.id ?? profile.holdings.dropFirst().first?.id
+        } else { fromID = profile.theme == .trustWallet ? crypto?.id : profile.holdings.first?.id; toID = stable?.id ?? profile.holdings.dropFirst().first?.id }
+    }
+    private func reverseAssets() { let previous = fromID; fromID = toID; toID = previous; amount = "" }
+    private func appendBuyDigit(_ digit: String) {
+        editing = false
+        if digit == "⌫" { if !amount.isEmpty { amount.removeLast() }; return }
+        if digit == "." {
+            let decimal = Locale.current.decimalSeparator ?? "."
+            if !amount.contains(decimal) { amount = (amount.isEmpty ? "0" : amount) + decimal }
+        } else if amount.count < 16 { amount += digit }
     }
     private func confirm() {
         guard !completed, valid, let from, let to, let quantity else { return }
@@ -1708,30 +1919,189 @@ private struct WalletSwapSheet: View {
 
 private struct WalletExploreSheet: View {
     let sceneID: UUID
+    let embedded: Bool
+    init(sceneID: UUID, embedded: Bool = false) { self.sceneID = sceneID; self.embedded = embedded }
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    @State private var category = "Tokens"
     @State private var selected: WalletHolding?
+    @State private var discovery: PhantomDiscoveryItem?
     private var profile: WalletProfile { store.walletProfile(for: sceneID) }
+    private var palette: WalletPalette { WalletPalette(theme: profile.theme) }
     private var holdings: [WalletHolding] {
         profile.holdings.filter { query.isEmpty || "\($0.symbol) \($0.name) \($0.network)".localizedCaseInsensitiveContains(query) }
     }
     var body: some View {
-        NavigationStack {
-            List {
-                if holdings.isEmpty { ContentUnavailableView.search(text: query) }
-                ForEach(holdings) { holding in
-                    Button { selected = holding } label: {
-                        WalletAssetRow(holding: holding, currency: store.scenes.first { $0.id == sceneID }?.currency ?? "USD", theme: profile.theme)
-                    }.buttonStyle(.plain)
+        Group {
+            if profile.theme == .phantom && embedded { phantomExplore }
+            else {
+                NavigationStack {
+                    Group { if profile.theme == .phantom { phantomExplore } else { assetList } }
+                        .navigationTitle("Explore").navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
                 }
             }
-            .listStyle(.plain)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search tokens")
-            .navigationTitle("Explore").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-            .sheet(item: $selected) { WalletAssetDetail(sceneID: sceneID, assetID: $0.id) }
         }
-        .tint(WalletPalette(theme: profile.theme).accent).preferredColorScheme(profile.theme == .trustWallet ? .light : .dark)
+        .sheet(item: $selected) { WalletAssetDetail(sceneID: sceneID, assetID: $0.id) }
+        .sheet(item: $discovery) { item in
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 22) {
+                    item.artwork.frame(width: 64, height: 64)
+                    Text(item.name).font(.system(size: 28, weight: .semibold))
+                    if item.isSite { Text(item.secondary).foregroundStyle(.secondary) }
+                    else {
+                        LabeledContent("Price", value: item.value)
+                        LabeledContent("Market cap", value: item.secondary)
+                        LabeledContent("Change", value: item.change)
+                    }
+                    Spacer()
+                }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+                    .navigationTitle(item.isSite ? "Site" : "Token").navigationBarTitleDisplayMode(.inline)
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { discovery = nil } } }
+            }.preferredColorScheme(.dark).accessibilityIdentifier("wallet-discovery-detail")
+        }
+        .tint(palette.accent).preferredColorScheme(profile.theme == .trustWallet ? .light : .dark)
+
+    }
+    private var assetList: some View {
+        List {
+            if holdings.isEmpty { ContentUnavailableView.search(text: query) }
+            ForEach(holdings) { holding in
+                Button { selected = holding } label: {
+                    WalletAssetRow(holding: holding, currency: store.scenes.first { $0.id == sceneID }?.currency ?? "USD", theme: profile.theme)
+                }.buttonStyle(.plain)
+            }
+        }.listStyle(.plain).searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search tokens")
+    }
+    private var phantomExplore: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 9) {
+                        ForEach(["Tokens", "People", "Sites"], id: \.self) { name in
+                            Button { category = name } label: {
+                                Label(name, systemImage: name == "Tokens" ? "circle.lefthalf.filled" : name == "People" ? "person.fill" : "globe")
+                                    .font(.system(size: 15)).padding(.horizontal, 16).frame(height: 42)
+                                    .background(palette.card, in: Capsule()).foregroundStyle(category == name ? palette.ink : palette.secondary)
+                            }.buttonStyle(.plain).accessibilityIdentifier("wallet-explore-filter-" + name.lowercased())
+                        }
+                    }
+                }.scrollIndicators(.hidden)
+                if category == "People" {
+                    ContentUnavailableView("No people yet", systemImage: "person.2")
+                } else {
+                    if category == "Tokens" {
+                        HStack(spacing: 7) { Text("Trending Tokens"); Image(systemName: "chevron.right").font(.system(size: 17)) }.font(.system(size: 23, weight: .semibold))
+                        discoveryCard(PhantomDiscoveryItem.tokens)
+                    }
+                    HStack(spacing: 7) { Text("Trending Sites"); Image(systemName: "chevron.right").font(.system(size: 17)) }.font(.system(size: 23, weight: .semibold))
+                    discoveryCard(PhantomDiscoveryItem.sites)
+                }
+            }.padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 25)
+        }.scrollIndicators(.hidden).foregroundStyle(palette.ink).background(palette.background)
+    }
+    private func discoveryCard(_ items: [PhantomDiscoveryItem]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(items) { item in
+                Button { discovery = item } label: {
+                    HStack(spacing: 13) {
+                        item.artwork.frame(width: 36, height: 36)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(item.name).font(.system(size: 16))
+                            Text(item.secondary).font(.system(size: 13)).foregroundStyle(palette.secondary)
+                        }
+                        Spacer()
+                        if item.isSite {
+                            Image(systemName: "arrow.up.right").font(.system(size: 20)).frame(width: 31, height: 31).background(Color.white.opacity(0.04), in: Circle())
+                        } else {
+                            VStack(alignment: .trailing, spacing: 5) {
+                                Text(item.value).font(.system(size: 16))
+                                Text(item.change).font(.system(size: 13)).foregroundStyle(palette.positive)
+                            }
+                        }
+                    }.frame(minHeight: 57).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("wallet-explore-" + item.id)
+            }
+        }.padding(.horizontal, 18).padding(.vertical, 11).background(palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+}
+
+/// Discovery values preserve the public listing snapshot and never replace a
+/// saved holding's price, quantity, or the quote used by WalletSwapSheet.
+private struct PhantomDiscoveryItem: Identifiable {
+    let id: String
+    let name: String
+    let secondary: String
+    let value: String
+    let change: String
+    let artworkY: CGFloat
+    var isSite: Bool = false
+    var artwork: some View {
+        WalletReferenceArtwork(source: "WalletReference-PhantomExplore", viewport: CGRect(x: 255, y: artworkY, width: 85, height: 85)).clipShape(Circle())
+    }
+    static let tokens = [
+        PhantomDiscoveryItem(id: "link", name: "LINK", secondary: "$6.7B", value: "$9.25", change: "+3.18%", artworkY: 1064),
+        PhantomDiscoveryItem(id: "fet", name: "FET", secondary: "$516M", value: "$0.23", change: "+5.38%", artworkY: 1188),
+        PhantomDiscoveryItem(id: "pendle", name: "PENDLE", secondary: "$214M", value: "$1.28", change: "+6.74%", artworkY: 1312),
+        PhantomDiscoveryItem(id: "popcat", name: "POPCAT", secondary: "$61M", value: "$0.063", change: "+2.12%", artworkY: 1436),
+        PhantomDiscoveryItem(id: "doge", name: "DOGE", secondary: "$15.2B", value: "$0.0987", change: "+4.63%", artworkY: 1560)
+    ]
+    static let sites = [
+        PhantomDiscoveryItem(id: "jupiter", name: "Jupiter", secondary: "DeFi", value: "", change: "", artworkY: 1912, isSite: true),
+        PhantomDiscoveryItem(id: "raydium", name: "Raydium", secondary: "DeFi", value: "", change: "", artworkY: 2036, isSite: true)
+    ]
+}
+
+
+private struct WalletMetaMaskCardSheet: View {
+    let sceneID: UUID
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedID: UUID?
+    @State private var hiddenBalance = false
+    @State private var adding = false
+    private var profile: WalletProfile { store.walletProfile(for: sceneID) }
+    private var palette: WalletPalette { WalletPalette(theme: .metamask) }
+    private var holding: WalletHolding? { profile.holdings.first { $0.id == selectedID } ?? profile.holdings.first { $0.symbol.uppercased() == "MUSD" } ?? profile.holdings.first { ["USDC", "USDT", "DAI"].contains($0.symbol.uppercased()) } }
+    private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Card").font(.system(size: 25, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 20) {
+                        WalletReferenceMetaMaskCard()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 7) {
+                                    Text(hiddenBalance ? "••••••" : scene?.money(holding?.value ?? 0) ?? "$0.00").font(.system(size: 18, weight: .semibold))
+                                    Button { hiddenBalance.toggle() } label: { Image(systemName: hiddenBalance ? "eye.slash" : "eye").frame(width: 35, height: 35) }.accessibilityLabel(hiddenBalance ? "Show balance" : "Hide balance")
+                                }
+                                Text("Available balance").font(.system(size: 13)).foregroundStyle(palette.secondary)
+                            }
+                            Spacer()
+                            if let holding { WalletTokenMark(symbol: holding.symbol, theme: .metamask, size: 31) }
+                        }
+                        Button { adding = true } label: {
+                            Text("Add funds").font(.system(size: 16, weight: .semibold)).foregroundStyle(.black).frame(maxWidth: .infinity, minHeight: 49).background(.white, in: RoundedRectangle(cornerRadius: 12))
+                        }.buttonStyle(.plain).accessibilityIdentifier("wallet-card-add-funds")
+                    }.padding(16).background(palette.card, in: RoundedRectangle(cornerRadius: 13))
+                    Menu { ForEach(profile.holdings) { asset in Button(asset.name) { selectedID = asset.id } } } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Change asset").font(.system(size: 16))
+                            Text("Select a different token").font(.system(size: 13)).foregroundStyle(palette.secondary)
+                        }.frame(maxWidth: .infinity, minHeight: 49, alignment: .leading)
+                    }.accessibilityIdentifier("wallet-card-change-asset")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("3% mUSD back").font(.system(size: 16))
+                        Text("Earn on all spending").font(.system(size: 13)).foregroundStyle(palette.secondary)
+                    }
+                }.padding(20).foregroundStyle(palette.ink)
+            }.scrollIndicators(.hidden).background(palette.background)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Image(systemName: "chevron.left") }.accessibilityLabel("Back") } }
+                .sheet(isPresented: $adding) { WalletSwapSheet(sceneID: sceneID, mode: .sell) }
+        }.preferredColorScheme(.dark).tint(palette.ink)
     }
 }

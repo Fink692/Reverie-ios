@@ -4,7 +4,7 @@ import Foundation
 /// mapping; canEmit controls whether the generic event action may also change totals.
 enum NotificationStyle: String, Codable, CaseIterable, Identifiable {
     case shopifyOrder, shopifyRefund, shopifyPayout, shopifyFulfilled, shopifyLowStock, shopifyAbandonedCheckout, shopifyOrderPaid
-    case bankDeposit, bankTransferReceived, bankTransferSent, bankCardPayment, bankDirectDebit, bankLowBalance, bankSalaryReceived, bankCardRefund, bankScheduledPayment
+    case bankDeposit, bankTransferReceived, bankTransferSent, bankCardPayment, bankDirectDebit, bankLowBalance, bankSalaryReceived, bankCardRefund, bankScheduledPayment, bankDuplicateCharge
     case stockBuyFilled, stockSellFilled, stockDividend, stockPriceUp, stockPriceDown
     case cryptoReceived, cryptoSent, cryptoSwap, cryptoPriceAlert
     case predictionBuyFilled, predictionSellFilled, predictionPayout, predictionResolved
@@ -30,6 +30,7 @@ enum NotificationStyle: String, Codable, CaseIterable, Identifiable {
         case .bankSalaryReceived: return "Bank · Salary received"
         case .bankCardRefund: return "Bank · Card refund"
         case .bankScheduledPayment: return "Bank · Upcoming payment"
+        case .bankDuplicateCharge: return "Bank · Duplicate charge alert"
         case .stockBuyFilled: return "Investing · Buy order filled"
         case .stockSellFilled: return "Investing · Sell order filled"
         case .stockDividend: return "Investing · Dividend paid"
@@ -52,7 +53,7 @@ enum NotificationStyle: String, Codable, CaseIterable, Identifiable {
     var applicableKinds: [SceneKind] {
         switch self {
         case .shopifyOrder, .shopifyRefund, .shopifyPayout, .shopifyFulfilled, .shopifyLowStock, .shopifyAbandonedCheckout, .shopifyOrderPaid: return [.commerce]
-        case .bankDeposit, .bankTransferReceived, .bankTransferSent, .bankCardPayment, .bankDirectDebit, .bankLowBalance, .bankSalaryReceived, .bankCardRefund, .bankScheduledPayment: return [.banking]
+        case .bankDeposit, .bankTransferReceived, .bankTransferSent, .bankCardPayment, .bankDirectDebit, .bankLowBalance, .bankSalaryReceived, .bankCardRefund, .bankScheduledPayment, .bankDuplicateCharge: return [.banking]
         case .stockBuyFilled, .stockSellFilled, .stockDividend, .stockPriceUp, .stockPriceDown: return [.portfolio]
         case .cryptoReceived, .cryptoSent, .cryptoSwap, .cryptoPriceAlert: return [.wallet, .portfolio]
         case .predictionBuyFilled, .predictionSellFilled, .predictionPayout, .predictionResolved: return [.prediction]
@@ -115,6 +116,7 @@ enum NotificationStyle: String, Codable, CaseIterable, Identifiable {
         case .bankSalaryReceived: return "Salary received"
         case .bankCardRefund: return "Refund received"
         case .bankScheduledPayment: return "Upcoming payment"
+        case .bankDuplicateCharge: return "Were you double charged?"
         case .stockBuyFilled: return "Buy order filled"
         case .stockSellFilled: return "Sell order filled"
         case .stockDividend: return "Dividend paid"
@@ -160,6 +162,7 @@ enum NotificationStyle: String, Codable, CaseIterable, Identifiable {
         case .bankSalaryReceived: return "Your salary payment of \(money) from \(subject) has arrived."
         case .bankCardRefund: return "A refund of \(money) from \(subject) has been credited to your account."
         case .bankScheduledPayment: return "A payment of \(money) to \(subject) is coming up."
+        case .bankDuplicateCharge: return "You were charged \(money) twice today by \(subject). Tap for details."
         case .stockBuyFilled: return "Your buy order for \(subject) has filled. Total cost: \(money)."
         case .stockSellFilled: return "Your sell order for \(subject) has filled. Proceeds: \(money)."
         case .stockDividend: return "A dividend of \(money) from \(subject) has been added to your cash balance."
@@ -229,6 +232,7 @@ struct NotificationTemplate: Identifiable, Equatable {
         cue(.bankSalaryReceived, name: "Salary payday", amount: 6420.00, detail: "Studio Supply"),
         cue(.bankCardRefund, name: "Card refund received", amount: 49.99, detail: "Online store"),
         cue(.bankScheduledPayment, name: "Upcoming bill", amount: 120.00, detail: "Internet provider"),
+        cue(.bankDuplicateCharge, name: "Duplicate charge alert", amount: 10.50, detail: "Camera Supply Store"),
         cue(.stockBuyFilled, name: "Stock buy filled", amount: 436.70, detail: "2 shares of AAPL"),
         cue(.stockSellFilled, name: "Stock sale filled", amount: 634.00, detail: "5 shares of NVDA"),
         cue(.stockDividend, name: "Dividend received", amount: 24.80, detail: "SPY"),

@@ -1,0 +1,159 @@
+{
+  "retrieved_utc": "2026-10-13",
+  "pixel_match_verified": false,
+  "implementation_files": [
+    "Sources/BankPlayback.swift",
+    "Sources/BankReferenceDestinations.swift",
+    "Sources/BankReferenceArtwork.swift"
+  ],
+  "verification_boundary": "Swift6 syntax parsing and original-byte artwork validation; Apple SDK build, simulator capture and matching-state visual comparison remain required.",
+  "reference_root": "References/Banks",
+  "layouts": [
+    {
+      "bank": "Chase",
+      "screens": [
+        "footer",
+        "Plan & track",
+        "Budget",
+        "Snapshot",
+        "Credit Journey",
+        "Invest / quote",
+        "Wealth Plan"
+      ],
+      "references": [
+        "chase-1.jpg",
+        "chase-2.jpg",
+        "chase-3.jpg",
+        "chase-4.jpg",
+        "chase-8.jpg",
+        "chase-9.jpg"
+      ],
+      "limits": [
+        "Benefits footer is visible; its complete current destination is not established.",
+        "Budget and Snapshot use local scene events. Credit Journey 720 and stock quote 80.58 are fictional read-only source illustrations.",
+        "No investment trades or external banking actions."
+      ]
+    },
+    {
+      "bank": "Bank of America",
+      "screens": [
+        "blue payment Back / Close / Edit",
+        "Accounts credit-card group",
+        "Deals",
+        "My Rewards",
+        "Merrill investment"
+      ],
+      "references": [
+        "bankOfAmerica-1.jpg",
+        "bankOfAmerica-4.jpg",
+        "bankOfAmerica-7.jpg",
+        "bankOfAmerica-8.jpg",
+        "Guides/bank-of-america-zelle-amount.jpg",
+        "Guides/bank-of-america-zelle-review.jpg"
+      ],
+      "limits": [
+        "Rewards/year remain the pictured 2023 illustration.",
+        "Merrill value uses a separate saved product; inconsistent pictured split is not authoritative.",
+        "Credit suffix3204 is a local fallback because screenshot1 omits it."
+      ]
+    },
+    {
+      "bank": "Wells Fargo",
+      "screens": [
+        "Explore grid",
+        "LifeSync goal",
+        "Credit-card product / offer",
+        "My Tracker"
+      ],
+      "references": [
+        "wellsFargo-4.jpg",
+        "wellsFargo-7.jpg",
+        "wellsFargo-8.jpg"
+      ],
+      "limits": [
+        "Tiles are native symbolic art; no 3D artwork parity claim.",
+        "Unseen application/booking/support/security flow destinations are simplified.",
+        "Mobile deposits retain existing local form; no camera parity claim."
+      ]
+    },
+    {
+      "bank": "Citi",
+      "screens": [
+        "credit-first Accounts",
+        "Quick Lock",
+        "Banking products",
+        "Services"
+      ],
+      "references": [
+        "citi-1.jpg",
+        "citi-2.jpg",
+        "citi-3.jpg",
+        "citi-7.jpg"
+      ],
+      "limits": [
+        "Product cards/rewards/locks are editable and persist separately from checking/savings.",
+        "No credit-card payment/dispute banking API is invoked."
+      ]
+    },
+    {
+      "bank": "Capital One",
+      "screens": [
+        "QUICKSILVER/SAVOR tiles",
+        "Product cards",
+        "Lock this Card confirmation"
+      ],
+      "references": [
+        "capitalOne-2.jpg",
+        "capitalOne-6.jpg"
+      ],
+      "limits": [
+        "SAVOR amount is partly cropped.",
+        "Available balance label is not card debt.",
+        "Standalone portrait is not available."
+      ]
+    },
+    {
+      "bank": "Barclays",
+      "screens": [
+        "Home/Products/Pay & transfer/Help footer",
+        "Products",
+        "Help",
+        "Vertical debit card"
+      ],
+      "references": [
+        "barclays-5.jpg",
+        "barclays-8.jpg",
+        "barclays-9.jpg"
+      ],
+      "limits": [
+        "Card management preserves local freeze state.",
+        "Unseen lending/insurance/support follow-through is simplified."
+      ]
+    },
+    {
+      "bank": "Starling / Monzo / Revolut",
+      "screens": [
+        "Spaces/photo detail",
+        "Virtual Mastercard",
+        "Holiday Fund/photo/goal/funding",
+        "photo account appearances/Accounts chooser"
+      ],
+      "references": [
+        "starling-2.jpg",
+        "starling-4.jpg",
+        "starling-5.jpg",
+        "monzo-6.jpg",
+        "revolut-2.jpg",
+        "revolut-4.jpg",
+        "revolut-8.jpg"
+      ],
+      "artwork_provenance": "viewport-artwork-sources.json",
+      "limits": [
+        "Decorative viewports preserve original bytes and exclude source UI.",
+        "Spaces/Holiday Fund use existing savings; independent Space creation state not added.",
+        "Joint/Salary photo appearances use existing checking, not separately funded accounts.",
+        "Full original photos and full Monzo Flex state not completed."
+      ]
+    }
+  ]
+}

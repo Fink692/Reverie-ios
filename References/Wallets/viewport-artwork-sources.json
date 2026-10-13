@@ -1,0 +1,317 @@
+{
+  "retrieved_utc": "2026-10-13",
+  "method": "Unchanged original public Apple App Store JPEG bytes. Ordinary bounded SwiftUI image views expose only decorative image regions; no image files are cropped, edited, redrawn, or generated. Coordinates are in original image pixels.",
+  "limits": "Trust NFT reference ends after the top 126 pixels of two artworks. The app displays these visible fragments at their original visible aspect ratio; no unseen NFT art is fabricated. Screenshot account balances and surrounding application UI are excluded from every viewport. Public availability is provenance, not a claim of an open license or installed-app parity.",
+  "artwork": [
+    {
+      "asset_catalog_name": "WalletReference-PhantomHome",
+      "file": "Sources/Assets.xcassets/WalletReference-PhantomHome.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/phantom-1.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/c1/fd/85/c1fd852a-ae3b-f2c5-5880-7c57df7fa5ff/5.5-1.jpg/1242x2688bb.jpg",
+      "sha256": "2e88bacafb79dee935a921b58d69f4f70227ca3e45a181f1eee35fa072c0d6c3",
+      "byte_count": 250260,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferencePhantomAvatar",
+          "rect": [
+            208,
+            603,
+            97,
+            97
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-TrustHome",
+      "file": "Sources/Assets.xcassets/WalletReference-TrustHome.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/trustWallet-4.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/08/21/cd/0821cd36-41dc-a3c3-4dbb-246ede9a9e73/3_APP_IPHONE_55_3.jpg/1242x2688bb.jpg",
+      "sha256": "0a4b930ffd393cb84b9a5b8632d67d3a5511a5d37716ed5e2caa248247bef03b",
+      "byte_count": 269222,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferenceTrustRewards",
+          "rect": [
+            196,
+            1725,
+            146,
+            157
+          ]
+        },
+        {
+          "view": "WalletReferenceTrustNFTSunset",
+          "rect": [
+            150,
+            2082,
+            453,
+            126
+          ]
+        },
+        {
+          "view": "WalletReferenceTrustNFTLagoon",
+          "rect": [
+            638,
+            2082,
+            453,
+            126
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-TrustConnection",
+      "file": "Sources/Assets.xcassets/WalletReference-TrustConnection.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/trustWallet-7.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b6/8c/86/b68c86fa-b8b4-cd30-c04b-40fb7946fdf3/6_APP_IPHONE_55_6.jpg/1242x2688bb.jpg",
+      "sha256": "187bab0a4905a30cdc60e6d195954013e2d59742b8fd965df811f029f0dcbad3",
+      "byte_count": 251050,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferencePancakeSwap",
+          "rect": [
+            571,
+            1441,
+            101,
+            102
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-TrustRisk",
+      "file": "Sources/Assets.xcassets/WalletReference-TrustRisk.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/trustWallet-8.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/81/ee/09/81ee09b6-3e0c-9f37-eb46-0a9d23230689/7_APP_IPHONE_55_7.jpg/1242x2688bb.jpg",
+      "sha256": "958b178694105cd4673e0bbd139456d63c1f02a1cc0874d46646aa6b0ad4f64f",
+      "byte_count": 288225,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferenceTrustRisk",
+          "rect": [
+            455,
+            1358,
+            332,
+            332
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-TrustStaking",
+      "file": "Sources/Assets.xcassets/WalletReference-TrustStaking.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/trustWallet-6.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cc/ee/38/ccee3823-f0de-9a4c-dc4a-f4fe0eb49250/5_APP_IPHONE_55_5.jpg/1242x2688bb.jpg",
+      "sha256": "62be66ec3d1cf63e458f327e6b8f23a3768463471d40ba60b71fd58c2b4d11e8",
+      "byte_count": 264089,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletTrustStakingSheet token row 0",
+          "rect": [
+            149,
+            1250,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 1",
+          "rect": [
+            149,
+            1387,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 2",
+          "rect": [
+            149,
+            1524,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 3",
+          "rect": [
+            149,
+            1661,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 4",
+          "rect": [
+            149,
+            1798,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 5",
+          "rect": [
+            149,
+            1935,
+            76,
+            76
+          ]
+        },
+        {
+          "view": "WalletTrustStakingSheet token row 6",
+          "rect": [
+            149,
+            2072,
+            76,
+            76
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-PhantomExplore",
+      "file": "Sources/Assets.xcassets/WalletReference-PhantomExplore.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/phantom-4.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/e0/f1/9d/e0f19df7-23e1-a640-e70d-3b421f54101e/5.5-4.jpg/1242x2688bb.jpg",
+      "sha256": "81079ee8a72a10376634bbacfee015580aa780d3170e33ed686c7e45c2dd5443",
+      "byte_count": 261662,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "LINK token icon",
+          "rect": [
+            255,
+            1064,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "FET token icon",
+          "rect": [
+            255,
+            1188,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "PENDLE token icon",
+          "rect": [
+            255,
+            1312,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "POPCAT token icon",
+          "rect": [
+            255,
+            1436,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "DOGE token icon",
+          "rect": [
+            255,
+            1560,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "Jupiter site icon",
+          "rect": [
+            255,
+            1912,
+            85,
+            85
+          ]
+        },
+        {
+          "view": "Raydium site icon",
+          "rect": [
+            255,
+            2036,
+            85,
+            85
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-MetaMaskCard",
+      "file": "Sources/Assets.xcassets/WalletReference-MetaMaskCard.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/metamask-9.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e7/66/6d/e7666d8b-f7ba-6940-f86c-36165062fdc7/iOS__U2013_6.9__U2013_1290x2796__U2013_Card.jpg/1242x2688bb.jpg",
+      "sha256": "340b2b2cc8972eb1fb10efdebd0438872caf0bac797450d4f9a33d4da351f50e",
+      "byte_count": 323381,
+      "dimensions": [
+        1240,
+        2688
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferenceMetaMaskCard",
+          "rect": [
+            258,
+            984,
+            724,
+            459
+          ]
+        }
+      ]
+    },
+    {
+      "asset_catalog_name": "WalletReference-TrustBuy",
+      "file": "Sources/Assets.xcassets/WalletReference-TrustBuy.imageset/Reference.jpg",
+      "reference_file": "References/Wallets/trustWallet-2.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/c7/0b/11/c70b11a8-c9f6-5746-0c38-826ebbaab655/1_APP_IPHONE_55_1.jpg/1242x2688bb.jpg",
+      "sha256": "80c267b301b0f15c20b0ccaad9e3aaf7960acfd019febd1cfd9160cb71acde06",
+      "byte_count": 253065,
+      "dimensions": [
+        1242,
+        2208
+      ],
+      "viewports": [
+        {
+          "view": "WalletReferenceBinanceP2P",
+          "rect": [
+            188,
+            1698,
+            61,
+            61
+          ]
+        }
+      ]
+    }
+  ]
+}

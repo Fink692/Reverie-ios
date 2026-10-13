@@ -13,6 +13,7 @@ struct BankPlayback: View {
     @State private var showThemes = false
     @State private var search = ""
     @State private var hideStarlingBalance = false
+    @State private var revolutPhoto: BankReferenceRevolutPhoto = .savings
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: BankProfile { store.bankProfile(for: sceneID) }
@@ -41,9 +42,24 @@ struct BankPlayback: View {
                         case .cards: BankCardPage(sceneID: sceneID, theme: theme)
                         case .more: morePage(scene)
                         case .deposits: BankPaymentPage(sceneID: sceneID, theme: theme, initiallyIncoming: true)
-                        case .spaces: BankAccountDetail(sceneID: sceneID, theme: theme, savings: true)
+                        case .spaces:
+                            if theme == .starling { BankSpacesPage(sceneID: sceneID) }
+                            else if theme == .revolut { BankRevolutAccountsPage(sceneID: sceneID) }
+                            else if theme == .monzo { BankMonzoSavingsPage(sceneID: sceneID) }
+                            else { BankAccountDetail(sceneID: sceneID, theme: theme, savings: true) }
                         case .transfers: BankSavingsTransferPage(sceneID: sceneID, theme: theme)
                         case .statement: BankStatementPage(sceneID: sceneID, theme: theme)
+                        case .plan:
+                            if theme == .chase { BankPlanPage(sceneID: sceneID, theme: theme) }
+                            else { BankSpendingPage(sceneID: sceneID, theme: theme) }
+                        case .benefits: BankBenefitsPage(sceneID: sceneID, theme: theme)
+                        case .invest: BankInvestmentPage(sceneID: sceneID, theme: theme)
+                        case .deals: BankDealsPage(sceneID: sceneID, theme: theme)
+                        case .rewards: BankRewardsPage(sceneID: sceneID)
+                        case .explore: BankExplorePage(sceneID: sceneID, theme: theme)
+                        case .products: BankProductsPage(sceneID: sceneID, theme: theme)
+                        case .help: BankHelpPage(sceneID: sceneID, theme: theme)
+                        case .services: BankServicesPage(sceneID: sceneID, theme: theme)
                         }
                         if theme != .hsbc && !fullScreenPayment { bottomTabs }
                     }
@@ -149,7 +165,7 @@ struct BankPlayback: View {
                 cleanHeaderButton("line.3.horizontal", title: "Menu", caption: "Menu") { tab = .more }
             } else if theme == .lloyds {
                 cleanHeaderButton("envelope", title: "Messages") { tab = .activity }
-            } else if theme != .citi && theme != .barclays {
+            } else if theme != .citi && theme != .barclays && theme != .wellsFargo {
                 cleanHeaderButton("person.crop.circle", title: "Account profile") { showProfile = true }
             }
             cleanHeaderCenter
@@ -164,7 +180,7 @@ struct BankPlayback: View {
             switch theme {
             case .bankOfAmerica:
                 cleanHeaderButton("envelope", title: "Inbox", caption: "Inbox") { tab = .activity }
-                cleanHeaderButton("cart", title: "Products", caption: "Products") { tab = .more }
+                cleanHeaderButton("cart", title: "Products", caption: "Products") { tab = .products }
                 cleanHeaderButton("rectangle.portrait.and.arrow.right", title: "Log out", caption: "Log out") { dismiss() }
             case .barclays:
                 cleanHeaderButton("bell", title: "Activity") { tab = .activity }
@@ -189,6 +205,9 @@ struct BankPlayback: View {
                 cleanHeaderButton("creditcard", title: "Cards") { showCard = true }
             case .starling:
                 cleanHeaderButton("person.crop.circle", title: "Account profile") { showProfile = true }
+            case .wellsFargo:
+                cleanHeaderButton("bell", title: "Activity") { tab = .activity }
+                Button("Sign off") { dismiss() }.font(.system(size: 10)).frame(minWidth: 44, minHeight: 44)
             default:
                 cleanHeaderButton("bell", title: "Activity") { tab = .activity }
             }
@@ -240,7 +259,7 @@ struct BankPlayback: View {
         case .capitalOne:
             BankBrandMark(theme: theme, color: palette.headerInk).scaleEffect(0.8)
         case .wellsFargo:
-            BankBrandMark(theme: theme, color: palette.headerInk).scaleEffect(0.8)
+            Color.clear
         case .chase:
             BankChaseSymbol().fill(.white).frame(width: 22, height: 22)
         }
@@ -333,7 +352,7 @@ struct BankPlayback: View {
                         Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary)
                     }
                 }.buttonStyle(.plain)
-                Button { tab = .more } label: { HStack { Text("My Rewards").font(.system(size: 14)); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary) } }.buttonStyle(.plain)
+                Button { tab = .rewards } label: { HStack { Text("My Rewards").font(.system(size: 14)); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary) } }.buttonStyle(.plain).accessibilityIdentifier("bank.rewards.open")
             }.padding(16).bankSurface(radius: 4)
             VStack(spacing: 0) {
                 bankSectionHeader("Banking", color: palette.accent)
@@ -341,6 +360,14 @@ struct BankPlayback: View {
                 Divider().padding(.horizontal)
                 americaAccountRow(scene, title: "Adv Savings", balance: profile.savings, suffix: "6543", savings: true)
             }.bankSurface(radius: 4)
+            if !profile.referenceProducts.filter({ $0.kind == .creditCard }).isEmpty {
+                VStack(spacing: 0) {
+                    bankSectionHeader("Credit Cards", color: palette.accent)
+                    ForEach(profile.referenceProducts.filter { $0.kind == .creditCard }) { product in
+                        BankProductAccountTile(sceneID: sceneID, theme: theme, product: product, style: .america)
+                    }
+                }.bankSurface(radius: 4)
+            }
             transactionPanel(scene, title: "Transactions", limit: 4)
         }.padding(.horizontal, 16)
     }
@@ -365,10 +392,18 @@ struct BankPlayback: View {
                 HStack(spacing: 13) {
                     Text("My Citi").fontWeight(.bold).underline()
                     Button("Credit Cards") { showCard = true }
-                    Text("Banking")
-                    Button("Loans") { tab = .more }
-                    Button("Invest") { tab = .spaces }
+                    Button("Banking") { tab = .products }
+                    Button("Loans") { tab = .products }
+                    Button("Invest") { tab = .invest }
                 }.font(.system(size: 11))
+                if !profile.referenceProducts.filter({ $0.kind == .creditCard }).isEmpty {
+                    Text("⌃  Credit Cards").font(.system(size: 15, weight: .semibold))
+                    VStack(spacing: 7) {
+                        ForEach(profile.referenceProducts.filter { $0.kind == .creditCard }) { product in
+                            BankProductAccountTile(sceneID: sceneID, theme: theme, product: product, style: .citi)
+                        }
+                    }
+                }
                 Text("⌃  Checking").font(.system(size: 15, weight: .semibold))
                 NavigationLink {
                     BankAccountDetail(sceneID: sceneID, theme: theme, savings: false)
@@ -395,11 +430,14 @@ struct BankPlayback: View {
         VStack(spacing: 16) {
             VStack(spacing: 6) {
                 Text("Good morning, \(holderName)!").font(.system(size: 20, weight: .medium))
-                Text("Your accounts, all in one place.").font(.system(size: 14)).foregroundStyle(.secondary)
+                Text("You've got 3 bills due soon.").font(.system(size: 14)).foregroundStyle(.secondary)
                 Button("Pay now") { tab = .payments }.font(.system(size: 15, weight: .semibold))
             }.padding(.vertical, 22)
+            ForEach(profile.referenceProducts.filter { $0.kind == .creditCard }) { product in
+                BankProductAccountTile(sceneID: sceneID, theme: theme, product: product, style: .capitalOne)
+            }
             capitalAccountTile(scene, title: "360 CHECKING", suffix: profile.accountSuffix, balance: scene.balance, color: Color(bankHex: 0x006DA0))
-            capitalAccountTile(scene, title: "360 PERFORMANCE SAVINGS", suffix: "7104", balance: profile.savings, color: Color(bankHex: 0xA66027), savings: true)
+            capitalAccountTile(scene, title: "360 PERFORMANCE SAVINGS", suffix: "7104", balance: profile.savings, color: Color(bankHex: 0x00627E), savings: true)
             HStack { Image(systemName: "lock.circle"); Text(profile.cardFrozen ? "Your card is locked" : "Manage your debit card"); Spacer(); Image(systemName: "chevron.right") }
                 .font(.system(size: 15)).padding(18).bankSurface(radius: 8)
                 .onTapGesture { showCard = true }.accessibilityAddTraits(.isButton)
@@ -519,18 +557,18 @@ struct BankPlayback: View {
                 }.font(.system(size: 11, weight: .semibold)).buttonStyle(.bordered).buttonBorderShape(.capsule).tint(Color(bankHex: 0x8D2929))
             }.padding(14).foregroundStyle(.white).background(Color(bankHex: 0xFF4C43), in: RoundedRectangle(cornerRadius: 12))
             transactionPanel(scene, title: "Activity", limit: 6)
-            NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: true).toolbar(.visible, for: .navigationBar) } label: {
-                HStack { Image(systemName: "archivebox.fill").font(.title2).foregroundStyle(Color(bankHex: 0x00A4A6)); VStack(alignment: .leading, spacing: 4) { Text("Savings Pot").fontWeight(.semibold); Text("Set money aside").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(18)
-            }.bankSurface(radius: 12)
+            NavigationLink { BankMonzoSavingsPage(sceneID: sceneID).toolbar(.visible, for: .navigationBar) } label: {
+                HStack { BankReferenceHoliday().frame(width: 45, height: 45).clipShape(RoundedRectangle(cornerRadius: 8)); VStack(alignment: .leading, spacing: 4) { Text("Holiday Fund").fontWeight(.semibold); Text("Savings Pot").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(18)
+            }.bankSurface(radius: 12).accessibilityIdentifier("bank.savings.holiday")
         }.padding(.horizontal, 16)
     }
 
     private func revolutHome(_ scene: StudioScene) -> some View {
         VStack(spacing: 20) {
             VStack(spacing: 14) {
-                HStack { Text("Personal").font(.system(size: 15, weight: .medium)); Image(systemName: "chevron.down").font(.caption) }.foregroundStyle(.white.opacity(0.75))
-                Text(scene.money(scene.balance)).font(.system(size: 43, weight: .bold, design: .rounded)).minimumScaleFactor(0.6).lineLimit(1)
-                NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: false).toolbar(.visible, for: .navigationBar) } label: { Text("Accounts").font(.system(size: 14, weight: .medium)).padding(.horizontal, 17).padding(.vertical, 8).background(.white.opacity(0.18), in: Capsule()) }
+                Picker("Account", selection: $revolutPhoto) { ForEach(BankReferenceRevolutPhoto.allCases, id: \.self) { photo in Text(photo.title).tag(photo) } }.pickerStyle(.menu).tint(.white).font(.system(size: 15, weight: .medium))
+                Text(scene.money(revolutPhoto == .savings ? profile.savings : scene.balance)).font(.system(size: 43, weight: .bold, design: .rounded)).minimumScaleFactor(0.6).lineLimit(1)
+                NavigationLink { BankRevolutAccountsPage(sceneID: sceneID).toolbar(.visible, for: .navigationBar) } label: { Text("Accounts").font(.system(size: 14, weight: .medium)).padding(.horizontal, 17).padding(.vertical, 8).background(.white.opacity(0.18), in: Capsule()) }
                 HStack(spacing: 0) {
                     revolutAction("Add money", symbol: "plus", action: { tab = .deposits })
                     revolutAction("Move", symbol: "arrow.left.arrow.right", action: { tab = .transfers })
@@ -538,7 +576,12 @@ struct BankPlayback: View {
                     revolutAction("More", symbol: "ellipsis", action: { tab = .more })
                 }.padding(.top, 10)
             }.foregroundStyle(.white).padding(.horizontal, 20).padding(.top, 24).padding(.bottom, 18)
-                .background(LinearGradient(colors: [Color(bankHex: 0x243247), Color(bankHex: 0x080D15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .background {
+                    ZStack(alignment: .top) {
+                        BankReferenceRevolutArtwork(photo: revolutPhoto)
+                        LinearGradient(colors: [Color.black.opacity(0.12), Color(bankHex: 0x080D15).opacity(0.75)], startPoint: .top, endPoint: .bottom)
+                    }.clipped()
+                }
             transactionPanel(scene, title: "Transactions", limit: 5).padding(.horizontal, 16)
             NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: true).toolbar(.visible, for: .navigationBar) } label: {
                 HStack { Image(systemName: "building.columns.fill").font(.title2); VStack(alignment: .leading, spacing: 5) { Text("Savings").fontWeight(.semibold); Text("Your savings balance").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(20)
@@ -562,7 +605,7 @@ struct BankPlayback: View {
                 .background(LinearGradient(colors: [Color(bankHex: 0x168F88), Color(bankHex: 0x005752)], startPoint: .top, endPoint: .bottom))
             VStack(spacing: 18) {
                 transactionPanel(scene, title: "Transactions", limit: 6)
-                NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: true).toolbar(.visible, for: .navigationBar) } label: {
+                NavigationLink { BankSpacesPage(sceneID: sceneID).toolbar(.visible, for: .navigationBar) } label: {
                 HStack { Image(systemName: "square.grid.2x2").font(.title2); VStack(alignment: .leading, spacing: 4) { Text("Spaces").fontWeight(.semibold); Text("Portion money into budgets").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(hideStarlingBalance ? "••••" : scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(18)
                 }.bankSurface(radius: 12)
             }.padding(16).background(palette.background).clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20)).padding(.top, -10)
@@ -805,24 +848,33 @@ struct BankPlayback: View {
     private var bankNavigation: [(BankPlaybackTab, String, String)] {
         switch theme {
         case .chase:
+            if cleanPlayback { return [(.home,"Accounts","wallet.bifold.fill"),(.payments,"Pay & transfer","dollarsign.arrow.circlepath"),(.plan,"Plan & track","doc.text.magnifyingglass"),(.benefits,"Benefits","star"),(.invest,"Invest","chart.xyaxis.line")] }
             return [(.home,"Accounts","building.columns"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.activity,"Plan & track","chart.bar"),(.cards,"Cards","creditcard"),(.more,"More","square.grid.2x2")]
         case .bankOfAmerica:
+            if cleanPlayback { return [(.home,"Accounts","dollarsign.circle"),(.payments,"Pay & transfer","dollarsign.arrow.circlepath"),(.deals,"Deals","tag"),(.deposits,"Deposit checks","doc.text.viewfinder"),(.invest,"Invest","chart.pie")] }
             return [(.home,"Accounts","building.columns"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.deposits,"Deposit checks","doc.text.viewfinder"),(.spaces,"Invest","chart.pie")]
         case .citi:
+            if cleanPlayback { return [(.home,"Accounts","building.columns"),(.payments,"Payments","dollarsign.circle"),(.services,"Services","star"),(.more,"Profile","person")] }
             return [(.home,"Accounts","building.columns"),(.payments,"Payments","arrow.left.arrow.right"),(.cards,"Services","creditcard"),(.more,"Profile","person.crop.circle")]
         case .monzo:
+            if cleanPlayback { return [(.home,"Home","house.fill"),(.plan,"Trends","chart.bar"),(.payments,"Payments","arrow.left.arrow.right"),(.help,"Help","questionmark")] }
             return [(.home,"Home","house.fill"),(.activity,"Trends","chart.bar"),(.payments,"Payments","arrow.left.arrow.right"),(.more,"Help","questionmark")]
         case .starling:
+            if cleanPlayback { return [(.payments,"Payments","arrow.left.arrow.right"),(.plan,"Spending","chart.bar"),(.home,"Home","house.fill"),(.cards,"Cards","creditcard"),(.spaces,"Spaces","square.grid.2x2")] }
             return [(.payments,"Payments","arrow.left.arrow.right"),(.activity,"Spending","chart.bar"),(.home,"Home","house.fill"),(.cards,"Cards","creditcard"),(.spaces,"Spaces","square.grid.2x2")]
         case .barclays:
+            if cleanPlayback { return [(.home,"Home","house"),(.products,"Products","square.grid.2x2"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.help,"Help","bubble.left.and.bubble.right.fill")] }
             return [(.home,"Home","house.fill"),(.payments,"Pay","arrow.left.arrow.right"),(.cards,"Cards","creditcard"),(.more,"Products","square.grid.2x2"),(.activity,"Activity","list.bullet.rectangle")]
         case .wellsFargo:
+            if cleanPlayback { return [(.home,"Accounts","house"),(.deposits,"Deposit","tray.and.arrow.down"),(.payments,"Pay & Transfer","dollarsign.arrow.circlepath"),(.explore,"Explore","safari"),(.more,"Menu","line.3.horizontal")] }
             return [(.home,"Accounts","building.columns"),(.deposits,"Deposit","doc.text.viewfinder"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.cards,"Cards","creditcard"),(.more,"Menu","line.3.horizontal")]
         case .capitalOne:
             return [(.home,"Accounts","building.columns"),(.payments,"Payments","arrow.left.arrow.right"),(.cards,"Cards","creditcard"),(.more,"Profile","person.crop.circle")]
         case .natWest:
+            if cleanPlayback { return [(.home,"Home","house.fill"),(.payments,"Payments","arrow.left.arrow.right"),(.plan,"Spending","chart.bar"),(.cards,"Cards","creditcard"),(.help,"Help","questionmark.circle")] }
             return [(.home,"Home","house.fill"),(.payments,"Payments","arrow.left.arrow.right"),(.activity,"Spending","chart.bar"),(.cards,"Cards","creditcard"),(.more,"Help","questionmark.circle")]
         case .lloyds:
+            if cleanPlayback { return [(.home,"Home","house.fill"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.plan,"Spending","chart.bar"),(.cards,"Cards","creditcard"),(.more,"Profile","person.crop.circle")] }
             return [(.home,"Home","house.fill"),(.payments,"Pay & transfer","arrow.left.arrow.right"),(.activity,"Spending","chart.bar"),(.cards,"Cards","creditcard"),(.more,"Profile","person.crop.circle")]
         case .revolut:
             return [(.home,"Home","house.fill"),(.spaces,"Accounts","building.columns"),(.payments,"Payments","arrow.left.arrow.right"),(.cards,"Cards","creditcard"),(.more,"More","square.grid.2x2")]
@@ -839,9 +891,9 @@ struct BankPlayback: View {
     }
 }
 
-private enum BankPlaybackTab: String { case home, payments, activity, cards, more, deposits, spaces, transfers, statement }
+private enum BankPlaybackTab: String { case home, payments, activity, cards, more, deposits, spaces, transfers, statement, plan, benefits, invest, deals, rewards, explore, products, help, services }
 
-private struct BankAccountDetail: View {
+struct BankAccountDetail: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
@@ -935,7 +987,7 @@ private struct BankTransactionDetail: View {
     }
 }
 
-private struct BankPaymentPage: View {
+struct BankPaymentPage: View {
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
     let sceneID: UUID
@@ -976,7 +1028,7 @@ private struct BankPaymentPage: View {
                     Button(incoming ? "Confirm deposit" : "Confirm payment") { commit() }
                 } message: { Text("\(scene.money(parsedAmount ?? 0)) \(incoming ? "from" : "to") \(recipient.trimmingCharacters(in: .whitespacesAndNewlines))") }
             } else { ContentUnavailableView("Account unavailable", systemImage: "building.columns") }
-        }.tint(BankPalette(theme).accent).navigationTitle(paymentTitle).navigationBarTitleDisplayMode(.inline)
+        }.tint(theme == .bankOfAmerica ? Color(bankHex: 0x0052C2) : BankPalette(theme).accent).navigationTitle(paymentTitle).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     if (theme == .chase || theme == .bankOfAmerica) && !incoming {
@@ -1000,12 +1052,14 @@ private struct BankPaymentPage: View {
                 if completed == nil {
                     Button { if paymentReview { paymentReview = false } else { closePayment() } } label: {
                         Image(systemName: "chevron.left").font(.system(size: 19)).frame(width: 44, height: 44)
-                    }.accessibilityLabel(paymentReview ? "Edit payment" : "Back")
+                    }.foregroundStyle(theme == .bankOfAmerica ? Color(bankHex: 0x0052C2) : BankPalette(theme).accent)
+                        .accessibilityLabel(paymentReview ? "Edit payment" : "Back")
+                        .accessibilityIdentifier("bank.payment.back")
                 } else { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
                 Spacer()
                 Text(paymentTitle).font(.system(size: 15, weight: .medium))
                 Spacer()
-                if completed == nil { Button(theme == .chase ? "Cancel" : "Close") { closePayment() }.font(.system(size: 13)).frame(minWidth: 44, minHeight: 44) }
+                if completed == nil { Button(theme == .chase ? "Cancel" : "Close") { closePayment() }.font(.system(size: 13)).foregroundStyle(theme == .bankOfAmerica ? Color(bankHex: 0x0052C2) : BankPalette(theme).accent).frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("bank.payment.close") }
                 else { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
             }.padding(.horizontal, 8).background(theme == .chase ? Color(bankHex: 0xF4F4FA) : .white)
             if let completed {
@@ -1062,6 +1116,7 @@ private struct BankPaymentPage: View {
                         reviewValue("Date", value: Date.now.formatted(date: .abbreviated, time: .omitted)); Divider()
                         if !reference.isEmpty { reviewValue("Message", value: reference); Divider() }
                         Button("EDIT") { paymentReview = false }.font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color(bankHex: 0x0052C2))
                             .frame(maxWidth: .infinity).padding(.vertical, 20).accessibilityIdentifier("bank.payment.edit")
                     }
                     if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red).padding(.vertical, 10) }
@@ -1241,7 +1296,7 @@ private struct BankPaymentPage: View {
 
 private enum BankPaymentField: Hashable { case recipient, amount, reference }
 
-private struct BankSavingsTransferPage: View {
+struct BankSavingsTransferPage: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
@@ -1306,7 +1361,7 @@ private struct BankSavingsTransferPage: View {
     }
 }
 
-private struct BankCardPage: View {
+struct BankCardPage: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
@@ -1316,6 +1371,8 @@ private struct BankCardPage: View {
     var body: some View {
         Group {
             if theme == .chase { chaseCardLock }
+            else if theme == .citi && !profile.referenceProducts.filter({ $0.kind == .creditCard }).isEmpty { BankQuickLockPage(sceneID: sceneID, theme: theme) }
+            else if theme == .capitalOne && !profile.referenceProducts.filter({ $0.kind == .creditCard }).isEmpty { BankProductCardCatalogPage(sceneID: sceneID, theme: theme) }
             else { cardOverview }
         }
         .background(palette.background).tint(palette.accent).accessibilityIdentifier("bank.cards")
@@ -1324,17 +1381,25 @@ private struct BankCardPage: View {
     private var cardOverview: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                Text("Your debit card").font(.system(size: 27, weight: .bold))
-                VStack(alignment: .leading, spacing: 34) {
-                    HStack { BankBrandMark(theme: theme, color: .white); Spacer(); Image(systemName: "wave.3.right").font(.title2) }
-                    HStack { RoundedRectangle(cornerRadius: 4).fill(Color(bankHex: 0xD7BC86)).frame(width: 38, height: 29); Spacer(); if profile.cardFrozen { Label("Frozen", systemImage: "snowflake").font(.system(size: 14, weight: .semibold)) } }
-                    VStack(alignment: .leading, spacing: 10) { Text("••••  ••••  ••••  \(profile.accountSuffix)").font(.system(size: 20, weight: .medium, design: .monospaced)); HStack { Text(holderName.uppercased()).font(.system(size: 12, weight: .medium)); Spacer(); Text("VISA").font(.system(size: 22, weight: .bold)).italic() } }
-                }.foregroundStyle(.white).padding(24).frame(maxWidth: .infinity)
-                    .background(LinearGradient(colors: [cardColors.0, cardColors.1], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 18))
-                    .opacity(profile.cardFrozen ? 0.65 : 1)
+                Text(theme == .starling ? "Cards" : theme == .barclays ? "Barclays Bank Account" : "Your debit card").font(.system(size: 27, weight: .bold))
+                if theme == .barclays {
+                    BankReferencePlasticCard(theme: theme, holderName: holderName, suffix: profile.accountSuffix, frozen: profile.cardFrozen).frame(width: 105, height: 168).frame(maxWidth: .infinity)
+                    Label(profile.cardFrozen ? "Frozen" : "Active", systemImage: "circle.fill").font(.system(size: 12)).foregroundStyle(profile.cardFrozen ? .secondary : Color(bankHex: 0x168067)).frame(maxWidth: .infinity)
+                } else if theme == .starling {
+                    HStack(spacing: 23) {
+                        RoundedRectangle(cornerRadius: 10).fill(Color(bankHex: 0x45E6D9)).frame(width: 36, height: 157)
+                        BankReferencePlasticCard(theme: theme, holderName: holderName, suffix: profile.accountSuffix, frozen: profile.cardFrozen).frame(width: 250, height: 157)
+                        RoundedRectangle(cornerRadius: 10).fill(Color(bankHex: 0xFFA24B)).frame(width: 36, height: 157)
+                    }.frame(maxWidth: .infinity).clipped()
+                } else {
+                    BankReferencePlasticCard(theme: theme, holderName: holderName, suffix: profile.accountSuffix, frozen: profile.cardFrozen).frame(height: 208)
+                }
+                if theme == .starling {
+                    VStack(spacing: 8) { Text("Virtual card").font(.system(size: 17, weight: .semibold)); Text("•••• •••• •••• \(profile.accountSuffix)").font(.system(size: 12)).foregroundStyle(.secondary); HStack(spacing: 5) { ForEach(0..<4, id: \.self) { index in Circle().fill(index == 2 ? Color.black : Color.gray.opacity(0.5)).frame(width: 6, height: 6) } } }.frame(maxWidth: .infinity)
+                }
                 VStack(alignment: .leading, spacing: 14) {
-                    Toggle(isOn: Binding(get: { profile.cardFrozen }, set: { value in var updated = profile; updated.cardFrozen = value; _ = store.updateBankProfile(updated) })) {
-                        Label(theme == .capitalOne || theme == .citi ? "Lock card" : "Freeze card", systemImage: profile.cardFrozen ? "lock.fill" : "snowflake")
+                    Toggle(isOn: Binding(get: { theme == .starling ? !profile.cardFrozen : profile.cardFrozen }, set: { value in var updated = profile; updated.cardFrozen = theme == .starling ? !value : value; _ = store.updateBankProfile(updated) })) {
+                        Label(theme == .starling ? (profile.cardFrozen ? "Card locked" : "Card unlocked") : theme == .barclays ? "Temporarily freeze" : theme == .capitalOne || theme == .citi ? "Lock card" : "Freeze card", systemImage: profile.cardFrozen ? "lock.fill" : "lock.open")
                     }.font(.system(size: 17, weight: .medium)).accessibilityIdentifier("bank.card.freeze")
                     Text(profile.cardFrozen ? "Your card is frozen. Unfreeze it whenever you're ready." : "Temporarily freeze your card. Unfreeze it at any time.").font(.system(size: 14)).foregroundStyle(.secondary)
                 }.padding(20).background(theme == .revolut ? Color(bankHex: 0x24262A) : .white, in: RoundedRectangle(cornerRadius: 12))
@@ -1439,7 +1504,7 @@ private struct BankProfileEditor: View {
     }
 }
 
-private struct BankStatementPage: View {
+struct BankStatementPage: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
@@ -1554,7 +1619,7 @@ private struct BankChaseSymbol: Shape {
     }
 }
 
-private struct BankBarclaysSymbol: Shape {
+struct BankBarclaysSymbol: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
         func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * rect.width, y: rect.minY + y * rect.height) }

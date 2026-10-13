@@ -96,7 +96,8 @@ import UserNotifications
     }
     @discardableResult func emit(kind: EventKind, amount: Double, detail: String, sceneID: UUID? = nil,
                                 customerName: String? = nil, itemCount: Int? = nil, orderNumber: Int? = nil,
-                                style: NotificationStyle? = nil, customTitle: String? = nil) -> SceneEvent? {
+                                style: NotificationStyle? = nil, customTitle: String? = nil,
+                                lineItems: [CommerceOrderLineItem]? = nil) -> SceneEvent? {
         let value = kind == .subscriber ? 0.01 : amount
         guard Simulation.validAmount(value), detail.count <= 240 else {
             error = "Enter an amount between 0.01 and 1 billion and details up to 240 characters."; return nil
@@ -112,6 +113,7 @@ import UserNotifications
         event.customerName = customerName?.trimmingCharacters(in: .whitespacesAndNewlines)
         event.itemCount = itemCount
         event.orderNumber = orderNumber
+        event.lineItems = lineItems
         if kind == .order {
             event.orderNumber = orderNumber ?? 1001 + scenes[index].orders
             event.customerName = event.customerName ?? "Online customer"
@@ -147,9 +149,12 @@ import UserNotifications
     }
     func schedule(kind: EventKind, amount: Double, detail: String, delay: Double, count: Int,
                   style: NotificationStyle? = nil, interval: Double = 10, customerName: String? = nil,
-                  itemCount: Int? = nil, orderNumber: Int? = nil, customTitle: String? = nil) async -> Bool {
+                  itemCount: Int? = nil, orderNumber: Int? = nil, customTitle: String? = nil,
+                  sceneID: UUID? = nil) async -> Bool {
         guard !isScheduling, !isResetting else { error = "Wait for the current session operation to finish."; return false }
-        let scheduledScene = active
+        guard let scheduledScene = scenes.first(where: { $0.id == (sceneID ?? activeID) }) else {
+            error = "Choose a scene to schedule notifications."; return false
+        }
         guard NotificationPlan.make(scene: scheduledScene, kind: kind, amount: amount, detail: detail, delay: delay,
             count: count, pendingCount: 0, style: style, interval: interval, customerName: customerName,
             itemCount: itemCount, orderNumber: orderNumber, customTitle: customTitle) != nil else {
@@ -328,6 +333,24 @@ import UserNotifications
         walletProfiles = updated
         return true
     }
+    @discardableResult func updatePortfolioAccountState(sceneID: UUID, state: PortfolioAccountState) -> Bool {
+        var profile = portfolioProfile(for: sceneID)
+        profile.accountState = state
+        return updatePortfolioProfile(profile)
+    }
+    @discardableResult func addPortfolioMarketAsset(sceneID: UUID, symbol: String) -> Bool {
+        guard scenes.contains(where: { $0.id == sceneID && $0.kind == .portfolio }) else {
+            error = "Choose an investing scene."; return false
+        }
+        var profile = portfolioProfile(for: sceneID)
+        if profile.positions.contains(where: { $0.symbol.caseInsensitiveCompare(symbol) == .orderedSame }) { return true }
+        guard let asset = PortfolioProfile.availableAsset(symbol: symbol),
+              !profile.positions.contains(where: { $0.id == asset.id }) else {
+            error = "This asset is unavailable in the local catalog."; return false
+        }
+        profile.positions.append(asset)
+        return updatePortfolioProfile(profile)
+    }
     @discardableResult func updatePredictionProfile(_ profile: PredictionProfile, cashBalance: Double? = nil) -> Bool {
         guard profile.isValid, let sceneIndex = scenes.firstIndex(where: { $0.id == profile.sceneID && $0.kind == .prediction }) else {
             error = "Check the markets, probabilities, positions, and activity."; return false
@@ -470,6 +493,49 @@ import UserNotifications
         guard updatePredictionProfile(profile, cashBalance: cash) else { return nil }
         return trade
     }
+    func quotePredictionCombo(sceneID: UUID, legs: [PredictionComboLeg], cost: Double) -> PredictionComboQuote? {
+        guard let scene = scenes.first(where: { $0.id == sceneID && $0.kind == .prediction }),
+              Simulation.validAmount(cost), cost <= scene.balance,
+              (2...8).contains(legs.count), Set(legs.map(\.marketID)).count == legs.count else {
+            error = "Choose two to eight different markets and a cost within available cash."; return nil
+        }
+        let profile = predictionProfile(for: sceneID)
+        guard profile.isValid else { error = "Check the prediction account details."; return nil }
+        var questions: [String] = []
+        var prices: [Double] = []
+        for leg in legs {
+            guard let market = profile.market(for: leg.marketID), market.isOpen else {
+                error = "A selected market is unavailable or closed."; return nil
+            }
+            questions.append(market.question)
+            prices.append(market.price(for: leg.outcome))
+        }
+        let quote = PredictionComboQuote(legs: legs, questions: questions, legPrices: prices, totalCost: cost)
+        let purchase = PredictionComboTrade(legs: legs, questions: questions, legPrices: prices, totalCost: cost)
+        guard purchase.isValid, quote.potentialPayout.isFinite, quote.multiplier.isFinite,
+              scene.balance - cost < scene.balance else {
+            error = "The combo cost or potential payout exceeds the account limits."; return nil
+        }
+        return quote
+    }
+    @discardableResult func tradePredictionCombo(sceneID: UUID, legs: [PredictionComboLeg], cost: Double,
+                                                expectedQuote: PredictionComboQuote? = nil) -> PredictionComboTrade? {
+        guard let quote = quotePredictionCombo(sceneID: sceneID, legs: legs, cost: cost),
+              let scene = scenes.first(where: { $0.id == sceneID && $0.kind == .prediction }) else { return nil }
+        if let expectedQuote, expectedQuote != quote {
+            error = "A combo price changed. Review your order again."; return nil
+        }
+        var profile = predictionProfile(for: sceneID)
+        guard (profile.comboPositions ?? []).count < 100 else {
+            error = "This account has reached its combo position limit."; return nil
+        }
+        let trade = PredictionComboTrade(legs: quote.legs, questions: quote.questions,
+            legPrices: quote.legPrices, totalCost: quote.totalCost)
+        profile.comboPositions = [trade] + (profile.comboPositions ?? [])
+        profile.comboTransactions = Array(([trade] + (profile.comboTransactions ?? [])).prefix(1000))
+        guard updatePredictionProfile(profile, cashBalance: scene.balance - cost) else { return nil }
+        return trade
+    }
     @discardableResult func swapWallet(sceneID: UUID, fromAssetID: UUID, toAssetID: UUID, quantity: Double) -> Bool {
         guard fromAssetID != toAssetID, MarketValidation.quantity(quantity, allowZero: false),
               scenes.contains(where: { $0.id == sceneID && $0.kind == .wallet }) else {
@@ -513,6 +579,14 @@ import UserNotifications
         else { updated.append(profile) }
         guard persist(snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updated)) else { return false }
         bankProfiles = updated; return true
+    }
+    @discardableResult func updateBankProducts(sceneID: UUID, products: [BankProduct]) -> Bool {
+        guard scenes.contains(where: { $0.id == sceneID && $0.kind == .banking }) else {
+            error = "Choose a banking account."; return false
+        }
+        var profile = bankProfile(for: sceneID)
+        profile.products = products
+        return updateBankProfile(profile)
     }
     @discardableResult func transferSavings(sceneID: UUID, amount: Double, toSavings: Bool) -> Bool {
         guard Simulation.validAmount(amount),
@@ -560,7 +634,7 @@ import UserNotifications
         for (index, event) in sceneEvents.enumerated() {
             orders.append(CommerceOrder(id: event.id, number: event.orderNumber ?? 1001 + index,
                 customer: event.customerName ?? "Online customer", itemCount: event.itemCount ?? 2,
-                total: event.amount, date: event.date, fulfillment: .unfulfilled, isPaid: true))
+                total: event.amount, date: event.date, fulfillment: .unfulfilled, isPaid: true, lineItems: event.lineItems))
         }
         return orders.map { order in
             var value = order
@@ -592,6 +666,22 @@ import UserNotifications
               (1...1000).contains(itemCount) else { error = "Check the customer name and item count."; return nil }
         return emit(kind: .order, amount: total, detail: "\(customer) · \(itemCount) items", sceneID: sceneID,
             customerName: customer.trimmingCharacters(in: .whitespacesAndNewlines), itemCount: itemCount)
+    }
+    @discardableResult func addCommerceOrder(sceneID: UUID, customer: String,
+                                           lineItems: [CommerceOrderLineItem]) -> SceneEvent? {
+        guard (1...100).contains(lineItems.count), lineItems.allSatisfy(\.isValid) else {
+            error = "Check the item quantities and prices."; return nil
+        }
+        let count = lineItems.reduce(0) { $0 + $1.quantity }
+        let total = lineItems.reduce(0) { $0 + $1.total }
+        guard scenes.contains(where: { $0.id == sceneID && $0.kind == .commerce }),
+              !customer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, customer.count <= 80,
+              (1...1000).contains(count), Simulation.validAmount(total),
+              CommerceOrderLineItem.valid(lineItems, itemCount: count, total: total) else {
+            error = "Check the customer, item quantities, and prices."; return nil
+        }
+        return emit(kind: .order, amount: total, detail: "\(customer) · \(count) items", sceneID: sceneID,
+            customerName: customer.trimmingCharacters(in: .whitespacesAndNewlines), itemCount: count, lineItems: lineItems)
     }
     func exportData() -> Data? {
         do { return try snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles).encoded(prettyPrinted: true) }

@@ -445,6 +445,9 @@ final class ReverieUITests: XCTestCase {
             )
             XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
             waitForHittable(bankPicker)
+            if !balanceElements.allElementsBoundByIndex.contains(where: { $0.isHittable }) {
+                scrollTo(balanceElements.firstMatch, in: app)
+            }
             XCTAssertTrue(balanceElements.allElementsBoundByIndex.contains { $0.isHittable }, "\(name) must show the selected scene's balance")
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "Bank playback \(name)"
@@ -973,5 +976,439 @@ extension ReverieUITests {
         app.buttons["Cancel New order"].firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Your queue is clear"].waitForExistence(timeout: 5))
         app.buttons["Done"].tap()
+    }
+}
+
+
+extension ReverieUITests {
+    func testPolymarketComboReviewPurchaseAndRelaunch() {
+        let app = makeApp(brand: "polymarket")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let launcher = app.buttons["prediction-build-combo"]
+        scrollTo(launcher, in: app)
+        launcher.tap()
+        let buy = app.buttons["prediction-combo-review"]
+        waitForHittable(buy)
+        XCTAssertEqual(app.textFields["prediction-combo-cost"].value as? String, "5.00")
+        captureScreen("Polymarket referenced combo ticket", in: app)
+        buy.tap()
+        XCTAssertTrue(app.staticTexts["Review your combo"].waitForExistence(timeout: 3))
+        let edit = app.buttons["prediction-combo-edit"]
+        waitForHittable(edit)
+        edit.tap()
+        waitForHittable(buy)
+        buy.tap()
+        let confirm = app.buttons["prediction-combo-confirm"]
+        waitForHittable(confirm)
+        confirm.tap()
+        let done = app.buttons["prediction-combo-done"]
+        waitForHittable(done)
+        XCTAssertFalse(confirm.exists)
+        captureScreen("Polymarket combo purchase receipt", in: app)
+        done.tap()
+        app.buttons["prediction-tab-home"].tap()
+        XCTAssertTrue(app.buttons["prediction-cash"].label.contains("$2,495.00"))
+        app.buttons["prediction-tab-portfolio"].tap()
+        let combos = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "prediction-combo-position-"))
+        XCTAssertEqual(combos.count, 1)
+        app.terminate()
+        app.launch()
+        waitForHittable(app.buttons["prediction-tab-home"])
+        XCTAssertTrue(app.buttons["prediction-cash"].label.contains("$2,495.00"))
+        app.buttons["prediction-tab-portfolio"].tap()
+        XCTAssertEqual(combos.count, 1)
+        app.buttons["prediction-tab-activity"].tap()
+        let trades = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "prediction-combo-trade-"))
+        XCTAssertTrue(trades.firstMatch.waitForExistence(timeout: 3))
+    }
+
+    func testWealthsimpleVisaAndSecuritySettingsPersist() {
+        let app = makeApp(brand: "wealthsimple")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let menu = app.buttons["portfolio-menu"]
+        waitForHittable(menu)
+        menu.tap()
+        app.buttons["portfolio-account-visa"].tap()
+        let autopay = app.buttons["portfolio-visa-autopay"]
+        scrollTo(autopay, in: app)
+        captureScreen("Wealthsimple referenced Visa overview", in: app)
+        XCTAssertEqual(autopay.value as? String, "Off")
+        autopay.tap()
+        XCTAssertEqual(autopay.value as? String, "On")
+        let manage = app.buttons["portfolio-visa-manage"]
+        scrollTo(manage, in: app, upwards: false)
+        manage.tap()
+        let freeze = app.switches["portfolio-visa-freeze"]
+        waitForHittable(freeze)
+        freeze.tap()
+        XCTAssertEqual(freeze.value as? String, "1")
+        app.navigationBars.buttons["Done"].tap()
+        menu.tap()
+        app.buttons["portfolio-account-security"].tap()
+        let security = app.switches["portfolio-security-two-step"]
+        scrollTo(security, in: app)
+        security.tap()
+        XCTAssertEqual(security.value as? String, "1")
+        captureScreen("Wealthsimple referenced security", in: app)
+        app.terminate()
+        app.launch()
+        waitForHittable(menu)
+        menu.tap()
+        app.buttons["portfolio-account-security"].tap()
+        scrollTo(security, in: app)
+        XCTAssertEqual(security.value as? String, "1")
+        menu.tap()
+        app.buttons["portfolio-account-visa"].tap()
+        scrollTo(autopay, in: app)
+        XCTAssertEqual(autopay.value as? String, "On")
+        scrollTo(manage, in: app, upwards: false)
+        manage.tap()
+        waitForHittable(freeze)
+        XCTAssertEqual(freeze.value as? String, "1")
+    }
+}
+
+
+extension ReverieUITests {
+    func testShopifyCatalogOrderKeepsItemsAndFulfillmentAfterRelaunch() {
+        let app = makeApp(brand: "commerce")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let orders = app.buttons["commerce-tab-orders"]
+        waitForHittable(orders)
+        orders.tap()
+        let create = app.buttons["commerce-add-order"]
+        waitForHittable(create)
+        create.tap()
+        replaceText(in: app.textFields["commerce-order-customer"], with: "Casey Rowan")
+        let keyboardDone = app.buttons["Done"]
+        if keyboardDone.isHittable { keyboardDone.tap() }
+        let catalog = app.switches["commerce-order-use-catalog"]
+        scrollTo(catalog, in: app)
+        catalog.tap()
+        let tote = app.steppers["commerce-order-quantity-ad9a767d-602e-4f05-b146-419308632901"]
+        scrollTo(tote, in: app)
+        XCTAssertTrue(tote.waitForExistence(timeout: 3))
+        tote.buttons["Increment"].tap()
+        tote.buttons["Increment"].tap()
+        let save = app.buttons["commerce-order-save"]
+        waitForHittable(save)
+        XCTAssertTrue(save.isEnabled)
+        save.tap()
+        let order = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Casey Rowan")).firstMatch
+        scrollTo(order, in: app, upwards: false)
+        order.tap()
+        let item = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@ AND label CONTAINS %@",
+            "Everyday tote", "$39.00", "× 2"
+        )).firstMatch
+        XCTAssertTrue(item.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["$78.00"].firstMatch.exists)
+        captureScreen("Shopify referenced itemized order", in: app)
+        let fulfill = app.buttons["fulfill-order"]
+        scrollTo(fulfill, in: app)
+        fulfill.tap()
+        app.terminate()
+        app.launch()
+        waitForHittable(orders)
+        orders.tap()
+        scrollTo(order, in: app, upwards: false)
+        order.tap()
+        XCTAssertTrue(item.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Fulfilled (2)"].exists)
+    }
+}
+
+extension ReverieUITests {
+    func testCoinbaseAndPolymarketExpandedReferenceRoutes() {
+        let coinbase = makeApp(brand: "coinbase")
+        coinbase.launch()
+        let welcome = coinbase.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let menu = coinbase.buttons["portfolio-menu"]
+        waitForHittable(menu)
+        menu.tap()
+        let advanced = coinbase.buttons["portfolio-advanced"]
+        waitForHittable(advanced)
+        advanced.tap()
+        let chartMode = coinbase.buttons["coinbase-advanced-chart-mode"]
+        waitForHittable(chartMode)
+        XCTAssertEqual(chartMode.value as? String, "Candle")
+        XCTAssertTrue(coinbase.staticTexts["BTC-USD"].exists)
+        XCTAssertTrue(coinbase.buttons["coinbase-advanced-buy"].isEnabled)
+        captureScreen("coinbase-7 Advanced BTC-USD reference", in: coinbase)
+        chartMode.tap()
+        let line = coinbase.buttons["coinbase-chart-mode-line"]
+        waitForHittable(line)
+        line.tap()
+        XCTAssertEqual(chartMode.value as? String, "Line")
+        let closeAdvanced = coinbase.buttons["coinbase-advanced-close"]
+        scrollTo(closeAdvanced, in: coinbase, upwards: false)
+        closeAdvanced.tap()
+
+        waitForHittable(menu)
+        menu.tap()
+        let rewards = coinbase.buttons["portfolio-rewards"]
+        waitForHittable(rewards)
+        rewards.tap()
+        XCTAssertTrue(coinbase.navigationBars["Rewards"].waitForExistence(timeout: 3))
+        XCTAssertTrue(coinbase.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "Earn 5% rewards"
+        )).firstMatch.exists)
+        captureScreen("coinbase-4 USDC rewards reference", in: coinbase)
+        let buyUSDC = coinbase.buttons["portfolio-rewards-buy"]
+        scrollTo(buyUSDC, in: coinbase)
+        XCTAssertTrue(buyUSDC.isEnabled)
+        coinbase.buttons["Close rewards"].tap()
+
+        waitForHittable(menu)
+        menu.tap()
+        let securityRoute = coinbase.buttons["portfolio-security"]
+        waitForHittable(securityRoute)
+        securityRoute.tap()
+        XCTAssertTrue(coinbase.navigationBars["Security"].waitForExistence(timeout: 3))
+        XCTAssertTrue(coinbase.staticTexts["Let's secure your account"].exists)
+        captureScreen("coinbase-6 Account security reference", in: coinbase)
+        let security = coinbase.buttons["portfolio-security-two-step"]
+        scrollTo(security, in: coinbase)
+        XCTAssertEqual(security.value as? String, "Disabled")
+        security.tap()
+        XCTAssertEqual(security.value as? String, "Enabled")
+        XCTAssertTrue(coinbase.staticTexts["Your account is secure"].exists)
+        coinbase.buttons["Close security"].tap()
+        waitForHittable(menu)
+        coinbase.terminate()
+
+        testSessionID = UUID().uuidString
+        let polymarket = makeApp(brand: "polymarket")
+        polymarket.launch()
+        let predictionWelcome = polymarket.buttons["Enter your studio"]
+        XCTAssertTrue(predictionWelcome.waitForExistence(timeout: 5))
+        predictionWelcome.tap()
+        let squads = polymarket.buttons["prediction-tab-squads"]
+        waitForHittable(squads)
+        squads.tap()
+        XCTAssertTrue(polymarket.staticTexts["Logan and friends"].waitForExistence(timeout: 3))
+        XCTAssertTrue(polymarket.buttons["prediction-squad-invite"].exists)
+        captureScreen("polymarket-5 Squads discovery reference", in: polymarket)
+        let join = polymarket.buttons["prediction-squad-pro"]
+        scrollTo(join, in: polymarket)
+        join.tap()
+        XCTAssertTrue(polymarket.navigationBars["Logan and friends"].waitForExistence(timeout: 3))
+        XCTAssertEqual(polymarket.buttons["prediction-squad-chat-join"].label, "Joined")
+        let message = polymarket.descendants(matching: .any).matching(identifier: "prediction-chat-input").firstMatch
+        waitForHittable(message)
+        replaceText(in: message, with: "Ready for the next point")
+        let send = polymarket.buttons["prediction-chat-send"]
+        waitForHittable(send)
+        send.tap()
+        XCTAssertTrue(polymarket.staticTexts["Ready for the next point"].waitForExistence(timeout: 3))
+        captureScreen("polymarket-5 Squad match chat reference", in: polymarket)
+        polymarket.navigationBars.buttons["Done"].tap()
+
+        let live = polymarket.buttons["prediction-tab-live"]
+        waitForHittable(live)
+        live.tap()
+        let tennis = polymarket.buttons["prediction-league-tennis"]
+        for _ in 0..<3 {
+            if tennis.isHittable { break }
+            polymarket.buttons["prediction-league-nhl"].swipeLeft()
+        }
+        waitForHittable(tennis)
+        tennis.tap()
+        let match = polymarket.buttons["market-5A110000-0000-4000-8000-000000000027"]
+        scrollTo(match, in: polymarket)
+        match.tap()
+        XCTAssertTrue(polymarket.navigationBars["Live match"].waitForExistence(timeout: 3))
+        XCTAssertTrue(polymarket.staticTexts["Paused"].exists)
+        let buyAlcaraz = polymarket.buttons["prediction-live-buy-yes"]
+        waitForHittable(buyAlcaraz)
+        XCTAssertTrue(buyAlcaraz.label.contains("Carlos Alcaraz"))
+        XCTAssertTrue(buyAlcaraz.label.contains("67¢"))
+        captureScreen("polymarket-7 Tennis live match reference", in: polymarket)
+        let chartLive = polymarket.buttons["prediction-live-chart-live"]
+        scrollTo(chartLive, in: polymarket)
+        chartLive.tap()
+        let probability = polymarket.descendants(matching: .any).matching(NSPredicate(
+            format: "label == %@", "Match probability chart"
+        )).firstMatch
+        XCTAssertTrue((probability.value as? String)?.hasPrefix("Live:") == true)
+        let chat = polymarket.buttons["prediction-live-chat"]
+        scrollTo(chat, in: polymarket)
+        chat.tap()
+        let liveMessage = polymarket.descendants(matching: .any).matching(identifier: "prediction-chat-input").firstMatch
+        scrollTo(liveMessage, in: polymarket)
+        XCTAssertTrue(liveMessage.exists)
+        polymarket.navigationBars.buttons["Done"].tap()
+        waitForHittable(live)
+        polymarket.terminate()
+    }
+}
+
+extension ReverieUITests {
+    func testWalletExpandedReferenceRoutesKeepBalances() {
+        for brand in ["metamask", "phantom", "trustWallet"] {
+            testSessionID = UUID().uuidString
+            let app = makeApp(brand: brand)
+            app.launch()
+            let welcome = app.buttons["Enter your studio"]
+            XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+            welcome.tap()
+            waitForHittable(app.buttons["wallet-tab-assets"])
+            let total = app.staticTexts["wallet-total"]
+            let originalBalance = total.label
+
+            switch brand {
+            case "metamask":
+                let money = app.buttons["wallet-tab-money"]
+                waitForHittable(money)
+                money.tap()
+                let card = app.buttons["wallet-money-card-overview"]
+                scrollTo(card, in: app)
+                XCTAssertTrue(app.staticTexts["Estimated earnings"].exists)
+                captureScreen("metamask-3 Money account reference", in: app)
+                card.tap()
+                let addFunds = app.buttons["wallet-card-add-funds"]
+                waitForHittable(addFunds)
+                XCTAssertTrue(app.buttons["wallet-card-change-asset"].exists)
+                captureScreen("metamask-9 Card reference", in: app)
+                app.navigationBars.buttons["Back"].tap()
+                app.buttons["wallet-tab-assets"].tap()
+                let send = app.buttons["wallet-send"]
+                scrollTo(send, in: app, upwards: false)
+                send.tap()
+                replaceText(in: app.textFields["wallet-recipient"], with: "0x1111111111111111111111111111111111111111")
+                replaceText(in: app.textFields["wallet-transfer-amount"], with: "0.1")
+                let keyboardDone = app.buttons["Done"]
+                waitForHittable(keyboardDone)
+                keyboardDone.tap()
+                let review = app.buttons["wallet-review-transfer"]
+                scrollTo(review, in: app)
+                XCTAssertTrue(review.isEnabled)
+                review.tap()
+                XCTAssertTrue(app.navigationBars["Transfer request"].waitForExistence(timeout: 3))
+                let transfer = app.buttons["wallet-confirm-transfer"]
+                waitForHittable(transfer)
+                XCTAssertTrue(transfer.isEnabled)
+                captureScreen("metamask-7 Transfer request reference", in: app)
+                app.buttons["wallet-cancel-transfer"].tap()
+                XCTAssertTrue(app.navigationBars["Send"].waitForExistence(timeout: 3))
+                app.navigationBars.buttons["Cancel"].tap()
+
+            case "phantom":
+                let trade = app.buttons["wallet-tab-trade"]
+                waitForHittable(trade)
+                trade.tap()
+                XCTAssertTrue(app.buttons["wallet-swap-from-asset"].waitForExistence(timeout: 3))
+                XCTAssertTrue(app.buttons["wallet-swap-to-asset"].exists)
+                captureScreen("phantom-3 Trade reference", in: app)
+                let explore = app.buttons["wallet-tab-explore"]
+                waitForHittable(explore)
+                explore.tap()
+                XCTAssertTrue(app.buttons["wallet-explore-filter-tokens"].waitForExistence(timeout: 3))
+                XCTAssertTrue(app.staticTexts["Trending Tokens"].exists)
+                captureScreen("phantom-4 Explore reference", in: app)
+
+            default:
+                let settings = app.buttons["wallet-tab-settings"]
+                waitForHittable(settings)
+                settings.tap()
+                let staking = app.buttons["wallet-staking"]
+                scrollTo(staking, in: app)
+                staking.tap()
+                XCTAssertTrue(app.navigationBars["Earn"].waitForExistence(timeout: 3))
+                XCTAssertTrue(app.staticTexts["Native Staking"].exists)
+                XCTAssertTrue(app.staticTexts["36.00% APR"].exists)
+                captureScreen("trustWallet-6 Native staking reference", in: app)
+                app.navigationBars.buttons["Back"].tap()
+                let connections = app.buttons["Connections"]
+                scrollTo(connections, in: app)
+                connections.tap()
+                let connect = app.buttons["wallet-connect-app"]
+                waitForHittable(connect)
+                connect.tap()
+                let confirmConnection = app.buttons["wallet-confirm-connection"]
+                waitForHittable(confirmConnection)
+                XCTAssertTrue(app.staticTexts["pancakeswap.finance"].exists)
+                captureScreen("trustWallet-7 Connection request reference", in: app)
+                app.buttons["Cancel"].tap()
+                XCTAssertTrue(app.navigationBars["Connections"].waitForExistence(timeout: 3))
+                app.navigationBars.buttons["Done"].tap()
+                let risk = app.buttons["wallet-security-alert"]
+                scrollTo(risk, in: app)
+                risk.tap()
+                let dismissRisk = app.buttons["wallet-dismiss-risk"]
+                waitForHittable(dismissRisk)
+                XCTAssertTrue(app.staticTexts["Critical Risk Alert"].exists)
+                captureScreen("trustWallet-8 Risk alert reference", in: app)
+                dismissRisk.tap()
+                waitForHittable(settings)
+            }
+
+            let home = app.buttons["wallet-tab-assets"]
+            waitForHittable(home)
+            home.tap()
+            scrollTo(total, in: app, upwards: false)
+            XCTAssertEqual(total.label, originalBalance)
+            app.terminate()
+        }
+    }
+}
+
+extension ReverieUITests {
+    func testStarlingSpacesAndMonzoHolidayReferenceRoutes() {
+        for brand in ["starling", "monzo"] {
+            testSessionID = UUID().uuidString
+            let app = makeApp(brand: brand)
+            app.launch()
+            let welcome = app.buttons["Enter your studio"]
+            XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+            welcome.tap()
+            waitForHittable(app.buttons["bank-brand-exit"])
+
+            if brand == "starling" {
+                let spaces = app.buttons["bank-tab-spaces"]
+                waitForHittable(spaces)
+                spaces.tap()
+                let bills = app.buttons["bank.spaces.bills"]
+                scrollTo(bills, in: app)
+                XCTAssertTrue(app.buttons["bank.spaces.groceries"].exists)
+                captureScreen("starling-2 Spaces reference", in: app)
+                bills.tap()
+                let detail = app.navigationBars["Monthly Bills"]
+                XCTAssertTrue(detail.waitForExistence(timeout: 3))
+                let manage = app.buttons["Manage Space"]
+                waitForHittable(manage)
+                XCTAssertTrue(manage.isEnabled)
+                captureScreen("starling-4 Monthly Bills space reference", in: app)
+                detail.buttons.element(boundBy: 0).tap()
+                waitForHittable(spaces)
+                app.buttons["bank-tab-home"].tap()
+            } else {
+                let holiday = app.buttons["bank.savings.holiday"]
+                scrollTo(holiday, in: app)
+                holiday.tap()
+                let savings = app.navigationBars["Savings"]
+                XCTAssertTrue(savings.waitForExistence(timeout: 3))
+                XCTAssertTrue(app.staticTexts["Holiday Fund"].exists)
+                XCTAssertTrue(app.buttons["Withdraw"].isEnabled)
+                XCTAssertTrue(app.buttons["Add money"].isEnabled)
+                captureScreen("monzo-6 Holiday savings reference", in: app)
+                savings.buttons.element(boundBy: 0).tap()
+                waitForHittable(holiday)
+            }
+
+            waitForHittable(app.buttons["bank-brand-exit"])
+            app.terminate()
+        }
     }
 }

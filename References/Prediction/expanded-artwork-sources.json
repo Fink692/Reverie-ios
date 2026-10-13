@@ -1,0 +1,68 @@
+[
+  {
+    "asset": "PredictionFidelity-LivestreamReference",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3a/7c/21/3a7c21ee-92f1-dcc4-fab4-6bf6c6082e4e/7.jpg/1242x2688bb.jpg",
+    "sha256": "94c2b78d00162e2520962a4d5ef4dabf16a7287e8253f2da4635dacefe8082a9",
+    "bytes": 483373,
+    "retrieved": "2026-10-13",
+    "transformation": "none; byte-for-byte copy of original public screenshot. SwiftUI clips its court footage during layout; no file editing.",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-LivestreamReference.imageset/Artwork.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "license": "Publicly served proprietary Polymarket App Store screenshot; no open-content license asserted",
+    "attribution": "Polymarket US App Store listing, Apple CDN",
+    "use": "Paused local reference footage in the pictured Tennis match. No live external streaming."
+  },
+  {
+    "asset": "PredictionFidelity-TeamBuffaloBills",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/NFL/Polymarket_NFL_BuffaloBills_L@320x320.png",
+    "sha256": "b561393981a5734acc674c77a5d4058f021fed6d9d5673b62e8176c6ff0414fd",
+    "bytes": 276376,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamBuffaloBills.imageset/Artwork.png",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "discoveredOn": "https://polymarket.us",
+    "use": "Squad football cover based on Polymarket reference 5"
+  },
+  {
+    "asset": "PredictionFidelity-TeamKansasCityChiefs",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/NFL/Polymarket_NFL_KansasCityChiefs_L@320x320.png",
+    "sha256": "4ea2ed33170dcc6e7a7ddf698fd7af2194b8bbe1dc0fdb9f53e98f9a7cd2ac41",
+    "bytes": 226188,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamKansasCityChiefs.imageset/Artwork.png",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "discoveredOn": "https://polymarket.us",
+    "use": "Squad football cover based on Polymarket reference 5"
+  },
+  {
+    "asset": "PredictionFidelity-SquadReference",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b0/3d/3f/b03d3f3a-22f7-21b1-de1e-ee074787e11b/5.jpg/1242x2688bb.jpg",
+    "sha256": "d025a3a648ddcb95fd34e791c300602986cdfb18461e538311ae6ae1d77924e2",
+    "bytes": 491593,
+    "retrieved": "2026-10-13",
+    "transformation": "none; byte-for-byte copy of original public screenshot. SwiftUI clips the pictured community avatar during layout; no file editing.",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-SquadReference.imageset/Artwork.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "license": "Publicly served proprietary Polymarket App Store screenshot; no open-content license asserted",
+    "attribution": "Polymarket US App Store listing, Apple CDN",
+    "use": "Pictured Logan and friends community avatar. Does not identify a user of this local scene."
+  }
+]

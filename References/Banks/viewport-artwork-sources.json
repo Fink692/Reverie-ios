@@ -1,0 +1,138 @@
+{
+  "retrieved_utc": "2026-10-13",
+  "description": "Decorative photo fragments from known official developer screenshots. Asset bytes are copied unchanged; no image edits or screenshot interface rendering. Native SwiftUI supplies every label, balance, control and local transaction.",
+  "artwork": [
+    {
+      "reference_file": "References/Banks/starling-2.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cf/dd/60/cfdd60c8-abf6-fa1f-03a4-6edddc50c98a/iPhone-5.5-1242x2208-2025-02.png/392x696bb.png",
+      "asset_catalog_name": "BankReference-StarlingSpaces",
+      "asset_file": "Sources/Assets.xcassets/BankReference-StarlingSpaces.imageset/Artwork.png",
+      "byte_count": 162024,
+      "sha256": "7dbdc8c1eb0e0eca746a5fd3f06fc658e4851c7e2ee3a04ddf380f2c9cefab05",
+      "source_dimensions": [
+        392,
+        696
+      ],
+      "decorative_only_viewports": {
+        "groceries": [
+          31,
+          470,
+          114,
+          112
+        ],
+        "cottage": [
+          54,
+          593,
+          98,
+          98
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    },
+    {
+      "reference_file": "References/Banks/starling-4.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/eb/35/15/eb351502-f92d-9d61-bfb0-cc0a1274aa66/iPhone-5.5-1242x2208-2025-04.png/392x696bb.png",
+      "asset_catalog_name": "BankReference-StarlingSpaceHero",
+      "asset_file": "Sources/Assets.xcassets/BankReference-StarlingSpaceHero.imageset/Artwork.png",
+      "byte_count": 198298,
+      "sha256": "ee01297a66e7b45cf4e648094ff4abf2731907b83366317accfd85d11e62f899",
+      "source_dimensions": [
+        392,
+        696
+      ],
+      "decorative_only_viewports": {
+        "cottage": [
+          86,
+          234,
+          266,
+          99
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    },
+    {
+      "reference_file": "References/Banks/monzo-6.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2c/34/fc/2c34fc7b-b788-ebee-d83e-249360fb79bd/iOS_1242x2208_06.jpg/392x696bb.jpg",
+      "asset_catalog_name": "BankReference-MonzoSavings",
+      "asset_file": "Sources/Assets.xcassets/BankReference-MonzoSavings.imageset/Artwork.jpg",
+      "byte_count": 58669,
+      "sha256": "505f5c3208e7479764563013cf3fbef8669a1d3e11c4be4cee411a46f44d594c",
+      "source_dimensions": [
+        392,
+        696
+      ],
+      "decorative_only_viewports": {
+        "holiday": [
+          154,
+          215,
+          84,
+          66
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    },
+    {
+      "reference_file": "References/Banks/revolut-2.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/06/a0/62/06a06208-b26d-33a1-628b-819e6c343fd6/Screen_2_1242x2208.jpg/320x480bb.jpg",
+      "asset_catalog_name": "BankReference-RevolutSavings",
+      "asset_file": "Sources/Assets.xcassets/BankReference-RevolutSavings.imageset/Artwork.jpg",
+      "byte_count": 27694,
+      "sha256": "ad4da5862a68c24afe24447672a760941cdbf29e5762c3cf462888a0dd56e269",
+      "source_dimensions": [
+        222,
+        480
+      ],
+      "decorative_only_viewports": {
+        "interior": [
+          30,
+          113,
+          162,
+          60
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    },
+    {
+      "reference_file": "References/Banks/revolut-4.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/1d/cb/62/1dcb6259-f2df-b33f-757f-639f44d194ae/Screen_4_1242x2208.jpg/320x480bb.jpg",
+      "asset_catalog_name": "BankReference-RevolutJoint",
+      "asset_file": "Sources/Assets.xcassets/BankReference-RevolutJoint.imageset/Artwork.jpg",
+      "byte_count": 23615,
+      "sha256": "893137e71400cd26b320bbb2c33352adc5601c4fd65692793161c173ec1c4f87",
+      "source_dimensions": [
+        222,
+        480
+      ],
+      "decorative_only_viewports": {
+        "couple": [
+          30,
+          113,
+          162,
+          60
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    },
+    {
+      "reference_file": "References/Banks/revolut-8.jpg",
+      "source_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/7d/e2/49/7de2497e-4573-b6bc-77ad-602b410829ea/Screen_8_1242x2208.jpg/320x480bb.jpg",
+      "asset_catalog_name": "BankReference-RevolutSalary",
+      "asset_file": "Sources/Assets.xcassets/BankReference-RevolutSalary.imageset/Artwork.jpg",
+      "byte_count": 24259,
+      "sha256": "8f043be2b9e50879e45425faf01b6f35cbd0d59887ab49260236c239f24814fd",
+      "source_dimensions": [
+        222,
+        480
+      ],
+      "decorative_only_viewports": {
+        "salary": [
+          30,
+          113,
+          162,
+          72
+        ]
+      },
+      "limits": "Raw original bytes preserved. SwiftUI shows only bounded photo fragments without source UI labels, balances, controls, phones or promotional headings. Reference photographs are low-resolution listing artwork, not full original photos."
+    }
+  ]
+}

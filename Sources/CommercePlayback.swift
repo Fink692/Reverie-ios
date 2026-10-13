@@ -68,7 +68,6 @@ struct CommercePlayback: View {
             .onChange(of: tab) { _, _ in query = "" }
             .onChange(of: scene?.kind) { _, kind in if kind != .commerce { dismiss() } }
         }
-        .accessibilityIdentifier("commerce-playback")
     }
 
     private func header(_ scene: StudioScene) -> some View {
@@ -124,10 +123,12 @@ struct CommercePlayback: View {
                         Image(systemName: "plus.circle").font(.system(size: 23)).frame(width: 44, height: 44)
                     }
                     .accessibilityLabel(tab == .orders ? "Add order" : "Add product")
+                    .accessibilityIdentifier(tab == .orders ? "commerce-add-order" : "commerce-add-product")
                 }
                 Menu {
                     Button("Edit store") { sheet = .store }
                     Button("Edit analytics") { sheet = .analytics }
+                    if tab == .products { Button("Adjust inventory") { sheet = .inventory } }
                     Picker("Date range", selection: $range) {
                         ForEach(CommerceRange.allCases) { Text($0.title).tag($0) }
                     }
@@ -183,7 +184,6 @@ struct CommercePlayback: View {
         }
         .background(Color.black)
         .scrollIndicators(.hidden)
-        .accessibilityIdentifier("commerce-home")
     }
 
     private func analytics(_ scene: StudioScene) -> some View {
@@ -270,7 +270,7 @@ struct CommercePlayback: View {
                     if unfulfilledCount > 0 { filter = .unfulfilled; tab = .orders } else { tab = .products }
                 } label: {
                     Text(unfulfilledCount > 0 ? "Review unfulfilled orders" : "Review product inventory")
-                        .font(.system(size: 15, weight: .semibold)).padding(.horizontal, 14).padding(.vertical, 10)
+                        .font(.system(size: 15, weight: .semibold)).padding(.horizontal, 14).padding(.vertical, 10).frame(minHeight: 44)
                         .background(.white, in: Capsule())
                         .overlay(Capsule().stroke(Color.black.opacity(0.08)))
                 }
@@ -356,7 +356,7 @@ struct CommercePlayback: View {
                     ForEach(CommerceOrderFilter.allCases) { choice in
                         Button { filter = choice } label: {
                             Text(choice.title).font(.system(size: 14, weight: filter == choice ? .semibold : .regular))
-                                .padding(.horizontal, 14).frame(minHeight: 40)
+                                .padding(.horizontal, 14).frame(minHeight: 44)
                                 .background(filter == choice ? CommerceColors.fill : .clear, in: Capsule())
                         }
                         .accessibilityAddTraits(filter == choice ? [.isSelected] : [])
@@ -400,7 +400,6 @@ struct CommercePlayback: View {
         .background(Color.white, in: UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
         .environment(\.colorScheme, .light)
-        .accessibilityIdentifier("commerce-orders")
     }
 
     private func productList(_ scene: StudioScene) -> some View {
@@ -438,7 +437,6 @@ struct CommercePlayback: View {
         .background(Color.white, in: UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
         .environment(\.colorScheme, .light)
-        .accessibilityIdentifier("commerce-products")
     }
 
     private func menu(_ scene: StudioScene) -> some View {
@@ -459,6 +457,7 @@ struct CommercePlayback: View {
                 Button { sheet = .payout } label: { Label("Finances", systemImage: "banknote") }
                 Button { sheet = .alerts } label: { Label("Notifications", systemImage: "bell") }
                 Button { sheet = .pulse } label: { Label("Sidekick Pulse", systemImage: "sparkles") }
+                Button { sheet = .inventory } label: { Label("Inventory", systemImage: "shippingbox") }
             }
             Section {
                 Button { dismiss() } label: { Label("Close scene", systemImage: "xmark.circle") }
@@ -535,6 +534,7 @@ struct CommercePlayback: View {
         case .newOrder: CommerceNewOrder(scene: scene)
         case .product(let id): CommerceProductEditor(sceneID: sceneID, productID: id)
         case .alerts: CommerceAlerts(sceneID: sceneID)
+        case .inventory: CommerceInventoryAdjustment(sceneID: sceneID)
         case .search: CommerceStoreSearch(sceneID: sceneID)
         case .payout: informationSheet("Finances") {
             Form {
@@ -746,7 +746,7 @@ private enum CommerceOrderFilter: String, CaseIterable, Identifiable {
     }
 }
 private enum CommerceSheet: Identifiable {
-    case store, analytics, order(UUID), newOrder, product(UUID?), alerts, search, payout, pulse
+    case store, analytics, order(UUID), newOrder, product(UUID?), alerts, inventory, search, payout, pulse
     var id: String {
         switch self {
         case .store: return "store"
@@ -755,6 +755,7 @@ private enum CommerceSheet: Identifiable {
         case .newOrder: return "new-order"
         case .product(let id): return "product-" + (id?.uuidString ?? "new")
         case .alerts: return "alerts"
+        case .inventory: return "inventory"
         case .search: return "search"
         case .payout: return "payout"
         case .pulse: return "pulse"
@@ -865,7 +866,6 @@ private struct CommerceOrderRow: View {
                 Text(order.isPaid ? "Paid" : "Unpaid").font(.system(size: 11, weight: .medium))
                     .padding(.horizontal, 8).padding(.vertical, 3).background(CommerceColors.fill, in: Capsule())
             }
-            Text("Free Shipping").font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
         }
         .foregroundStyle(Color.black).padding(.vertical, 2)
         .accessibilityElement(children: .combine)
@@ -902,12 +902,11 @@ private struct CommerceOrderDetail: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
-        .accessibilityIdentifier("commerce-order-detail")
     }
 
     private func detail(_ order: CommerceOrder, scene: StudioScene) -> some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 6) {
                         CommerceStatusBadge(status: order.fulfillment)
@@ -919,64 +918,78 @@ private struct CommerceOrderDetail: View {
                     Text(order.date.formatted(date: .abbreviated, time: .shortened))
                         .font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
                 }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
-            Section {
-                HStack(spacing: 8) {
-                    Image(systemName: order.fulfillment == .fulfilled ? "checkmark.circle" : "tray")
-                        .foregroundStyle(CommerceColors.secondary)
-                    Text(verbatim: "\(order.fulfillment.title) (\(order.itemCount))")
-                        .font(.system(size: 16, weight: .semibold))
-                    Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(17)
+                .background(.white)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 8) {
+                        Image(systemName: order.fulfillment == .fulfilled ? "checkmark.circle" : "tray")
+                            .foregroundStyle(CommerceColors.secondary)
+                        Text(verbatim: "\(order.fulfillment.title) (\(order.itemCount))")
+                            .font(.system(size: 16, weight: .semibold))
+                            .accessibilityIdentifier("commerce-order-detail")
+                        Spacer()
+                    }
+                    .padding(.bottom, 14)
+                    if let items = order.lineItems, !items.isEmpty {
+                        ForEach(Array(items.enumerated()), id: \.offset) { entry in
+                            CommerceLineItemRow(item: entry.element, currency: scene.currency)
+                                .padding(.vertical, 13)
+                            Divider().overlay(CommerceColors.fill)
+                        }
+                    } else {
+                        aggregateRow(order, scene: scene).padding(.vertical, 13)
+                        Divider().overlay(CommerceColors.fill)
+                    }
+                    if order.fulfillment != .archived {
+                        Button {
+                            store.setOrderStatus(orderID: orderID, sceneID: sceneID,
+                                status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
+                        } label: {
+                            Text(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Fulfill items")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity, minHeight: 46)
+                                .background(Color(red: 0.18, green: 0.18, blue: 0.18), in: RoundedRectangle(cornerRadius: 11))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 16)
+                        .accessibilityIdentifier("fulfill-order")
+                    }
                 }
-                productRow(order, scene: scene)
-                Button {
-                    store.setOrderStatus(orderID: orderID, sceneID: sceneID,
-                                         status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
-                } label: {
-                    Text(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Fulfill items")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 46)
-                        .background(Color(red: 0.18, green: 0.18, blue: 0.18), in: RoundedRectangle(cornerRadius: 9))
+                .padding(17).background(.white)
+                VStack(alignment: .leading, spacing: 17) {
+                    HStack(spacing: 8) {
+                        Image(systemName: order.isPaid ? "checkmark.circle" : "creditcard")
+                            .foregroundStyle(CommerceColors.secondary)
+                        Text(order.isPaid ? "Paid" : "Payment pending").font(.system(size: 16, weight: .semibold))
+                        Spacer()
+                    }
+                    HStack {
+                        Text("Subtotal").font(.system(size: 14))
+                        Text("\(order.itemCount) \(order.itemCount == 1 ? "item" : "items")")
+                            .font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                        Spacer()
+                        Text(scene.money(order.total)).font(.system(size: 14))
+                    }
+                    HStack {
+                        Text("Total").font(.system(size: 15, weight: .semibold))
+                        Spacer()
+                        Text(scene.currency).font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                        Text(scene.money(order.total)).font(.system(size: 15, weight: .semibold))
+                    }
+                    Divider()
+                    LabeledContent(order.isPaid ? "Paid by customer" : "Amount due", value: scene.money(order.total))
+                        .font(.system(size: 14))
+                    Button(order.isPaid ? "Mark as unpaid" : "Mark as paid") {
+                        store.setOrderPaid(orderID: orderID, sceneID: sceneID, isPaid: !order.isPaid)
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(CommerceColors.secondary)
+                    .frame(minHeight: 44).contentShape(Rectangle())
+                    .accessibilityIdentifier("order-payment-status")
                 }
-                .buttonStyle(.plain)
-                .padding(.vertical, 3)
-                .accessibilityLabel(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled")
-                .accessibilityIdentifier("fulfill-order")
-            }
-            Section {
-                HStack(spacing: 8) {
-                    Image(systemName: order.isPaid ? "checkmark.circle" : "creditcard")
-                        .foregroundStyle(CommerceColors.secondary)
-                    Text(order.isPaid ? "Paid" : "Payment pending").font(.system(size: 16, weight: .semibold))
-                    Spacer()
-                }
-                HStack {
-                    Text("Subtotal").font(.system(size: 14))
-                    Text("\(order.itemCount) \(order.itemCount == 1 ? "item" : "items")")
-                        .font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
-                    Spacer()
-                    Text(scene.money(order.total)).font(.system(size: 14))
-                }
-                HStack {
-                    Text("Total").font(.system(size: 15, weight: .semibold))
-                    Spacer()
-                    Text(scene.currency).font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
-                    Text(scene.money(order.total)).font(.system(size: 15, weight: .semibold))
-                }
-                LabeledContent(order.isPaid ? "Paid by customer" : "Amount due", value: scene.money(order.total))
-                    .font(.system(size: 14))
-                Button(order.isPaid ? "Mark as unpaid" : "Mark as paid") {
-                    store.setOrderPaid(orderID: orderID, sceneID: sceneID, isPaid: !order.isPaid)
-                }
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(CommerceColors.secondary)
-                .frame(minHeight: 44).contentShape(Rectangle())
-                .accessibilityIdentifier("order-payment-status")
-            }
-            Section {
+                .padding(17).background(.white)
                 HStack(spacing: 12) {
                     Text(initials(order.customer)).font(.system(size: 14, weight: .semibold))
                         .frame(width: 38, height: 38)
@@ -985,58 +998,69 @@ private struct CommerceOrderDetail: View {
                         Text("Customer").font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
                         Text(order.customer).font(.system(size: 15, weight: .medium))
                     }
+                    Spacer()
                 }
-            }
-            Section {
+                .padding(17).background(.white)
                 Button(order.fulfillment == .archived ? "Reopen order" : "Archive order") {
                     store.setOrderStatus(orderID: orderID, sceneID: sceneID,
                                          status: order.fulfillment == .archived ? .unfulfilled : .archived)
                 }
                 .foregroundStyle(CommerceColors.secondary)
-                .frame(minHeight: 44).contentShape(Rectangle())
+                .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                .padding(.horizontal, 17).background(.white)
+                if let error = store.error { Text(error).foregroundStyle(.red).padding(17) }
             }
-            if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
         }
-        .listStyle(.insetGrouped)
         .foregroundStyle(Color.black)
-        .scrollContentBackground(.hidden)
         .background(Color(red: 0.965, green: 0.965, blue: 0.965))
     }
 
-    private func productRow(_ order: CommerceOrder, scene: StudioScene) -> some View {
-        // The archive stores aggregate order totals. Name a catalog item only when its
-        // price and quantity exactly explain that total; otherwise preserve the known aggregate.
-        let product = store.commerceProfile(for: sceneID).products.first {
-            abs($0.price * Double(order.itemCount) - order.total) < 0.005
-        }
-        return HStack(alignment: .top, spacing: 12) {
-            Image(systemName: product?.symbol ?? "cube.box")
+    private func aggregateRow(_ order: CommerceOrder, scene: StudioScene) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "cube.box")
                 .font(.system(size: 25)).foregroundStyle(CommerceColors.secondary)
-                .frame(width: 56, height: 62)
+                .frame(width: 56, height: 56)
                 .background(CommerceColors.fill, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(alignment: .topTrailing) {
-                    Text(verbatim: String(order.itemCount))
-                        .font(.system(size: 10, weight: .semibold)).padding(.horizontal, 5).padding(.vertical, 2)
-                        .background(Color.white, in: Capsule()).offset(x: 4, y: -4)
-                }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
-                Text(product?.title ?? "Order items").font(.system(size: 15, weight: .semibold))
-                Text(product == nil ? "Custom order" : "Default variant")
-                    .font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
-                if let product {
-                    Text("\(scene.money(product.price)) × \(order.itemCount)").font(.system(size: 13))
-                } else {
-                    Text("Quantity: \(order.itemCount)").font(.system(size: 13))
-                }
+                Text("Order items").font(.system(size: 15, weight: .semibold))
+                Text("Custom order").font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
+                Text(scene.money(order.total)).font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
             }
             Spacer(minLength: 4)
-            Text(scene.money(order.total)).font(.system(size: 14)).padding(.top, 2)
+            Text(verbatim: "× \(order.itemCount)").font(.system(size: 15, weight: .medium)).padding(.top, 20)
         }
-        .padding(.vertical, 8)
     }
     private func initials(_ name: String) -> String {
         name.split(separator: " ").prefix(2).compactMap { $0.first }.map(String.init).joined().uppercased()
+    }
+}
+
+/// Product snapshots retain the title and price the customer ordered, even after a catalog edit.
+private struct CommerceLineItemRow: View {
+    let item: CommerceOrderLineItem
+    let currency: String
+    var body: some View {
+        HStack(alignment: .center, spacing: 13) {
+            Image(systemName: item.symbol)
+                .font(.system(size: 25)).foregroundStyle(CommerceColors.secondary)
+                .frame(width: 56, height: 56)
+                .background(CommerceColors.fill, in: RoundedRectangle(cornerRadius: 9))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(item.title).font(.system(size: 15, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+                if let variant = item.variant, !variant.isEmpty {
+                    Text(variant).font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
+                }
+                Text(item.unitPrice.formatted(.currency(code: currency)))
+                    .font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
+            }
+            Spacer(minLength: 8)
+            Text(verbatim: "× \(item.quantity)").font(.system(size: 15, weight: .medium))
+                .fixedSize()
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -1047,33 +1071,91 @@ private struct CommerceNewOrder: View {
     @State private var customer = ""
     @State private var amount = ""
     @State private var itemCount = 1
+    @State private var catalogOrder = false
+    @State private var quantities: [UUID: Int] = [:]
     @FocusState private var editing: Bool
+    private var products: [CommerceProduct] { store.commerceProfile(for: scene.id).products }
+    private var lineItems: [CommerceOrderLineItem] {
+        products.compactMap { product in
+            let quantity = quantities[product.id] ?? 0
+            return quantity > 0 ? CommerceOrderLineItem(productID: product.id, title: product.title,
+                unitPrice: product.price, quantity: quantity, symbol: product.symbol) : nil
+        }
+    }
+    private var catalogTotal: Double { lineItems.reduce(0) { $0 + $1.unitPrice * Double($1.quantity) } }
+    private var catalogCount: Int { lineItems.reduce(0) { $0 + $1.quantity } }
     private var valid: Bool {
         let name = customer.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !name.isEmpty && name.count <= 80 && (1...100).contains(itemCount) && Simulation.parseAmount(amount).map(Simulation.validAmount) == true
+        let validItems = catalogOrder ? (1...1000).contains(catalogCount) && Simulation.validAmount(catalogTotal)
+            : (1...100).contains(itemCount) && Simulation.parseAmount(amount).map(Simulation.validAmount) == true
+        return !name.isEmpty && name.count <= 80 && validItems
     }
     var body: some View {
         NavigationStack {
             Form {
-                Section("Customer") { TextField("Customer name", text: $customer).textContentType(.name).focused($editing) }
+                Section("Customer") {
+                    TextField("Customer name", text: $customer).textContentType(.name).focused($editing)
+                        .accessibilityIdentifier("commerce-order-customer")
+                }
                 Section("Order") {
-                    TextField("Total in \(scene.currency)", text: $amount).keyboardType(.decimalPad).focused($editing)
-                    Stepper("\(itemCount) \(itemCount == 1 ? "item" : "items")", value: $itemCount, in: 1...100)
+                    Toggle("Use products from catalog", isOn: $catalogOrder)
+                        .accessibilityIdentifier("commerce-order-use-catalog")
+                    if !catalogOrder {
+                        TextField("Total in \(scene.currency)", text: $amount).keyboardType(.decimalPad).focused($editing)
+                            .accessibilityIdentifier("commerce-order-total")
+                        Stepper("\(itemCount) \(itemCount == 1 ? "item" : "items")", value: $itemCount, in: 1...100)
+                    }
+                }
+                if catalogOrder {
+                    Section("Products") {
+                        if products.isEmpty { Text("Add a product before creating a catalog order.").foregroundStyle(.secondary) }
+                        ForEach(products) { product in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: product.symbol).font(.system(size: 22)).foregroundStyle(CommerceColors.secondary)
+                                        .frame(width: 42, height: 42).background(CommerceColors.fill, in: RoundedRectangle(cornerRadius: 8))
+                                        .accessibilityHidden(true)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(product.title).font(.system(size: 15, weight: .semibold))
+                                        Text(scene.money(product.price)).font(.system(size: 13)).foregroundStyle(.secondary)
+                                    }
+                                }
+                                Stepper("Quantity: \(quantities[product.id] ?? 0)", value: Binding(
+                                    get: { quantities[product.id] ?? 0 }, set: { quantities[product.id] = $0 }), in: 0...100)
+                                    .accessibilityLabel("\(product.title) quantity")
+                                    .accessibilityIdentifier("commerce-order-quantity-" + product.id.uuidString.lowercased())
+                                    .frame(minHeight: 44)
+                            }
+                            .padding(.vertical, 5)
+                        }
+                    }
+                    Section {
+                        LabeledContent("Items", value: catalogCount.formatted())
+                        LabeledContent("Total", value: scene.money(catalogTotal))
+                            .fontWeight(.semibold)
+                    }
                 }
                 if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
             }
             .navigationTitle("Create order").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save", action: save).disabled(!valid) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save", action: save).disabled(!valid).accessibilityIdentifier("commerce-order-save")
+                }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } }
             }
         }
-        .accessibilityIdentifier("commerce-new-order")
     }
     private func save() {
-        guard valid, let value = Simulation.parseAmount(amount) else { return }
-        if store.addCommerceOrder(sceneID: scene.id, customer: customer.trimmingCharacters(in: .whitespacesAndNewlines), itemCount: itemCount, total: value) != nil { dismiss() }
+        guard valid else { return }
+        let clean = customer.trimmingCharacters(in: .whitespacesAndNewlines)
+        if catalogOrder {
+            if store.addCommerceOrder(sceneID: scene.id, customer: clean, lineItems: lineItems) != nil { dismiss() }
+        } else if let value = Simulation.parseAmount(amount),
+                  store.addCommerceOrder(sceneID: scene.id, customer: clean, itemCount: itemCount, total: value) != nil {
+            dismiss()
+        }
     }
 }
 
@@ -1109,13 +1191,16 @@ private struct CommerceProductEditor: View {
                     }
                     .listRowBackground(Color.clear)
                     TextField("Product title", text: $title).focused($editing)
+                        .accessibilityIdentifier("commerce-product-title")
                     Picker("Product image", selection: $symbol) {
                         ForEach(symbols, id: \.self) { name in Label(name.replacingOccurrences(of: ".", with: " ").capitalized, systemImage: name).tag(name) }
                     }
                 }
                 Section("Pricing and inventory") {
                     TextField("Price", text: $price).keyboardType(.decimalPad).focused($editing)
+                        .accessibilityIdentifier("commerce-product-price")
                     TextField("Available inventory", text: $inventory).keyboardType(.numberPad).focused($editing)
+                        .accessibilityIdentifier("commerce-product-inventory")
                 }
                 if productID != nil {
                     Section {
@@ -1137,7 +1222,6 @@ private struct CommerceProductEditor: View {
             }
             .onAppear(perform: load)
         }
-        .accessibilityIdentifier("commerce-product-editor")
     }
     private func load() {
         guard !didLoad else { return }
@@ -1252,11 +1336,19 @@ private struct CommerceAlerts: View {
     let sceneID: UUID
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
+    @State private var configuring = false
     private var alerts: [QueuedAlert] { store.queuedAlerts.filter { $0.sceneID == sceneID } }
     private var events: [SceneEvent] { store.events.filter { $0.sceneID == sceneID }.sorted { $0.date > $1.date } }
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Button { configuring = true } label: {
+                        Label("Configure notifications", systemImage: "bell.badge")
+                            .frame(minHeight: 44)
+                    }
+                    .accessibilityIdentifier("commerce-configure-notifications")
+                }
                 if alerts.isEmpty && events.isEmpty {
                     ContentUnavailableView("No notifications yet", systemImage: "bell", description: Text("Order activity and queued alerts appear here."))
                 }
@@ -1292,6 +1384,9 @@ private struct CommerceAlerts: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .task { await store.refreshNotifications() }
             .refreshable { await store.refreshNotifications() }
+            .sheet(isPresented: $configuring) {
+                CommerceNotificationConfiguration(sceneID: sceneID)
+            }
         }
     }
 }

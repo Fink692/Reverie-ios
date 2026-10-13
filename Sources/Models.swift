@@ -77,6 +77,7 @@ struct SceneEvent: Codable, Identifiable, Equatable {
     var savingsTransfer: Bool?
     var style: NotificationStyle?
     var customTitle: String?
+    var lineItems: [CommerceOrderLineItem]? = nil
     var title: String { style?.title(orderNumber: orderNumber, customTitle: customTitle) ?? kind.title }
     var isValid: Bool {
         Simulation.validAmount(amount) && detail.count <= 240 && date.timeIntervalSince1970.isFinite &&
@@ -85,7 +86,8 @@ struct SceneEvent: Codable, Identifiable, Equatable {
         (itemCount.map { (1...1000).contains($0) } ?? true) &&
         (savingsTransfer != true || kind == .payment || kind == .deposit) &&
         (style.map { $0.eventKind == kind } ?? true) &&
-        (customTitle.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true)
+        (customTitle.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true) &&
+        (lineItems.map { kind == .order && CommerceOrderLineItem.valid($0, itemCount: itemCount ?? 0, total: amount) } ?? true)
     }
     func body(scene: StudioScene) -> String {
         if let style {

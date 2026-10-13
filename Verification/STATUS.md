@@ -1,5 +1,7 @@
 # Verification status
 
+This follow-up reference-completion revision is in progress. Its new account, combo, wallet and commerce flows have not yet passed native Apple compilation or UI tests. The results below describe the previously verified revision, not the current working tree.
+
 The precision revision passes its native build, all 137 tests, and independent checks of all 20 branded packages. All 20 production startup and SpringBoard originals and five additional checkpoints were visually reviewed. Complete 1:1 parity is not established.
 
 Native build: [38444892650](https://github.com/Fink692/Reverie-ios/actions/runs/38444892650), application commit `2c8d82c247f9a6a7cd55c82fededd2ab03148fe2`. Subsequent documentation changes preserve this application source and artwork.

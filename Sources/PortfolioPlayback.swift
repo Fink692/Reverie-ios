@@ -18,6 +18,7 @@ struct PortfolioPlayback: View {
     @State private var discoveryCategory = "Now"
     @State private var cryptoAccount = false
     @State private var choosingAccount = false
+    @State private var wealthAccount: WealthsimpleAccount = .holdings
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
@@ -65,9 +66,12 @@ struct PortfolioPlayback: View {
                 case .receiveCrypto: PortfolioTransferPage(sceneID: sceneID, kind: .receive)
                 case .scan: PortfolioScanPage(sceneID: sceneID)
                 case .coinbaseCard: coinbaseUnavailableFeature(.card)
-                case .coinbaseRewards: coinbaseUnavailableFeature(.rewards)
+                case .coinbaseRewards: CoinbaseRewardsPage(sceneID: sceneID)
                 case .coinbaseWallet: coinbaseUnavailableFeature(.wallet)
-                case .coinbaseAdvanced: coinbaseUnavailableFeature(.advanced)
+                case .coinbaseAdvanced: CoinbaseAdvancedTradePage(sceneID: sceneID)
+                case .security: PortfolioSecurityPage(sceneID: sceneID)
+                case .cashAccount: PortfolioCashAccountPage(sceneID: sceneID)
+                case .cryptoAccount: PortfolioCryptoAccountPage(sceneID: sceneID)
                 }
             }
         }
@@ -77,7 +81,9 @@ struct PortfolioPlayback: View {
     @ViewBuilder private var header: some View {
         if theme == .wealthsimple {
             Button { modal = .menu } label: {
-                Text(tab == .home ? "Holdings" : tab == .assets ? "Discover" : tab == .activity ? "Activity" : "Move")
+                HStack(spacing: 5) {
+                    Text(tab == .home ? wealthAccount.title : tab == .assets ? "Discover" : tab == .activity ? "Activity" : "Move")
+                }
                     .font(.system(size: 17, weight: .semibold))
                     .frame(maxWidth: .infinity, minHeight: 48)
             }
@@ -123,7 +129,14 @@ struct PortfolioPlayback: View {
             VStack(alignment: .leading, spacing: 24) {
                 switch theme {
                 case .robinhood: robinhoodHome(scene)
-                case .wealthsimple: wealthsimpleHome(scene)
+                case .wealthsimple:
+                    switch wealthAccount {
+                    case .holdings: wealthsimpleHome(scene)
+                    case .chequing: WealthsimpleChequingContent(sceneID: sceneID)
+                    case .crypto: WealthsimpleCryptoContent(sceneID: sceneID)
+                    case .visa: WealthsimpleVisaContent(sceneID: sceneID)
+                    case .security: PortfolioSecurityContent(sceneID: sceneID)
+                    }
                 case .coinbase: coinbaseHome(scene)
                 }
             }
@@ -139,7 +152,7 @@ struct PortfolioPlayback: View {
                 HStack(spacing: 10) {
                     Text(scene.money(cryptoAccount ? cryptoValue : profile.total(cash: scene.balance))).font(.system(size: 39, weight: .regular)).monospacedDigit()
                     if cryptoAccount {
-                        Button { modal = .editor } label: { Image(systemName: "info.circle").font(.system(size: 21)).foregroundStyle(palette.secondary).frame(width: 44, height: 44) }
+                        Button { modal = .cryptoAccount } label: { Image(systemName: "info.circle").font(.system(size: 21)).foregroundStyle(palette.secondary).frame(width: 44, height: 44) }
                             .accessibilityLabel("Crypto account details")
                     }
                 }
@@ -148,7 +161,7 @@ struct PortfolioPlayback: View {
             PortfolioTrend(values: profile.chart, range: range, color: palette.accent, fill: false, highlightLastPoint: true)
                 .frame(height: 180).padding(.horizontal, 4)
             rangePicker.padding(.horizontal, 24)
-            Button { modal = .editor } label: {
+            Button { modal = .cashAccount } label: {
                 HStack {
                     Text("Buying power").font(.system(size: 15, weight: .medium))
                     Spacer()
@@ -193,7 +206,7 @@ struct PortfolioPlayback: View {
             }
             if holdingsFilter == "CAD" || holdingsFilter == "USD" {
                 if holdingsFilter == scene.currency {
-                    Button { modal = .editor } label: {
+                    Button { wealthAccount = .chequing } label: {
                         HStack(spacing: 12) {
                             Text("$").font(.system(size: 24, weight: .medium)).frame(width: 34, height: 34).background(.white, in: RoundedRectangle(cornerRadius: 8))
                             VStack(alignment: .leading, spacing: 4) { Text(scene.currency).font(.system(size: 16, weight: .medium)); Text("Cash").font(.system(size: 14)).foregroundStyle(palette.secondary) }
@@ -258,7 +271,7 @@ struct PortfolioPlayback: View {
                 ForEach(profile.positions.filter { $0.kind == .crypto }.prefix(5)) { position in
                     NavigationLink { PortfolioAssetDetail(sceneID: sceneID, assetID: position.id) } label: { PortfolioAssetRow(position: position, scene: scene, theme: theme, showsPrice: true) }.buttonStyle(.plain).accessibilityIdentifier("portfolio-asset-\(position.symbol)")
                 }
-                Button { modal = .editor } label: {
+                Button { modal = .cashAccount } label: {
                     HStack(spacing: 12) { Image(systemName: "dollarsign").font(.system(size: 22, weight: .semibold)).frame(width: 42, height: 42).background(palette.surface, in: Circle()); VStack(alignment: .leading, spacing: 4) { Text("Cash").fontWeight(.medium); Text(scene.currency).font(.caption).foregroundStyle(palette.secondary) }; Spacer(); Text(scene.money(scene.balance)).monospacedDigit() }.frame(minHeight: 58)
                 }.buttonStyle(.plain)
             }.padding(.horizontal, 24)
@@ -421,6 +434,12 @@ struct PortfolioPlayback: View {
                 Text(theme.name).font(.system(size: 16)).foregroundStyle(palette.secondary)
                 profileButton("Portfolio settings", symbol: "slider.horizontal.3") { modal = .editor }
                 profileButton("Activity", symbol: "clock.arrow.circlepath") { tab = .activity }
+                profileButton("Cash", symbol: "banknote") { modal = .cashAccount }
+                profileButton("Security", symbol: "lock.shield") { modal = .security }
+                if theme == .coinbase {
+                    profileButton("Rewards", symbol: "gift") { modal = .coinbaseRewards }
+                    profileButton("Advanced trade", symbol: "chart.bar.xaxis") { modal = .coinbaseAdvanced }
+                }
                 profileButton("Choose platform", symbol: "square.grid.2x2") { modal = .themes }
                 profileButton("Return to Studio", symbol: "arrow.uturn.backward") { dismiss() }
             }.padding(24)
@@ -475,10 +494,25 @@ struct PortfolioPlayback: View {
     private var menuSheet: some View {
         NavigationStack {
             List {
+                if theme == .wealthsimple {
+                    Section("Accounts") {
+                        ForEach(WealthsimpleAccount.allCases) { account in
+                            Button { wealthAccount = account; tab = .home; modal = nil } label: {
+                                HStack { Image(systemName: account.symbol).frame(width: 26); Text(account.title); Spacer(); if wealthAccount == account { Image(systemName: "checkmark") } }
+                            }.accessibilityIdentifier("portfolio-account-\(account.rawValue)")
+                        }
+                    }
+                }
                 Section {
                     Button("Edit portfolio") { modal = .editor }
                     Button("Choose platform") { modal = .themes }.accessibilityIdentifier("portfolio-theme-picker")
                     Button("Activity") { modal = nil; tab = .activity }
+                    Button("Cash") { modal = .cashAccount }.accessibilityIdentifier("portfolio-cash-account")
+                    Button("Security") { modal = .security }.accessibilityIdentifier("portfolio-security")
+                    if theme == .coinbase {
+                        Button("Rewards") { modal = .coinbaseRewards }.accessibilityIdentifier("portfolio-rewards")
+                        Button("Advanced trade") { modal = .coinbaseAdvanced }.accessibilityIdentifier("portfolio-advanced")
+                    }
                 }
                 Section { Button("Return to Studio") { modal = nil; dismiss() }.accessibilityIdentifier("close-scene") }
                 Section { Text("This is a saved roleplay scene. Prices, charts and transactions are editable and remain on this device.").font(.footnote).foregroundStyle(.secondary) }
@@ -514,27 +548,36 @@ struct PortfolioPlayback: View {
 private enum PortfolioModal: String, Identifiable {
     case menu, themes, editor, addCash, sendCash, sendCrypto, receiveCrypto, scan
     case coinbaseCard, coinbaseRewards, coinbaseWallet, coinbaseAdvanced
+    case security, cashAccount, cryptoAccount
     var id: String { rawValue }
 }
 private enum CoinbaseUnavailableFeature {
-    case card, rewards, wallet, advanced
+    case card, wallet
     var title: String {
-        switch self { case .card: return "Card"; case .rewards: return "Rewards"; case .wallet: return "Coinbase Wallet"; case .advanced: return "Advanced trade" }
+        switch self { case .card: return "Card"; case .wallet: return "Coinbase Wallet" }
     }
     var symbol: String {
-        switch self { case .card: return "creditcard"; case .rewards: return "gift"; case .wallet: return "wallet.pass"; case .advanced: return "chart.bar.xaxis" }
+        switch self { case .card: return "creditcard"; case .wallet: return "wallet.pass" }
     }
     var message: String {
         switch self {
         case .card: return "Card information is unavailable."
-        case .rewards: return "No rewards are available."
         case .wallet: return "A separate wallet is not set up."
-        case .advanced: return "Advanced trading is unavailable."
         }
     }
 }
 private enum PortfolioTab: String { case home, assets, activity, profile }
-private enum PortfolioRange: String, CaseIterable, Identifiable {
+private enum WealthsimpleAccount: String, CaseIterable, Identifiable {
+    case holdings, chequing, visa, crypto, security
+    var id: String { rawValue }
+    var title: String {
+        switch self { case .holdings: return "Holdings"; case .chequing: return "Chequing"; case .visa: return "Visa Infinite"; case .crypto: return "Crypto"; case .security: return "Security" }
+    }
+    var symbol: String {
+        switch self { case .holdings: return "chart.pie"; case .chequing: return "building.columns"; case .visa: return "creditcard"; case .crypto: return "bitcoinsign.circle"; case .security: return "lock.shield" }
+    }
+}
+enum PortfolioRange: String, CaseIterable, Identifiable {
     case live, hour, day, week, month, quarter, yearToDate, year, all
     var id: String { rawValue }
     var title: String {
@@ -552,7 +595,7 @@ private enum PortfolioRange: String, CaseIterable, Identifiable {
     }
 }
 
-private struct PortfolioPalette {
+struct PortfolioPalette {
     let background: Color
     let surface: Color
     let ink: Color
@@ -574,7 +617,7 @@ private struct PortfolioPalette {
     }
 }
 
-private enum PortfolioFormatting {
+enum PortfolioFormatting {
     static func percent(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(2))) + "%" }
     static func quantity(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
     // Holdings uses the compact currency symbol while CAD/USD remain explicit filters.
@@ -584,7 +627,7 @@ private enum PortfolioFormatting {
     }
 }
 
-private struct PortfolioTrend: View {
+struct PortfolioTrend: View {
     let values: [Double]
     let range: PortfolioRange
     let color: Color
@@ -670,7 +713,7 @@ private struct PortfolioAssetRow: View {
     }
 }
 
-private struct PortfolioAssetIcon: View {
+struct PortfolioAssetIcon: View {
     let position: MarketPosition
     var square = false
     private var symbol: String { position.symbol.uppercased() }
@@ -739,7 +782,7 @@ private struct PortfolioAssetIcon: View {
     }
 }
 
-private struct PortfolioUSDCMark: View {
+struct PortfolioUSDCMark: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -941,6 +984,7 @@ private struct PortfolioCashMovementPage: View {
     let sceneID: UUID
     let incoming: Bool
     var initialRecipient = ""
+    var title: String? = nil
     @State private var amount = "100"
     @State private var recipient = ""
     @State private var reviewing = false
@@ -987,7 +1031,7 @@ private struct PortfolioCashMovementPage: View {
                     }
                 } else { ContentUnavailableView("Portfolio unavailable", systemImage: "banknote") }
             }
-            .navigationTitle(incoming ? "Add cash" : "Send cash").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(title ?? (incoming ? "Add cash" : "Send cash")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { if !completed { Button(reviewing ? "Back" : "Cancel") { if reviewing { reviewing = false } else { dismiss() } } } } }
             .tint(palette.accent).onAppear { recipient = initialRecipient }
         }
@@ -1158,7 +1202,7 @@ private struct PortfolioQRCode: View {
     }
 }
 
-private struct PortfolioAssetDetail: View {
+struct PortfolioAssetDetail: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let assetID: UUID
@@ -1227,7 +1271,7 @@ private struct PortfolioAssetDetail: View {
     }
 }
 
-private struct PortfolioTradePage: View {
+struct PortfolioTradePage: View {
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
     let sceneID: UUID
@@ -1361,18 +1405,26 @@ private struct PortfolioActivityPage: View {
     let sceneID: UUID
     var assetID: UUID? = nil
     var embedded = false
+    var cashOnly = false
+    var kindFilter: MarketAssetKind? = nil
     @State private var search = ""
     private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
     private var palette: PortfolioPalette { PortfolioPalette(profile.theme) }
     private var transactions: [MarketTransaction] {
-        profile.transactions.filter { (assetID == nil || $0.assetID == assetID) && (search.isEmpty || $0.symbol.localizedCaseInsensitiveContains(search) || $0.side.rawValue.localizedCaseInsensitiveContains(search)) }.sorted { $0.date > $1.date }
+        guard !cashOnly else { return [] }
+        return profile.transactions.filter { transaction in
+            (assetID == nil || transaction.assetID == assetID) &&
+            (kindFilter == nil || profile.positions.contains { $0.id == transaction.assetID && $0.kind == kindFilter }) &&
+            (search.isEmpty || transaction.symbol.localizedCaseInsensitiveContains(search) || transaction.side.rawValue.localizedCaseInsensitiveContains(search))
+        }.sorted { $0.date > $1.date }
     }
     private var cashTransfers: [SceneEvent] {
-        guard assetID == nil else { return [] }
+        guard assetID == nil && kindFilter == nil else { return [] }
         return store.events.filter { $0.sceneID == sceneID && ($0.kind == .deposit || $0.kind == .payment) && (search.isEmpty || $0.detail.localizedCaseInsensitiveContains(search) || $0.title.localizedCaseInsensitiveContains(search)) }.sorted { $0.date > $1.date }
     }
     private var cryptoTransfers: [WalletTransaction] {
-        profile.transfers.filter { (assetID == nil || $0.assetID == assetID) && (search.isEmpty || $0.symbol.localizedCaseInsensitiveContains(search) || $0.kind.title.localizedCaseInsensitiveContains(search) || $0.address.localizedCaseInsensitiveContains(search)) }.sorted { $0.date > $1.date }
+        guard !cashOnly && kindFilter != .stock else { return [] }
+        return profile.transfers.filter { (assetID == nil || $0.assetID == assetID) && (search.isEmpty || $0.symbol.localizedCaseInsensitiveContains(search) || $0.kind.title.localizedCaseInsensitiveContains(search) || $0.address.localizedCaseInsensitiveContains(search)) }.sorted { $0.date > $1.date }
     }
     var body: some View {
         Group {
@@ -1474,6 +1526,7 @@ private struct PortfolioEditor: View {
     @State private var chart = ""
     @State private var position: MarketPosition?
     @State private var showAdd = false
+    @State private var showAccountState = false
     private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
     private var parsedChart: [Double]? {
         let values = chart.split(separator: ",", omittingEmptySubsequences: false).compactMap { Double($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
@@ -1488,6 +1541,7 @@ private struct PortfolioEditor: View {
                     TextField("Cash balance", text: $cash).keyboardType(.decimalPad)
                     TextField("Daily change (%)", text: $change).keyboardType(.numbersAndPunctuation)
                 }
+                Section { Button("Account details, card, and earnings") { showAccountState = true }.accessibilityIdentifier("portfolio-account-state-editor") }
                 Section {
                     ForEach(profile.positions) { holding in
                         Button { position = holding } label: { HStack { Text(holding.symbol); Spacer(); Text(PortfolioFormatting.quantity(holding.units)).foregroundStyle(.secondary) }.foregroundStyle(.primary) }
@@ -1517,6 +1571,7 @@ private struct PortfolioEditor: View {
             .onAppear { cash = (store.scenes.first { $0.id == sceneID }?.balance ?? 0).formatted(.number.grouping(.never)); change = String(profile.dailyChange); chart = profile.chart.map { String($0) }.joined(separator: ", ") }
             .sheet(item: $position) { PortfolioPositionEditor(sceneID: sceneID, existing: $0) }
             .sheet(isPresented: $showAdd) { PortfolioPositionEditor(sceneID: sceneID) }
+            .sheet(isPresented: $showAccountState) { PortfolioAccountStateEditor(sceneID: sceneID) }
         }
     }
 }
@@ -1558,6 +1613,559 @@ private struct PortfolioPositionEditor: View {
             .onAppear { guard let existing else { return }; name = existing.name; symbol = existing.symbol; kind = existing.kind; units = existing.units.formatted(.number.grouping(.never)); price = existing.price.formatted(.number.grouping(.never)); cost = existing.averageCost.formatted(.number.grouping(.never)); change = String(existing.changePercent) }
         }
     }
+}
+
+// Account scenes use the same saved portfolio, cash ledger, and order tickets as Holdings.
+// The App Store references establish these overview layouts; their unpictured sheets are local flows.
+private struct CoinbaseRewardsPage: View {
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    let sceneID: UUID
+    @State private var buying = false
+    private let blue = Color(portfolioHex: 0x0052FF)
+    private var usdc: MarketPosition? { store.portfolioProfile(for: sceneID).positions.first { $0.symbol.uppercased() == "USDC" && $0.kind == .crypto } }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 26) {
+                    CoinbaseRewardsArtwork().frame(height: 235).padding(.top, 20)
+                    Text("Earn 5% rewards by\nsimply holding USDC").font(.system(size: 29, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+                    rewardFact("USDC is designed to be pegged to the US dollar and redeemable 1:1 for USD")
+                    rewardFact("Backed by cash and short-dated U.S. treasuries.")
+                    rewardFact("Fast and cheap way to send money")
+                    if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Your USDC").font(.system(size: 18, weight: .semibold))
+                            HStack { Text("Balance"); Spacer(); Text("\(PortfolioFormatting.quantity(usdc?.units ?? 0)) USDC").monospacedDigit() }
+                            HStack { Text("Annual rewards estimate"); Spacer(); Text(scene.money((usdc?.value ?? 0) * 0.05)).monospacedDigit() }
+                            Text("Estimate at the displayed 5% rate. Rewards are not credited to this account.").font(.system(size: 12)).foregroundStyle(Color(portfolioHex: 0x6B7077))
+                        }.font(.system(size: 14)).padding(20).background(Color(portfolioHex: 0xF3F5F7), in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    if usdc != nil {
+                        Button("Buy USDC") { buying = true }.buttonStyle(.plain).font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 52).background(blue, in: Capsule()).foregroundStyle(.white).accessibilityIdentifier("portfolio-rewards-buy")
+                        if let usdc { NavigationLink("View USDC") { PortfolioAssetDetail(sceneID: sceneID, assetID: usdc.id) }.font(.system(size: 15, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 44) }
+                    } else {
+                        Button("Buy USDC") {
+                            if store.addPortfolioMarketAsset(sceneID: sceneID, symbol: "USDC") { buying = true }
+                        }.buttonStyle(.plain).font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 52).background(blue, in: Capsule()).foregroundStyle(.white).accessibilityIdentifier("portfolio-rewards-buy")
+                        if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+                    }
+                }.padding(.horizontal, 26).padding(.bottom, 28)
+            }.background(.white).foregroundStyle(Color(portfolioHex: 0x0A0B0D))
+                .navigationTitle("Rewards").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 18)).frame(width: 44, height: 44) }.accessibilityLabel("Close rewards") } }
+                .tint(blue)
+        }.preferredColorScheme(.light)
+            .sheet(isPresented: $buying) { if let usdc { PortfolioTradePage(sceneID: sceneID, assetID: usdc.id, side: .buy) } }
+    }
+    private func rewardFact(_ title: String) -> some View {
+        HStack(alignment: .top, spacing: 18) {
+            Image(systemName: "checkmark").font(.system(size: 22, weight: .medium)).foregroundStyle(blue).frame(width: 22).padding(.top, 5)
+            Text(title).font(.system(size: 17)).foregroundStyle(Color(portfolioHex: 0x6B7077)).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private struct CoinbaseRewardsArtwork: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            ZStack {
+                ForEach(0..<3) { index in
+                    Rectangle().fill(Color(portfolioHex: 0xD0D3DB))
+                        .frame(width: width * 0.145, height: height * (0.42 + Double(index) * 0.15))
+                        .position(x: width * (0.2 + Double(index) * 0.255), y: height * (0.72 - Double(index) * 0.075))
+                }
+                PortfolioPolygon(points: [.init(x: 0.04, y: 0.7), .init(x: 0.91, y: 0.28), .init(x: 0.91, y: 0.7)]).fill(Color(portfolioHex: 0x57D18E))
+                PortfolioPolygon(points: [.init(x: 0.14, y: 0.7), .init(x: 0.26, y: 0.64), .init(x: 0.26, y: 0.7)]).fill(Color(portfolioHex: 0x2351F5))
+                PortfolioPolygon(points: [.init(x: 0.4, y: 0.7), .init(x: 0.56, y: 0.55), .init(x: 0.56, y: 0.7)]).fill(Color(portfolioHex: 0x2351F5))
+                PortfolioPolygon(points: [.init(x: 0.66, y: 0.7), .init(x: 0.81, y: 0.35), .init(x: 0.81, y: 0.7)]).fill(Color(portfolioHex: 0x2351F5))
+                ForEach(0..<2) { index in
+                    Circle().fill(Color(portfolioHex: 0x75DCEC)).overlay(alignment: .bottom) { Rectangle().fill(Color(portfolioHex: 0x2351F5)).frame(height: width * 0.085) }.clipShape(Circle())
+                        .overlay { Circle().stroke(.black, lineWidth: 2).padding(9) }
+                        .frame(width: width * 0.17, height: width * 0.17)
+                        .position(x: width * (0.2 + Double(index) * 0.255), y: height * (0.47 - Double(index) * 0.13))
+                }
+                Circle().fill(Color(portfolioHex: 0x2351F5)).overlay { PortfolioUSDCMark().padding(width * 0.035) }
+                    .frame(width: width * 0.29, height: width * 0.29).position(x: width * 0.72, y: height * 0.19)
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.04, y: height * 0.88)); path.addLine(to: CGPoint(x: width * 0.91, y: height * 0.88))
+                    path.move(to: CGPoint(x: width * 0.72, y: height * 0.88)); path.addLine(to: CGPoint(x: width * 0.72, y: height * 0.4))
+                    path.move(to: CGPoint(x: width * 0.69, y: height * 0.44)); path.addLine(to: CGPoint(x: width * 0.72, y: height * 0.4)); path.addLine(to: CGPoint(x: width * 0.75, y: height * 0.44))
+                }.stroke(.black, lineWidth: 2)
+                Image(systemName: "sparkle").font(.system(size: 25)).foregroundStyle(Color(portfolioHex: 0xC8CDD5)).position(x: width * 0.54, y: height * 0.16)
+                Image(systemName: "sparkle").font(.system(size: 20)).foregroundStyle(Color(portfolioHex: 0xC8CDD5)).position(x: width * 0.88, y: height * 0.31)
+                Image(systemName: "sparkle").font(.system(size: 25)).foregroundStyle(.black).position(x: width * 0.81, y: height * 0.61)
+            }
+        }.accessibilityHidden(true)
+    }
+}
+
+private struct PortfolioCryptoAccountPage: View {
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    let sceneID: UUID
+    private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
+    private var palette: PortfolioPalette { PortfolioPalette(profile.theme) }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                        Text("Crypto").font(.system(size: 32))
+                        Text(scene.money(profile.positions.filter { $0.kind == .crypto }.reduce(0) { $0 + $1.value })).font(.system(size: 39)).monospacedDigit()
+                        Text("Your crypto holdings").font(.system(size: 21, weight: .semibold))
+                        ForEach(profile.positions.filter { $0.kind == .crypto }) { position in
+                            NavigationLink { PortfolioAssetDetail(sceneID: sceneID, assetID: position.id) } label: { PortfolioAssetRow(position: position, scene: scene, theme: profile.theme) }.buttonStyle(.plain)
+                        }
+                        if !profile.positions.contains(where: { $0.kind == .crypto }) { Text("No crypto holdings").foregroundStyle(palette.secondary) }
+                        NavigationLink("Activity") { PortfolioActivityPage(sceneID: sceneID, kindFilter: .crypto) }.frame(minHeight: 44)
+                    }
+                }.padding(24)
+            }.background(palette.background).foregroundStyle(palette.ink)
+                .navigationTitle("Crypto").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }.tint(palette.accent)
+        }.preferredColorScheme(palette.isDark ? .dark : .light)
+    }
+}
+
+private struct WealthsimpleCryptoContent: View {
+    @EnvironmentObject private var store: StudioStore
+    let sceneID: UUID
+    @State private var showingBanner = true
+    @State private var showingCoins = false
+    @State private var showingStaking = false
+    @State private var showingAllTime = true
+    private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
+    private var positions: [MarketPosition] { profile.positions.filter { $0.kind == .crypto } }
+    private let palette = PortfolioPalette(.wealthsimple)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            if showingBanner {
+                ZStack(alignment: .trailing) {
+                    PortfolioIridescentCoins().frame(width: 165, height: 140).offset(x: 18, y: 24).accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack { Text("Crypto trading").font(.system(size: 19, weight: .semibold)); Spacer(); Button { showingBanner = false } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Dismiss crypto banner").accessibilityIdentifier("portfolio-crypto-banner-close") }
+                        Text("Buy and sell Bitcoin,\nEthereum, Solana, and\nmore cryptocurrencies.").font(.system(size: 16)).lineSpacing(4)
+                        Button { showingCoins = true } label: { Image(systemName: "arrow.right").font(.system(size: 21)).frame(width: 38, height: 38).foregroundStyle(.white).background(.black, in: Circle()) }.accessibilityLabel("Explore cryptocurrencies").accessibilityIdentifier("portfolio-crypto-explore")
+                    }.padding(18)
+                }.background(Color(portfolioHex: 0xE8DEDD), in: RoundedRectangle(cornerRadius: 23)).clipped()
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                Button { showingStaking = true } label: { HStack(spacing: 8) { Text("Explore staking").font(.system(size: 24, weight: .medium)); Image(systemName: "chevron.right").font(.system(size: 17)).foregroundStyle(palette.secondary) } }.buttonStyle(.plain).accessibilityIdentifier("portfolio-staking")
+                Text("Earn rewards when you stake your crypto.").font(.system(size: 16)).foregroundStyle(palette.secondary)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        stakingCard(symbol: "SOL", rate: "4.4%", color: .black)
+                        stakingCard(symbol: "DOT", rate: "11.8%", color: Color(portfolioHex: 0xE6007A))
+                        stakingCard(symbol: "ETH", rate: "2.3%", color: Color(portfolioHex: 0x627EEA))
+                    }.padding(.bottom, 8)
+                }
+            }
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Holdings").font(.system(size: 24, weight: .medium)); Spacer()
+                    Button { showingAllTime.toggle() } label: { HStack(spacing: 6) { Text(showingAllTime ? "All time return" : "Today's return").font(.system(size: 12, weight: .semibold)); Image(systemName: "line.3.horizontal.decrease").font(.system(size: 16)) }.foregroundStyle(palette.secondary).frame(minHeight: 44) }.accessibilityIdentifier("portfolio-crypto-return-filter")
+                }
+                if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                    ForEach(positions) { position in
+                        NavigationLink { PortfolioAssetDetail(sceneID: sceneID, assetID: position.id) } label: { cryptoHolding(position, scene: scene) }.buttonStyle(.plain).accessibilityIdentifier("portfolio-asset-\(position.symbol)")
+                        Divider().padding(.leading, 45)
+                    }
+                }
+                if positions.isEmpty {
+                    Text("No crypto holdings").foregroundStyle(palette.secondary).padding(.vertical, 18)
+                    Button("Explore crypto") { showingCoins = true }.frame(minHeight: 44).accessibilityIdentifier("portfolio-crypto-add-assets")
+                }
+            }
+        }.padding(.horizontal, 18).padding(.top, 10)
+            .sheet(isPresented: $showingCoins) { cryptoCatalog }
+            .sheet(isPresented: $showingStaking) { stakingInformation }
+
+    }
+    private func stakingCard(symbol: String, rate: String, color: Color) -> some View {
+        Button { showingStaking = true } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Group { if symbol == "SOL" { PortfolioSolanaMark().padding(7).background(.black, in: RoundedRectangle(cornerRadius: 9)) } else if symbol == "ETH" { PortfolioEthereumMark().padding(6).background(color, in: RoundedRectangle(cornerRadius: 9)) } else { Image(systemName: "circle.dotted").resizable().scaledToFit().foregroundStyle(color).padding(4) } }.frame(width: 34, height: 34)
+                    Text(symbol).font(.system(size: 18, weight: .semibold))
+                }
+                Text("Up to \(rate) APY").font(.system(size: 15)).foregroundStyle(palette.secondary)
+            }.frame(width: 120, alignment: .leading).padding(18).background(.white, in: RoundedRectangle(cornerRadius: 22)).overlay(RoundedRectangle(cornerRadius: 22).stroke(palette.separator, lineWidth: 1)).shadow(color: .black.opacity(0.04), radius: 4, y: 3)
+        }.buttonStyle(.plain).accessibilityIdentifier("portfolio-staking-\(symbol.lowercased())")
+    }
+    private func cryptoHolding(_ position: MarketPosition, scene: StudioScene) -> some View {
+        let gain = showingAllTime ? position.unrealizedGain : position.value * position.changePercent / 100
+        let percent = showingAllTime ? (position.costBasis > 0 ? gain / position.costBasis * 100 : 0) : position.changePercent
+        return HStack(spacing: 12) {
+            PortfolioAssetIcon(position: position, square: true).frame(width: 34, height: 34)
+            VStack(alignment: .leading, spacing: 5) { Text(position.symbol).font(.system(size: 17, weight: .medium)); Text(PortfolioFormatting.quantity(position.units)).font(.system(size: 14)).foregroundStyle(palette.secondary) }
+            Spacer(minLength: 5)
+            VStack(alignment: .trailing, spacing: 5) {
+                Text("\(PortfolioFormatting.holdingsMoney(position.value, currency: scene.currency)) \(scene.currency)").font(.system(size: 16, weight: .medium)).monospacedDigit()
+                Text("\(gain >= 0 ? "+" : "−") \(PortfolioFormatting.holdingsMoney(abs(gain), currency: scene.currency)) (\(percent >= 0 ? "+" : "−")\(PortfolioFormatting.percent(abs(percent))))").font(.system(size: 13, weight: .semibold)).foregroundStyle(gain >= 0 ? palette.gain : palette.loss).lineLimit(1).minimumScaleFactor(0.75)
+            }
+        }.frame(minHeight: 68)
+    }
+    private var cryptoCatalog: some View {
+        NavigationStack {
+            List {
+                if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                    ForEach(positions) { position in NavigationLink { PortfolioAssetDetail(sceneID: sceneID, assetID: position.id) } label: { PortfolioAssetRow(position: position, scene: scene, theme: .wealthsimple, showsPrice: true) } }
+                }
+                if positions.isEmpty { Text("No crypto assets in this account") }
+                Section("Explore") {
+                    ForEach(["BTC", "ETH", "SOL", "USDC"], id: \.self) { symbol in
+                        if !positions.contains(where: { $0.symbol.uppercased() == symbol }) {
+                            Button("Add \(symbol)") { _ = store.addPortfolioMarketAsset(sceneID: sceneID, symbol: symbol) }.accessibilityIdentifier("portfolio-crypto-add-\(symbol.lowercased())")
+                        }
+                    }
+                }
+                if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+            }.navigationTitle("Cryptocurrencies").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showingCoins = false } } }
+        }
+    }
+    private var stakingInformation: some View {
+        NavigationStack {
+            List {
+                Section { Text("Earn rewards when you stake your crypto.").font(.system(size: 24, weight: .medium)); Text("Staking locks eligible crypto with a network to support validation. Rates and withdrawal times vary.").foregroundStyle(palette.secondary) }
+                Section("Reference rates") { LabeledContent("Solana", value: "Up to 4.4% APY"); LabeledContent("Polkadot", value: "Up to 11.8% APY"); LabeledContent("Ethereum", value: "Up to 2.3% APY") }
+                Section("Your holdings") { ForEach(positions) { position in NavigationLink("\(position.name) · \(PortfolioFormatting.quantity(position.units)) \(position.symbol)") { PortfolioAssetDetail(sceneID: sceneID, assetID: position.id) } }; if positions.isEmpty { Text("No crypto holdings") } }
+                Section { Text("These are the rates pictured in the saved screen reference. This account does not submit staking transactions or accrue staking rewards.").font(.footnote).foregroundStyle(palette.secondary) }
+            }.navigationTitle("Staking").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showingStaking = false } } }
+        }
+    }
+}
+
+private struct PortfolioIridescentCoins: View {
+    var body: some View {
+        ZStack {
+            Circle().fill(LinearGradient(colors: [Color(portfolioHex: 0xE9C9DA), Color(portfolioHex: 0xD2E7D8), Color(portfolioHex: 0xEBE6CF)], startPoint: .topLeading, endPoint: .bottomTrailing)).overlay { Circle().stroke(.white.opacity(0.6), lineWidth: 3).padding(3); PortfolioEthereumMark().frame(width: 40, height: 63).opacity(0.85) }.frame(width: 112, height: 112).rotation3DEffect(.degrees(40), axis: (x: 1, y: 0.6, z: 0)).rotationEffect(.degrees(-25)).offset(x: -28, y: -9)
+            Circle().fill(LinearGradient(colors: [Color(portfolioHex: 0xD5AEDD), Color(portfolioHex: 0x82CEE5), Color(portfolioHex: 0xAAC9EA)], startPoint: .topLeading, endPoint: .bottomTrailing)).overlay { Circle().stroke(.white.opacity(0.6), lineWidth: 3).padding(3); Image(systemName: "bitcoinsign").font(.system(size: 55, weight: .light)).foregroundStyle(Color(portfolioHex: 0xB4A6E2)) }.frame(width: 116, height: 116).rotation3DEffect(.degrees(25), axis: (x: 0, y: 1, z: 0)).rotationEffect(.degrees(22)).offset(x: 41, y: 26)
+        }
+    }
+}
+
+private struct WealthsimpleChequingContent: View {
+    @EnvironmentObject private var store: StudioStore
+    let sceneID: UUID
+    @State private var movement: WealthsimpleCashAction?
+    @State private var showingAccount = false
+    private let palette = PortfolioPalette(.wealthsimple)
+    private var state: PortfolioAccountState { store.portfolioProfile(for: sceneID).accountState }
+    private var events: [SceneEvent] { store.events.filter { $0.sceneID == sceneID && ($0.kind == .deposit || $0.kind == .payment) }.sorted { $0.date > $1.date } }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 26) {
+            if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                HStack {
+                    Text(PortfolioFormatting.holdingsMoney(scene.balance, currency: scene.currency)).font(.system(size: 40, weight: .semibold)).monospacedDigit().minimumScaleFactor(0.75).lineLimit(1)
+                    Spacer(minLength: 8)
+                    Button { showingAccount = true } label: { HStack(spacing: 5) { Image(systemName: "building.columns"); Text("••••1234") }.font(.system(size: 12, weight: .semibold)).padding(.horizontal, 11).frame(minHeight: 32).background(Color(portfolioHex: 0xE6E4E4), in: Capsule()).padding(.vertical, 6) }.accessibilityLabel("Account details").accessibilityIdentifier("portfolio-chequing-details")
+                }.padding(.top, 28)
+                HStack(alignment: .bottom, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 38) {
+                        Text("\(Date().formatted(.dateTime.month(.wide))) interest").font(.system(size: 14, weight: .semibold)).foregroundStyle(palette.secondary)
+                        VStack(alignment: .leading, spacing: 0) { Text(PortfolioFormatting.holdingsMoney(state.monthlyInterest, currency: scene.currency)).font(.system(size: 28, weight: .medium)).monospacedDigit(); Text("\(state.chequingInterestRate.formatted(.number.precision(.fractionLength(0...2))))%").font(.system(size: 16)).foregroundStyle(palette.secondary) }
+                    }
+                    Spacer(minLength: 8)
+                    HStack(alignment: .bottom, spacing: 7) {
+                        ForEach(Array([0.52, 0.37, 1.0, 0.27].enumerated()), id: \.offset) { item in
+                            Capsule().fill(Color(portfolioHex: 0xEFEFEF)).frame(width: 23, height: 102).overlay(alignment: .bottom) { Capsule().fill(LinearGradient(colors: [Color(portfolioHex: 0xD9E3FF), Color(portfolioHex: 0x7BA3E6)], startPoint: .top, endPoint: .bottom)).frame(height: 102 * item.element) }
+                        }
+                    }.accessibilityHidden(true)
+                }.padding(18).background(.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(palette.separator, lineWidth: 1)).shadow(color: .black.opacity(0.04), radius: 5, y: 3)
+                HStack(spacing: 8) {
+                    ForEach(WealthsimpleCashAction.allCases) { action in
+                        Button { movement = action } label: {
+                            VStack(spacing: 10) {
+                                Group { if action == .interac { Text("Interac").font(.system(size: 12, weight: .bold)).rotationEffect(.degrees(-10)) } else { Image(systemName: action.symbol).font(.system(size: 21)) } }.frame(maxWidth: .infinity, minHeight: 57).foregroundStyle(action.isDark ? .white : palette.ink).background(action.isDark ? Color(portfolioHex: 0x303030) : .white, in: RoundedRectangle(cornerRadius: 17)).overlay(RoundedRectangle(cornerRadius: 17).stroke(action.isDark ? .black : palette.separator, lineWidth: 1)).shadow(color: .black.opacity(0.05), radius: 4, y: 3)
+                                Text(action.title).font(.system(size: 12, weight: .semibold))
+                            }.frame(maxWidth: .infinity)
+                        }.buttonStyle(.plain).accessibilityIdentifier("portfolio-chequing-\(action.rawValue)")
+                    }
+                }
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Requests").font(.system(size: 23, weight: .medium))
+                    Text("No pending requests").font(.system(size: 15)).foregroundStyle(palette.secondary).padding(.vertical, 9)
+                    Divider()
+                }.padding(.top, 18)
+                VStack(alignment: .leading, spacing: 13) {
+                    NavigationLink { PortfolioActivityPage(sceneID: sceneID, cashOnly: true) } label: { HStack(spacing: 8) { Text("Activity").font(.system(size: 23, weight: .medium)); Image(systemName: "chevron.right").font(.system(size: 15)).foregroundStyle(palette.secondary) } }.buttonStyle(.plain)
+                    if events.isEmpty { Text("No activity yet").foregroundStyle(palette.secondary).font(.system(size: 14)).padding(.vertical, 12) }
+                    ForEach(events.prefix(5)) { event in
+                        NavigationLink { PortfolioCashEventDetail(event: event, scene: scene) } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: event.kind.symbol).frame(width: 34, height: 34).background(Color(portfolioHex: 0xE7E7E7), in: Circle())
+                                VStack(alignment: .leading, spacing: 4) { Text(event.detail.isEmpty ? event.title : event.detail).font(.system(size: 15, weight: .medium)); Text(event.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: 13)).foregroundStyle(palette.secondary) }
+                                Spacer(); Text(PortfolioFormatting.holdingsMoney(event.kind.isOutflow ? -event.amount : event.amount, currency: scene.currency)).font(.system(size: 14)).monospacedDigit()
+                            }.frame(minHeight: 57)
+                        }.buttonStyle(.plain)
+                        Divider().padding(.leading, 45)
+                    }
+                }
+            }
+        }.padding(.horizontal, 18).padding(.top, 6)
+            .sheet(item: $movement) { action in PortfolioCashMovementPage(sceneID: sceneID, incoming: action == .add, title: action.title) }
+            .sheet(isPresented: $showingAccount) { NavigationStack { List { LabeledContent("Account", value: "Chequing"); LabeledContent("Account number", value: "••••1234"); if let scene = store.scenes.first(where: { $0.id == sceneID }) { LabeledContent("Currency", value: scene.currency); LabeledContent("Balance", value: scene.money(scene.balance)) }; LabeledContent("Interest rate", value: "\(state.chequingInterestRate)%") }.navigationTitle("Account details").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showingAccount = false } } } } }
+    }
+}
+
+private enum WealthsimpleCashAction: String, CaseIterable, Identifiable {
+    case add, transfer, interac, bill
+    var id: String { rawValue }
+    var title: String { switch self { case .add: return "Add"; case .transfer: return "Transfer"; case .interac: return "e-Transfer"; case .bill: return "Pay bill" } }
+    var symbol: String { switch self { case .add: return "plus"; case .transfer: return "arrow.left.arrow.right"; case .interac: return "arrow.up.right"; case .bill: return "doc.text" } }
+    var isDark: Bool { self == .add || self == .transfer }
+}
+
+private struct PortfolioCashEventDetail: View {
+    let event: SceneEvent
+    let scene: StudioScene
+    var body: some View {
+        List { LabeledContent("Status", value: "Completed"); LabeledContent("Amount", value: scene.money(event.amount)); LabeledContent(event.kind.isOutflow ? "To" : "From", value: event.detail); LabeledContent("Date", value: event.date.formatted(date: .abbreviated, time: .shortened)) }.navigationTitle(event.title).navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+    }
+}
+
+private struct PortfolioCashAccountPage: View {
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    let sceneID: UUID
+    @State private var adding = false
+    @State private var withdrawing = false
+    @State private var earningsDetail: PortfolioEarningsKind?
+    private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
+    private var palette: PortfolioPalette { PortfolioPalette(profile.theme) }
+    private var state: PortfolioAccountState { profile.accountState }
+    private var totalEarnings: Double { state.highYieldCashEarnings + state.iraMatchEarnings }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                        if profile.theme == .robinhood {
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 8) { Text(scene.money(totalEarnings)).font(.system(size: 38)).monospacedDigit(); Text("Lifetime earnings").font(.system(size: 18)) }
+                                Spacer(); Image(systemName: "feather.fill").font(.system(size: 32)).foregroundStyle(Color(portfolioHex: 0xBEA869)).padding(.top, 4)
+                            }.padding(.top, 20)
+                            GeometryReader { geometry in
+                                HStack(spacing: 0) { Rectangle().fill(LinearGradient(colors: [Color(portfolioHex: 0x94844C), Color(portfolioHex: 0xCFBB77)], startPoint: .leading, endPoint: .trailing)).frame(width: geometry.size.width * (totalEarnings > 0 ? state.highYieldCashEarnings / totalEarnings : 1)); Rectangle().fill(palette.accent) }
+                            }.frame(height: 98).padding(.vertical, 22).accessibilityLabel("High-yield cash and IRA match earnings")
+                            earningsRow(.highYield, amount: state.highYieldCashEarnings, scene: scene)
+                            Divider().overlay(palette.separator)
+                            earningsRow(.iraMatch, amount: state.iraMatchEarnings, scene: scene)
+                            Divider().overlay(palette.separator)
+                        }
+                        VStack(alignment: .leading, spacing: 12) { Text(profile.theme == .robinhood ? "Buying power" : "Cash balance").font(.system(size: 23, weight: .medium)); Text(scene.money(scene.balance)).font(.system(size: 30)).monospacedDigit() }
+                        HStack(spacing: 12) {
+                            Button("Add cash") { adding = true }.frame(maxWidth: .infinity, minHeight: 48).background(palette.accent, in: Capsule()).foregroundStyle(profile.theme == .robinhood ? .black : .white)
+                            Button("Withdraw") { withdrawing = true }.frame(maxWidth: .infinity, minHeight: 48).overlay(Capsule().stroke(palette.accent, lineWidth: 1))
+                        }.font(.system(size: 15, weight: .semibold)).buttonStyle(.plain)
+                        NavigationLink { PortfolioActivityPage(sceneID: sceneID, cashOnly: true) } label: { HStack { Text("Activity").font(.system(size: 19, weight: .medium)); Spacer(); Image(systemName: "chevron.right").font(.system(size: 13)) }.frame(minHeight: 48) }.buttonStyle(.plain)
+                    }
+                }.padding(24)
+            }.background(palette.background).foregroundStyle(palette.ink).navigationTitle(profile.theme == .robinhood ? "Earnings" : "Cash").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }.accessibilityLabel("Back") } }.tint(palette.accent)
+        }.preferredColorScheme(palette.isDark ? .dark : .light)
+            .sheet(isPresented: $adding) { PortfolioCashMovementPage(sceneID: sceneID, incoming: true) }
+            .sheet(isPresented: $withdrawing) { PortfolioCashMovementPage(sceneID: sceneID, incoming: false, title: "Withdraw") }
+            .sheet(item: $earningsDetail) { kind in NavigationStack { List { if let scene = store.scenes.first(where: { $0.id == sceneID }) { LabeledContent("Lifetime earnings", value: scene.money(kind == .highYield ? state.highYieldCashEarnings : state.iraMatchEarnings)); LabeledContent("Available cash", value: scene.money(scene.balance)) }; Text(kind == .highYield ? "Earnings from eligible cash are tracked separately from your available buying power." : "IRA match earnings are tracked separately from your available buying power.").foregroundStyle(palette.secondary) }.navigationTitle(kind.title).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { earningsDetail = nil } } } } }
+    }
+    private func earningsRow(_ kind: PortfolioEarningsKind, amount: Double, scene: StudioScene) -> some View {
+        Button { earningsDetail = kind } label: { HStack(spacing: 16) { Rectangle().fill(kind == .highYield ? Color(portfolioHex: 0xC0A967) : palette.accent).frame(width: 18, height: 18); Text(kind.title).font(.system(size: 17)); Spacer(); Text(scene.money(amount)).font(.system(size: 17)).monospacedDigit(); Image(systemName: "chevron.right").font(.system(size: 15)).foregroundStyle(palette.secondary) }.frame(minHeight: 46) }.buttonStyle(.plain).accessibilityIdentifier("portfolio-earnings-\(kind.rawValue)")
+    }
+}
+
+private enum PortfolioEarningsKind: String, Identifiable {
+    case highYield, iraMatch
+    var id: String { rawValue }
+    var title: String { self == .highYield ? "High-Yield Cash" : "IRA match" }
+}
+
+private struct WealthsimpleVisaContent: View {
+    @EnvironmentObject private var store: StudioStore
+    let sceneID: UUID
+    @State private var managing = false
+    private let palette = PortfolioPalette(.wealthsimple)
+    private var state: PortfolioAccountState { store.portfolioProfile(for: sceneID).accountState }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                Button { managing = true } label: {
+                    ZStack(alignment: .bottomLeading) {
+                        RoundedRectangle(cornerRadius: 12).fill(LinearGradient(colors: [Color(portfolioHex: 0x050505), Color(portfolioHex: 0x373737)], startPoint: .leading, endPoint: .trailing))
+                        VStack {
+                            HStack { Spacer(); Text("W").font(.system(size: 54, weight: .black, design: .serif)).foregroundStyle(.black.opacity(0.8)) }
+                            Spacer()
+                            HStack(alignment: .bottom) {
+                                HStack(spacing: 7) { Image(systemName: state.locked ? "lock" : "arrow.left.arrow.right"); Text(state.locked ? "Card frozen" : "Manage card") }.font(.system(size: 12)).foregroundStyle(.white)
+                                Spacer()
+                                VStack(alignment: .trailing, spacing: -2) { Text("VISA").font(.system(size: 31, weight: .black)).italic(); Text("Infinite").font(.system(size: 13)) }.foregroundStyle(.black.opacity(0.85))
+                            }
+                        }.padding(17)
+                    }.aspectRatio(1.586, contentMode: .fit).shadow(color: .black.opacity(0.08), radius: 3, y: 2)
+                }.buttonStyle(.plain).accessibilityIdentifier("portfolio-visa-manage")
+                HStack(alignment: .top, spacing: 9) {
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text("Total balance").font(.system(size: 15, weight: .semibold)).foregroundStyle(palette.secondary)
+                        Text(PortfolioFormatting.holdingsMoney(state.cardBalance, currency: scene.currency)).font(.system(size: 27, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                        Text("\(PortfolioFormatting.holdingsMoney(state.availableCredit, currency: scene.currency)) available").font(.system(size: 11)).foregroundStyle(palette.secondary).lineLimit(1).minimumScaleFactor(0.8)
+                        GeometryReader { geometry in
+                            let creditLimit = state.cardBalance + state.availableCredit
+                            HStack(spacing: 2) { RoundedRectangle(cornerRadius: 3).fill(Color(portfolioHex: 0x608DD8)).frame(width: geometry.size.width * (creditLimit > 0 ? min(1, state.cardBalance / creditLimit) : 0)); RoundedRectangle(cornerRadius: 3).fill(Color(portfolioHex: 0xEEEDEC)) }
+                        }.frame(height: 16).padding(.top, 10)
+                    }.padding(17).frame(maxWidth: .infinity, alignment: .leading).background(.white, in: RoundedRectangle(cornerRadius: 24)).overlay(RoundedRectangle(cornerRadius: 24).stroke(palette.separator, lineWidth: 1))
+                    VStack(alignment: .leading, spacing: 7) {
+                        HStack(spacing: 3) { Text("Cash back").font(.system(size: 15, weight: .semibold)).foregroundStyle(palette.secondary); Spacer(minLength: 0); Text("2%").font(.system(size: 11, weight: .semibold)).padding(.horizontal, 7).padding(.vertical, 3).background(Color(portfolioHex: 0xF3F1F2), in: Capsule()) }
+                        Text(PortfolioFormatting.holdingsMoney(state.cashBack, currency: scene.currency)).font(.system(size: 27, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                        Text("\(PortfolioFormatting.holdingsMoney(state.monthCashBack, currency: scene.currency)) this month").font(.system(size: 11)).foregroundStyle(palette.secondary).lineLimit(1).minimumScaleFactor(0.8)
+                        HStack(alignment: .bottom, spacing: 4) { ForEach(Array([0.13, 0.15, 0.36, 0.13, 0.5, 0.5].enumerated()), id: \.offset) { item in RoundedRectangle(cornerRadius: 2).fill(item.offset == 5 && state.monthCashBack > 0 ? Color(portfolioHex: 0x608DD8) : Color(portfolioHex: 0xEEEDEC)).frame(height: item.element * 33) } }.frame(height: 16, alignment: .bottom).padding(.top, 10).accessibilityHidden(true)
+                    }.padding(17).frame(maxWidth: .infinity, alignment: .leading).background(.white, in: RoundedRectangle(cornerRadius: 24)).overlay(RoundedRectangle(cornerRadius: 24).stroke(palette.separator, lineWidth: 1))
+                }.padding(.top, 10)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Latest statement").font(.system(size: 15, weight: .semibold)).foregroundStyle(palette.secondary)
+                    Text(PortfolioFormatting.holdingsMoney(state.statementAmount, currency: scene.currency)).font(.system(size: 28, weight: .semibold)).monospacedDigit()
+                    Button {
+                        var updated = state; updated.autopay.toggle(); _ = store.updatePortfolioAccountState(sceneID: sceneID, state: updated)
+                    } label: { HStack(spacing: 10) { Image(systemName: "dollarsign.arrow.circlepath").font(.system(size: 20)); Text(state.autopay ? "Auto-pay is on" : "Auto-pay is off").font(.system(size: 13, weight: .semibold)); Spacer() }.padding(.horizontal, 17).frame(minHeight: 49).background(Color(portfolioHex: 0xECECEC), in: RoundedRectangle(cornerRadius: 17)) }.buttonStyle(.plain).padding(.top, 4).accessibilityIdentifier("portfolio-visa-autopay").accessibilityValue(state.autopay ? "On" : "Off")
+                }.padding(17).frame(maxWidth: .infinity, alignment: .leading).background(.white, in: RoundedRectangle(cornerRadius: 24)).overlay(RoundedRectangle(cornerRadius: 24).stroke(palette.separator, lineWidth: 1)).padding(.top, 1)
+                Text("Activity").font(.system(size: 24, weight: .medium)).frame(maxWidth: .infinity, minHeight: 50, alignment: .leading).padding(.top, 17)
+                Text("No card transactions").font(.system(size: 14)).foregroundStyle(palette.secondary)
+                if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+            }
+        }.padding(.horizontal, 18).padding(.top, 4)
+            .sheet(isPresented: $managing) { cardManagement }
+    }
+    private var cardManagement: some View {
+        NavigationStack {
+            Form {
+                Section("Card") { LabeledContent("Card", value: "Visa Infinite"); Toggle("Freeze card", isOn: Binding(get: { state.locked }, set: { value in var updated = state; updated.locked = value; _ = store.updatePortfolioAccountState(sceneID: sceneID, state: updated) })).accessibilityIdentifier("portfolio-visa-freeze") }
+                Section("Payments") { Toggle("Auto-pay", isOn: Binding(get: { state.autopay }, set: { value in var updated = state; updated.autopay = value; _ = store.updatePortfolioAccountState(sceneID: sceneID, state: updated) })).accessibilityIdentifier("portfolio-visa-autopay-toggle") }
+                if let scene = store.scenes.first(where: { $0.id == sceneID }) { Section("Summary") { LabeledContent("Total balance", value: scene.money(state.cardBalance)); LabeledContent("Available credit", value: scene.money(state.availableCredit)); LabeledContent("Cash back", value: scene.money(state.cashBack)) } }
+                if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
+            }.navigationTitle("Manage card").navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { managing = false } } }
+        }
+    }
+}
+
+private struct PortfolioSecurityPage: View {
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    let sceneID: UUID
+    var body: some View {
+        NavigationStack {
+            ScrollView { PortfolioSecurityContent(sceneID: sceneID).padding(.bottom, 30) }
+                .background(store.portfolioProfile(for: sceneID).theme == .wealthsimple ? PortfolioPalette(.wealthsimple).background : .white)
+                .navigationTitle("Security").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Image(systemName: "xmark").font(.system(size: 18)).frame(width: 44, height: 44) }.accessibilityLabel("Close security") } }
+        }.preferredColorScheme(.light)
+    }
+}
+
+private struct PortfolioSecurityContent: View {
+    @EnvironmentObject private var store: StudioStore
+    let sceneID: UUID
+    private var profile: PortfolioProfile { store.portfolioProfile(for: sceneID) }
+    private var enabled: Bool { profile.accountState.twoStepEnabled }
+    private var wealthsimple: Bool { profile.theme == .wealthsimple }
+    private var blue: Color { Color(portfolioHex: 0x0052FF) }
+    var body: some View {
+        VStack(spacing: wealthsimple ? 30 : 24) {
+            if wealthsimple {
+                WealthsimpleSecurityArtwork().frame(height: 240).padding(.top, 35)
+                Text("We keep your data\nand money safe").font(.system(size: 29, weight: .semibold)).multilineTextAlignment(.center)
+                Text("Your deposits and securities are protected through CDIC, up to $1M coverage or CIPF within specified limits.").font(.system(size: 17)).foregroundStyle(Color(portfolioHex: 0x787878)).multilineTextAlignment(.center).lineSpacing(3).padding(.horizontal, 15)
+                Toggle("2-step verification", isOn: Binding(get: { enabled }, set: { value in var state = profile.accountState; state.twoStepEnabled = value; _ = store.updatePortfolioAccountState(sceneID: sceneID, state: state) })).font(.system(size: 15, weight: .medium)).padding(18).background(.white, in: RoundedRectangle(cornerRadius: 17)).tint(.black).accessibilityIdentifier("portfolio-security-two-step")
+            } else {
+                HStack(spacing: 8) { ForEach(0..<3) { index in Capsule().fill(index < (enabled ? 3 : 1) ? blue : Color(portfolioHex: 0xE1E2E6)).frame(height: 5) } }.padding(.top, 15).padding(.horizontal, 16)
+                CoinbaseSecurityArtwork().frame(height: 260).padding(.vertical, 14)
+                Text(enabled ? "Your account is secure" : "Let's secure your account").font(.system(size: 28, weight: .semibold)).frame(maxWidth: .infinity, alignment: .leading)
+                securityStep(number: 1, title: "Create your account", subtitle: nil, done: enabled)
+                securityStep(number: 2, title: "Secure your account", subtitle: "2-step verification", done: enabled)
+                Button {
+                    var state = profile.accountState; state.twoStepEnabled.toggle(); _ = store.updatePortfolioAccountState(sceneID: sceneID, state: state)
+                } label: { Text(enabled ? "Manage 2-step verification" : "Enable 2-step verification").font(.system(size: 16, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 52).background(blue, in: Capsule()).foregroundStyle(.white) }.buttonStyle(.plain).padding(.top, 12).accessibilityIdentifier("portfolio-security-two-step").accessibilityValue(enabled ? "Enabled" : "Disabled")
+            }
+            if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
+        }.padding(.horizontal, 24).foregroundStyle(Color(portfolioHex: 0x0A0B0D))
+    }
+    private func securityStep(number: Int, title: String, subtitle: String?, done: Bool) -> some View {
+        HStack(spacing: 18) {
+            Circle().fill(blue).frame(width: 35, height: 35).overlay { if done { Image(systemName: "checkmark").font(.system(size: 17, weight: .semibold)).foregroundStyle(.white) } else { Text(String(number)).font(.system(size: 22, weight: .medium)).foregroundStyle(.white) } }
+            VStack(alignment: .leading, spacing: 4) { Text(title).font(.system(size: 20, weight: .semibold)); if let subtitle { Text(subtitle).font(.system(size: 19)).foregroundStyle(Color(portfolioHex: 0x6B7077)) } }
+            Spacer(minLength: 0)
+        }.frame(minHeight: 56)
+    }
+}
+
+private struct CoinbaseSecurityArtwork: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            ZStack {
+                Path { path in path.addArc(center: CGPoint(x: width * 0.5, y: height * 0.42), radius: width * 0.25, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false) }.stroke(Color(portfolioHex: 0xD0D3DB), lineWidth: width * 0.055)
+                Path { path in path.addArc(center: CGPoint(x: width * 0.5, y: height * 0.42), radius: width * 0.165, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false) }.stroke(Color(portfolioHex: 0x0A0B0D), lineWidth: width * 0.012)
+                Circle().fill(Color(portfolioHex: 0xFFD500)).frame(width: width * 0.22, height: width * 0.22).position(x: width * 0.5, y: height * 0.405)
+                Rectangle().fill(Color(portfolioHex: 0xD0D3DB)).frame(width: width * 0.7, height: height * 0.17).position(x: width * 0.5, y: height * 0.69)
+                Rectangle().fill(Color(portfolioHex: 0x0052FF)).frame(width: width * 0.46, height: height * 0.37).position(x: width * 0.5, y: height * 0.59)
+                Rectangle().fill(Color(portfolioHex: 0xD0D3DB)).frame(width: width * 0.46, height: height * 0.055).position(x: width * 0.5, y: height * 0.795)
+                Circle().fill(Color(portfolioHex: 0x0A0B0D)).frame(width: width * 0.057, height: width * 0.057).position(x: width * 0.5, y: height * 0.545)
+                Rectangle().fill(Color(portfolioHex: 0x0A0B0D)).frame(width: width * 0.014, height: height * 0.12).position(x: width * 0.5, y: height * 0.6)
+            }
+        }.accessibilityHidden(true)
+    }
+}
+
+private struct WealthsimpleSecurityArtwork: View {
+    var body: some View {
+        ZStack {
+            Circle().fill(LinearGradient(colors: [Color(portfolioHex: 0x91BDDB), Color(portfolioHex: 0x3A709A)], startPoint: .topLeading, endPoint: .bottomTrailing)).overlay { Circle().stroke(Color(portfolioHex: 0x5E8DAF), lineWidth: 3).padding(3); Text("W").font(.system(size: 66, weight: .light, design: .serif)).foregroundStyle(Color(portfolioHex: 0x6C9ABD)) }.frame(width: 145, height: 145).rotation3DEffect(.degrees(40), axis: (x: 0.3, y: 1, z: 0)).rotationEffect(.degrees(-22)).offset(x: -78, y: -30)
+            Circle().fill(LinearGradient(colors: [Color(portfolioHex: 0xE7C2B8), Color(portfolioHex: 0xC78D83)], startPoint: .topLeading, endPoint: .bottomTrailing)).overlay { Circle().stroke(Color(portfolioHex: 0xEFD0C5), lineWidth: 3).padding(4); Text("$").font(.system(size: 81, weight: .ultraLight)).foregroundStyle(Color(portfolioHex: 0xE1B5A9)) }.frame(width: 137, height: 137).rotation3DEffect(.degrees(-25), axis: (x: 0.3, y: 1, z: 0)).rotationEffect(.degrees(-17)).offset(x: 80, y: 41)
+            Image(systemName: "shield.fill").resizable().scaledToFit().foregroundStyle(LinearGradient(colors: [Color(portfolioHex: 0xDED2C7), Color(portfolioHex: 0xB9CFD8)], startPoint: .topLeading, endPoint: .bottomTrailing)).frame(width: 135, height: 172).overlay { Image(systemName: "shield.fill").resizable().scaledToFit().foregroundStyle(.white).padding(18); Image(systemName: "lock").font(.system(size: 43, weight: .light)).foregroundStyle(LinearGradient(colors: [Color(portfolioHex: 0xE9D1BD), Color(portfolioHex: 0xBDC9CD)], startPoint: .topLeading, endPoint: .bottomTrailing)) }.offset(y: 6)
+        }.accessibilityHidden(true)
+    }
+}
+
+private struct PortfolioAccountStateEditor: View {
+    @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    let sceneID: UUID
+    @State private var values: [PortfolioAccountField: String] = [:]
+    @State private var twoStep = false
+    @State private var locked = false
+    @State private var autopay = false
+    private var candidate: PortfolioAccountState? {
+        var state = store.portfolioProfile(for: sceneID).accountState
+        for field in PortfolioAccountField.allCases {
+            guard let text = values[field], let amount = Simulation.parseAmount(text) else { return nil }
+            state[keyPath: field.keyPath] = amount
+        }
+        state.twoStepEnabled = twoStep; state.locked = locked; state.autopay = autopay
+        return state.isValid ? state : nil
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Chequing") { accountField(.chequingInterestRate); accountField(.monthlyInterest) }
+                Section("Visa Infinite") { accountField(.cardBalance); accountField(.availableCredit); accountField(.cashBack); accountField(.monthCashBack); accountField(.statementAmount); Toggle("Freeze card", isOn: $locked); Toggle("Auto-pay", isOn: $autopay) }
+                Section("Earnings") { accountField(.highYieldCashEarnings); accountField(.iraMatchEarnings) }
+                Section("Security") { Toggle("2-step verification", isOn: $twoStep) }
+                Section { Text("Account summaries are separate from available cash. Editing a summary does not create an order or a transfer.").font(.footnote).foregroundStyle(.secondary) }
+                if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
+            }.navigationTitle("Account scene details").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("Save") { if let candidate, store.updatePortfolioAccountState(sceneID: sceneID, state: candidate) { dismiss() } }.disabled(candidate == nil) } }
+                .onAppear { let state = store.portfolioProfile(for: sceneID).accountState; values = Dictionary(uniqueKeysWithValues: PortfolioAccountField.allCases.map { ($0, state[keyPath: $0.keyPath].formatted(.number.grouping(.never))) }); twoStep = state.twoStepEnabled; locked = state.locked; autopay = state.autopay }
+        }
+    }
+    private func accountField(_ field: PortfolioAccountField) -> some View {
+        LabeledContent(field.title) { TextField(field.title, text: Binding(get: { values[field] ?? "" }, set: { values[field] = $0 })).keyboardType(.decimalPad).multilineTextAlignment(.trailing).accessibilityIdentifier("portfolio-account-field-\(field.rawValue)") }
+    }
+}
+
+private enum PortfolioAccountField: String, CaseIterable {
+    case cardBalance, availableCredit, cashBack, monthCashBack, statementAmount, chequingInterestRate, monthlyInterest, highYieldCashEarnings, iraMatchEarnings
+    var title: String { switch self { case .cardBalance: return "Card balance"; case .availableCredit: return "Available credit"; case .cashBack: return "Cash back"; case .monthCashBack: return "Cash back this month"; case .statementAmount: return "Statement amount"; case .chequingInterestRate: return "Interest rate (%)"; case .monthlyInterest: return "Monthly interest"; case .highYieldCashEarnings: return "High-yield cash earnings"; case .iraMatchEarnings: return "IRA match earnings" } }
+    var keyPath: WritableKeyPath<PortfolioAccountState, Double> { switch self { case .cardBalance: return \.cardBalance; case .availableCredit: return \.availableCredit; case .cashBack: return \.cashBack; case .monthCashBack: return \.monthCashBack; case .statementAmount: return \.statementAmount; case .chequingInterestRate: return \.chequingInterestRate; case .monthlyInterest: return \.monthlyInterest; case .highYieldCashEarnings: return \.highYieldCashEarnings; case .iraMatchEarnings: return \.iraMatchEarnings } }
 }
 
 private extension Color {

@@ -2,6 +2,19 @@ import XCTest
 @testable import Reverie
 
 final class NotificationModelTests: XCTestCase {
+    func testReferencedDuplicateChargeAlertIsEditableAndCannotChangeBalances() throws {
+        let scene = StudioScene.examples[1]
+        let style = NotificationStyle.bankDuplicateCharge
+        XCTAssertFalse(style.canEmit)
+        XCTAssertTrue(style.isAvailable(for: .banking))
+        XCTAssertFalse(style.isAvailable(for: .commerce))
+        let plan = try XCTUnwrap(NotificationPlan.make(scene: scene, kind: style.eventKind,
+            amount: 10.50, detail: "Camera Supply Store", delay: 10, count: 1, pendingCount: 0, style: style))
+        XCTAssertEqual(plan[0].event.title, "Were you double charged?")
+        XCTAssertEqual(plan[0].event.body(scene: scene), "You were charged \(scene.money(10.50)) twice today by Camera Supply Store. Tap for details.")
+        XCTAssertEqual(style.title(customTitle: "Check this purchase"), "Check this purchase")
+        XCTAssertTrue(style.body(scene: scene, amount: 29, detail: "Coffee House").contains("Coffee House"))
+    }
     func testEverySceneKindHasValidBuiltInNotificationTemplates() throws {
         let templates = NotificationTemplate.builtins
         XCTAssertGreaterThanOrEqual(templates.count, 25)

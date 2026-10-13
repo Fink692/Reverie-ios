@@ -1,0 +1,9 @@
+{
+  "reference": "References/Banks/capitalOne-5.jpg",
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/47/fd/b2/47fdb29b-d85e-816c-7699-61434a387173/e0774f9f-d3de-4599-8f0f-3ca081fe54d6_capone_appstore_02_updatedJuly2705_5.5.jpg/392x696bb.jpg",
+  "sha256": "635b8ef04e0078da67514537e636c5b588357883fdae66050d71fb38f2d2533f",
+  "implementation": "NotificationStyle.bankDuplicateCharge",
+  "title": "Were you double charged?",
+  "body": "You were charged $10.50 twice today by Camera Supply Store. Tap for details.",
+  "behavior": "Editable local notification cue. Scheduling does not debit cash or create card charges. Installed app identity is supplied by iOS."
+}

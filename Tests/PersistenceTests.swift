@@ -233,6 +233,367 @@ import XCTest
 }
 
 extension PersistenceTests {
+    func testPortfolioAccountPresentationPersistsWithoutChangingCashAssetsOrHistory() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let original = store.portfolioProfile(for: scene.id)
+        var state = original.accountState
+        state.twoStepEnabled = true
+        state.autopay = true
+        state.locked = true
+        state.cardBalance = 125.5
+        state.availableCredit = 3000
+        state.cashBack = 37
+        state.monthCashBack = 22
+        state.statementAmount = 370
+        state.chequingInterestRate = 2.25
+        state.monthlyInterest = 37.5
+        state.highYieldCashEarnings = 1000
+        state.iraMatchEarnings = 225
+        XCTAssertTrue(store.updatePortfolioAccountState(sceneID: scene.id, state: state))
+        var expected = original
+        expected.accountState = state
+        XCTAssertEqual(store.portfolioProfile(for: scene.id), expected)
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }, scene)
+        XCTAssertEqual(expected.total(cash: scene.balance), original.total(cash: scene.balance))
+        XCTAssertTrue(store.events.isEmpty)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.portfolioProfile(for: scene.id), expected)
+        XCTAssertEqual(restored.scenes, store.scenes)
+        state.availableCredit = .nan
+        try assertRejectedSessionMutation(restored, fileURL: file) {
+            restored.updatePortfolioAccountState(sceneID: scene.id, state: state)
+        }
+        try assertRejectedSessionMutation(restored, fileURL: file) {
+            restored.updatePortfolioAccountState(sceneID: restored.scenes[0].id, state: PortfolioAccountState())
+        }
+    }
+
+    func testAddingMissingCoinbaseUSDCSeedsZeroUnitsAndTradesWithoutCreditingCash() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        var legacy = PortfolioProfile.starter(for: scene.id, theme: .coinbase)
+        legacy.positions.removeAll { $0.symbol == "USDC" }
+        XCTAssertTrue(store.updatePortfolioProfile(legacy))
+        XCTAssertTrue(store.addPortfolioMarketAsset(sceneID: scene.id, symbol: "usdc"))
+        let added = store.portfolioProfile(for: scene.id)
+        let usdc = try XCTUnwrap(added.positions.first { $0.symbol == "USDC" })
+        XCTAssertEqual(usdc.units, 0)
+        XCTAssertEqual(usdc.price, 1)
+        XCTAssertEqual(Array(added.positions.dropLast()), legacy.positions)
+        XCTAssertEqual(added.total(cash: scene.balance), legacy.total(cash: scene.balance))
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }, scene)
+        let beforeDuplicate = store.exportData()
+        let savedBeforeDuplicate = try Data(contentsOf: file)
+        XCTAssertTrue(store.addPortfolioMarketAsset(sceneID: scene.id, symbol: "UsDc"))
+        XCTAssertEqual(store.exportData(), beforeDuplicate)
+        XCTAssertEqual(try Data(contentsOf: file), savedBeforeDuplicate)
+        let buy = try XCTUnwrap(store.executeMarketTrade(sceneID: scene.id, assetID: usdc.id, side: .buy, units: 125))
+        let cashAfterBuy = try XCTUnwrap(store.scenes.first { $0.id == scene.id }).balance
+        XCTAssertEqual(buy.total, 125)
+        XCTAssertEqual(cashAfterBuy, scene.balance - 125)
+        XCTAssertEqual(store.portfolioProfile(for: scene.id).total(cash: cashAfterBuy), legacy.total(cash: scene.balance), accuracy: 0.000001)
+        let received = try XCTUnwrap(store.executePortfolioTransfer(sceneID: scene.id, assetID: usdc.id,
+            kind: .receive, quantity: 25, address: "0x0000000000000000000000000000000000000011"))
+        let finalProfile = store.portfolioProfile(for: scene.id)
+        XCTAssertEqual(received.network, "Ethereum")
+        XCTAssertEqual(finalProfile.positions.first { $0.id == usdc.id }?.units, 150)
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }?.balance, cashAfterBuy)
+        XCTAssertTrue(store.events.isEmpty)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.portfolioProfile(for: scene.id), finalProfile)
+        XCTAssertEqual(restored.scenes, store.scenes)
+        for (sceneID, symbol) in [(scene.id, "UNAVAILABLE"), (UUID(), "AAPL"), (store.scenes[0].id, "AAPL")] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.addPortfolioMarketAsset(sceneID: sceneID, symbol: symbol)
+            }
+        }
+    }
+
+    func testComboQuoteIsReadOnlyAndPurchaseConservesCashValueWithPersistedSnapshots() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        XCTAssertTrue(store.preparePlayback(for: scene.id))
+        let original = store.predictionProfile(for: scene.id)
+        let activeID = store.activeID
+        let legs = comboLegs(for: original)
+        let memoryBeforeQuote = store.exportData()
+        let diskBeforeQuote = try Data(contentsOf: file)
+        let quote = try XCTUnwrap(store.quotePredictionCombo(sceneID: scene.id, legs: legs, cost: 25))
+        XCTAssertEqual(quote.legPrices, [original.markets[0].yesPrice, original.markets[1].noPrice])
+        XCTAssertEqual(quote.combinedPrice, 0.64 * 0.28, accuracy: 0.000001)
+        XCTAssertEqual(quote.potentialPayout, 25 / (0.64 * 0.28), accuracy: 0.000001)
+        XCTAssertEqual(store.exportData(), memoryBeforeQuote)
+        XCTAssertEqual(try Data(contentsOf: file), diskBeforeQuote)
+        let trade = try XCTUnwrap(store.tradePredictionCombo(sceneID: scene.id, legs: legs, cost: 25, expectedQuote: quote))
+        let purchased = store.predictionProfile(for: scene.id)
+        let updatedScene = try XCTUnwrap(store.scenes.first { $0.id == scene.id })
+        var expectedScene = scene
+        expectedScene.balance -= 25
+        XCTAssertEqual(updatedScene, expectedScene)
+        XCTAssertEqual(purchased.positions, original.positions)
+        XCTAssertEqual(purchased.transactions, original.transactions)
+        XCTAssertEqual(purchased.comboPositions, [trade])
+        XCTAssertEqual(purchased.comboTransactions, [trade])
+        XCTAssertEqual(trade.legPrices, quote.legPrices)
+        XCTAssertEqual(trade.questions, quote.questions)
+        XCTAssertEqual(trade.totalCost, 25)
+        XCTAssertEqual(purchased.value(of: trade), 25, accuracy: 0.000001)
+        XCTAssertEqual(purchased.total(cash: updatedScene.balance), original.total(cash: scene.balance), accuracy: 0.000001)
+        XCTAssertEqual(store.activeID, activeID)
+        XCTAssertTrue(store.events.isEmpty)
+        var edited = purchased
+        edited.markets[0].yesPrice = 0.55
+        edited.markets[1].yesPrice = 0.8
+        edited.markets[0].question = "Updated local market question"
+        XCTAssertTrue(store.updatePredictionProfile(edited))
+        XCTAssertEqual(store.predictionProfile(for: scene.id).comboPositions, [trade])
+        XCTAssertEqual(store.predictionProfile(for: scene.id).comboTransactions, [trade])
+        XCTAssertEqual(edited.value(of: trade), trade.shares * 0.55 * 0.2, accuracy: 0.000001)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.predictionProfile(for: scene.id), edited)
+        XCTAssertEqual(restored.scenes.first { $0.id == scene.id }, updatedScene)
+        XCTAssertEqual(restored.activeID, activeID)
+    }
+
+    func testComboRejectsInvalidInputsAndStaleQuoteWithoutChangingSavedSession() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        XCTAssertTrue(store.preparePlayback(for: scene.id))
+        let profile = store.predictionProfile(for: scene.id)
+        let legs = comboLegs(for: profile)
+        for cost in [0, 0.001, -1, Double.nan, .infinity, 1_000_000_001, scene.balance + 1] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.tradePredictionCombo(sceneID: scene.id, legs: legs, cost: cost) != nil
+            }
+        }
+        let duplicate = [legs[0], PredictionComboLeg(marketID: legs[0].marketID, outcome: .no)]
+        let tooMany = (0..<9).map { _ in PredictionComboLeg(marketID: UUID(), outcome: .yes) }
+        for invalidLegs in [[], [legs[0]], duplicate, tooMany,
+                            [legs[0], PredictionComboLeg(marketID: UUID(), outcome: .yes)]] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.tradePredictionCombo(sceneID: scene.id, legs: invalidLegs, cost: 25) != nil
+            }
+        }
+        for sceneID in [UUID(), store.scenes[0].id] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.tradePredictionCombo(sceneID: sceneID, legs: legs, cost: 25) != nil
+            }
+        }
+        let staleQuote = try XCTUnwrap(store.quotePredictionCombo(sceneID: scene.id, legs: legs, cost: 25))
+        var edited = profile
+        edited.markets[0].yesPrice = 0.5
+        XCTAssertTrue(store.updatePredictionProfile(edited))
+        try assertRejectedSessionMutation(store, fileURL: file) {
+            store.tradePredictionCombo(sceneID: scene.id, legs: legs, cost: 25, expectedQuote: staleQuote) != nil
+        }
+        XCTAssertNotNil(store.quotePredictionCombo(sceneID: scene.id, legs: legs, cost: 25))
+        edited.markets[0].closeDate = .distantPast
+        XCTAssertTrue(store.updatePredictionProfile(edited))
+        try assertRejectedSessionMutation(store, fileURL: file) {
+            store.tradePredictionCombo(sceneID: scene.id, legs: legs, cost: 25) != nil
+        }
+        edited.markets[0].closeDate = .distantFuture
+        edited.markets[0].yesPrice = 1e-12
+        edited.markets[1].yesPrice = 1 - 1e-12
+        XCTAssertTrue(store.updatePredictionProfile(edited))
+        try assertRejectedSessionMutation(store, fileURL: file) {
+            store.tradePredictionCombo(sceneID: scene.id, legs: legs, cost: 25) != nil
+        }
+    }
+
+    func testFailedNewProfileAndItemizedOrderSavesDoNotCreateProfilesOrChangeCash() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let file = directory.appending(path: "session.json")
+        let store = StudioStore(fileURL: file)
+        let portfolio = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let prediction = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        let bank = try XCTUnwrap(store.scenes.first { $0.kind == .banking })
+        let commerce = try XCTUnwrap(store.scenes.first { $0.kind == .commerce })
+        let legs = comboLegs(for: store.predictionProfile(for: prediction.id))
+        let before = store.exportData()
+        var state = PortfolioAccountState()
+        state.twoStepEnabled = true
+        XCTAssertFalse(store.updatePortfolioAccountState(sceneID: portfolio.id, state: state))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertFalse(store.addPortfolioMarketAsset(sceneID: portfolio.id, symbol: "USDC"))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertNil(store.tradePredictionCombo(sceneID: prediction.id, legs: legs, cost: 25))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertFalse(store.updateBankProducts(sceneID: bank.id, products: BankProduct.starters(for: .citi)))
+        XCTAssertEqual(store.exportData(), before)
+        let items = [CommerceOrderLineItem(title: "Unsaved tote", unitPrice: 39, quantity: 2, symbol: "bag.fill")]
+        XCTAssertNil(store.addCommerceOrder(sceneID: commerce.id, customer: "Taylor", lineItems: items))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertTrue(store.portfolioProfiles.isEmpty)
+        XCTAssertTrue(store.predictionProfiles.isEmpty)
+        XCTAssertTrue(store.bankProfiles.isEmpty)
+        XCTAssertTrue(store.commerceProfiles.isEmpty)
+        XCTAssertTrue(store.events.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+        XCTAssertNotNil(store.error)
+    }
+
+    func testItemizedCommerceOrderCapturesSceneAccountingAndSurvivesCatalogEditsAndDeletion() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .commerce })
+        XCTAssertTrue(store.preparePlayback(for: scene.id))
+        let profile = store.commerceProfile(for: scene.id)
+        let tote = profile.products[0]
+        let hoodie = profile.products[1]
+        let items = [CommerceOrderLineItem(productID: tote.id, title: tote.title, variant: "Natural",
+                        unitPrice: tote.price, quantity: 2, symbol: tote.symbol),
+                     CommerceOrderLineItem(productID: hoodie.id, title: hoodie.title, variant: "Medium",
+                        unitPrice: hoodie.price, quantity: 1, symbol: hoodie.symbol)]
+        store.select(store.scenes[1])
+        let activeBefore = store.active
+        let event = try XCTUnwrap(store.addCommerceOrder(sceneID: scene.id, customer: "  Taylor  ", lineItems: items))
+        XCTAssertEqual(event.lineItems, items)
+        XCTAssertEqual(event.itemCount, 3)
+        XCTAssertEqual(event.amount, 167)
+        XCTAssertEqual(event.customerName, "Taylor")
+        let updatedScene = try XCTUnwrap(store.scenes.first { $0.id == scene.id })
+        XCTAssertEqual(updatedScene.balance, scene.balance + 167)
+        XCTAssertEqual(updatedScene.sales, scene.sales + 167)
+        XCTAssertEqual(updatedScene.orders, scene.orders + 1)
+        XCTAssertEqual(updatedScene.audience, scene.audience)
+        XCTAssertEqual(store.active, activeBefore)
+        var edited = profile
+        edited.products[0].title = "Renamed tote"
+        edited.products[0].price = 999
+        edited.products.removeAll { $0.id == hoodie.id }
+        XCTAssertTrue(store.updateCommerceProfile(edited))
+        XCTAssertTrue(store.setOrderStatus(orderID: event.id, sceneID: scene.id, status: .fulfilled))
+        XCTAssertTrue(store.setOrderPaid(orderID: event.id, sceneID: scene.id, isPaid: false))
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        let order = try XCTUnwrap(restored.commerceOrders(for: scene.id).first { $0.id == event.id })
+        XCTAssertEqual(order.lineItems, items)
+        XCTAssertEqual(order.itemCount, 3)
+        XCTAssertEqual(order.total, 167)
+        XCTAssertEqual(order.fulfillment, .fulfilled)
+        XCTAssertFalse(order.isPaid)
+        XCTAssertEqual(restored.events.first { $0.id == event.id }?.lineItems, items)
+        XCTAssertEqual(restored.scenes.first { $0.id == scene.id }, updatedScene)
+        XCTAssertEqual(restored.active, activeBefore)
+        XCTAssertEqual(restored.commerceProfile(for: scene.id).products, edited.products)
+    }
+
+    func testInvalidItemizedOrdersDoNotChangeCashOrderCountsOrSavedHistory() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .commerce })
+        XCTAssertTrue(store.preparePlayback(for: scene.id))
+        let original = CommerceOrderLineItem(title: "Tote", unitPrice: 39, quantity: 1, symbol: "bag.fill")
+        var invalid = original
+        invalid.quantity = 0
+        var infinite = original
+        infinite.unitPrice = .infinity
+        var overflow = original
+        overflow.unitPrice = 1_000_000_000
+        overflow.quantity = 2
+        var tooMany = original
+        tooMany.quantity = 1000
+        var expensive = original
+        expensive.unitPrice = 1_000_000_000
+        for items in [[], [invalid], [infinite], [overflow], [tooMany, original], [expensive, expensive]] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.addCommerceOrder(sceneID: scene.id, customer: "Taylor", lineItems: items) != nil
+            }
+        }
+        for customer in [" ", String(repeating: "x", count: 81)] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.addCommerceOrder(sceneID: scene.id, customer: customer, lineItems: [original]) != nil
+            }
+        }
+        for sceneID in [UUID(), store.scenes[1].id] {
+            try assertRejectedSessionMutation(store, fileURL: file) {
+                store.addCommerceOrder(sceneID: sceneID, customer: "Taylor", lineItems: [original]) != nil
+            }
+        }
+        try assertRejectedSessionMutation(store, fileURL: file) {
+            store.emit(kind: .order, amount: 40, detail: "Mismatched total", sceneID: scene.id,
+                itemCount: 1, lineItems: [original]) != nil
+        }
+        try assertRejectedSessionMutation(store, fileURL: file) {
+            store.emit(kind: .order, amount: 39, detail: "Mismatched quantity", sceneID: scene.id,
+                itemCount: 2, lineItems: [original]) != nil
+        }
+    }
+
+    func testBankProductEditsPersistWithoutCreditingCheckingSavingsOrHistory() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .banking })
+        var profile = store.bankProfile(for: scene.id)
+        profile.theme = .citi
+        profile.savings = 777.5
+        XCTAssertTrue(store.updateBankProfile(profile))
+        var products = profile.referenceProducts
+        products[0].balance = 1100.25
+        products[0].rewards = 99000
+        products[0].minimumPayment = 25
+        products[0].paymentDue = "November 2"
+        products[0].cardFrozen = true
+        products.append(try XCTUnwrap(BankProduct.starters(for: .bankOfAmerica).first { $0.kind == .investment }))
+        XCTAssertTrue(store.updateBankProducts(sceneID: scene.id, products: products))
+        profile.products = products
+        XCTAssertEqual(store.bankProfile(for: scene.id), profile)
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }, scene)
+        XCTAssertTrue(store.events.isEmpty)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.bankProfile(for: scene.id), profile)
+        XCTAssertEqual(restored.scenes, store.scenes)
+        try assertRejectedSessionMutation(restored, fileURL: file) {
+            restored.updateBankProducts(sceneID: scene.id, products: [products[0], products[0]])
+        }
+        var invalid = products[0]
+        invalid.rewards = .nan
+        try assertRejectedSessionMutation(restored, fileURL: file) {
+            restored.updateBankProducts(sceneID: scene.id, products: [invalid])
+        }
+        for sceneID in [UUID(), restored.scenes[0].id] {
+            try assertRejectedSessionMutation(restored, fileURL: file) {
+                restored.updateBankProducts(sceneID: sceneID, products: products)
+            }
+        }
+        XCTAssertTrue(restored.updateBankProducts(sceneID: scene.id, products: []))
+        let cleared = StudioStore(fileURL: file)
+        XCTAssertEqual(cleared.bankProfile(for: scene.id).products, [])
+        XCTAssertTrue(cleared.bankProfile(for: scene.id).referenceProducts.isEmpty)
+        XCTAssertEqual(cleared.bankProfile(for: scene.id).savings, profile.savings)
+        XCTAssertEqual(cleared.scenes.first { $0.id == scene.id }, scene)
+    }
+
+    private func comboLegs(for profile: PredictionProfile) -> [PredictionComboLeg] {
+        [PredictionComboLeg(marketID: profile.markets[0].id, outcome: .yes),
+         PredictionComboLeg(marketID: profile.markets[1].id, outcome: .no)]
+    }
+
+    private func assertRejectedSessionMutation(_ store: StudioStore, fileURL: URL,
+                                               file: StaticString = #filePath, line: UInt = #line,
+                                               _ operation: () -> Bool) throws {
+        let memory = try XCTUnwrap(store.exportData(), file: file, line: line)
+        let disk = try Data(contentsOf: fileURL)
+        XCTAssertFalse(operation(), file: file, line: line)
+        XCTAssertEqual(store.exportData(), memory, file: file, line: line)
+        XCTAssertEqual(try Data(contentsOf: fileURL), disk, file: file, line: line)
+    }
+
     func testStyledOrderAccountingAndSavedCueMetadataSurviveReload() throws {
         let file = temporaryFile()
         defer { try? FileManager.default.removeItem(at: file) }

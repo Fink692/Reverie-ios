@@ -1,0 +1,63 @@
+{
+  "reviewedAt": "2026-10-13",
+  "reviewMethod": "Original local reference files viewed at original image detail before implementation; no reference image was edited or bundled as an app-screen background.",
+  "implementationFiles": [
+    "Sources/CommercePlayback.swift",
+    "Sources/CommerceManagement.swift"
+  ],
+  "references": [
+    {
+      "file": "References/Shopify/mobile-sales.webp",
+      "url": "https://cdn.shopify.com/b/shopify-brochure2-assets/9d4f5f93f158f3f5c0377da66a0f7a2a.webp",
+      "publisherPage": "https://www.shopify.com/mobile",
+      "sha256": "78f5eff99afec0e2f43edaa961a6b45c90d32771a44b7f6276ea59ef52a61cec",
+      "supportedElements": [
+        "Full-width white product rows with small rounded thumbnails, semibold title, secondary variant and unit price, and right-aligned multiplicative quantity.",
+        "Dark full-width Fulfill items action below product rows.",
+        "Bracketed store name and new-order notification body format."
+      ],
+      "implementationLimits": [
+        "The marketing banner obscures the order header and is scaled outside the phone; its geometry is not used as iOS banner evidence.",
+        "Product title, price, symbol and quantity come from saved local order snapshots. Aggregate legacy orders retain an unnamed Custom order row.",
+        "Reference product photos are not redistributed. Catalog thumbnails remain user-selected SF Symbols.",
+        "Customer, payment and archive sections are local app scaffolding; this reference does not establish their exact layout or interaction.",
+        "No shipment address or shipping charge is invented where the saved order has no such fields."
+      ]
+    },
+    {
+      "file": "References/Shopify/app-store-05-order-fulfillment.jpg",
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/fb/7a/22/fb7a22bd-8beb-e8a7-2847-85f327d22b15/6.9_-_7__Order_fulfillment.jpg/1320x2868bb.jpg",
+      "publisherPage": "https://apps.apple.com/us/app/shopify-sell-run-a-business/id371294472",
+      "sha256": "7afc71cb5bffd5c40463992a4c7544bc34afe45b679a769179d06a23d04788a9",
+      "supportedElements": [
+        "Black Orders header over a white rounded body, circular search/location/sort/filter controls, status pills and grouped date headers.",
+        "Order row hierarchy of number and total, customer and count/time, and small fulfillment/payment badges."
+      ],
+      "implementationLimits": [
+        "Oversized floating Fulfilled and Paid badges, shipping label, hardware and lower poster fade are marketing annotations.",
+        "The current saved model does not have shipping-method metadata. A universal Free Shipping claim has been removed from local rows.",
+        "Order creation with catalog products is a native local form; no public reference establishes the complete merchant create-order flow."
+      ]
+    },
+    {
+      "file": "References/Shopify/app-store-06-inventory.jpg",
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/93/2c/3b/932c3b18-4725-85b7-11c0-ae25a0a06f89/6.9_-_8__Inventory_management.jpg/1320x2868bb.jpg",
+      "publisherPage": "https://apps.apple.com/us/app/shopify-sell-run-a-business/id371294472",
+      "sha256": "4a73c08987139cbccfbc82056c5f671e670fc2720b518f82e49320bb2bd55673",
+      "supportedElements": [
+        "White rounded product card with thumbnail, name and price, gray capsule minus/count/plus control, green checked status and dark review action."
+      ],
+      "implementationLimits": [
+        "The implementation adapts the pictured card to manual inventory adjustment and review. It does not pretend a barcode was scanned.",
+        "No camera, barcode lookup, order picking or warehouse integrations are implied.",
+        "Inventory edits save through the authoritative local commerce profile API. The native review screen is local scaffolding, not a referenced full-screen match."
+      ]
+    }
+  ],
+  "unreferencedLocalFlows": [
+    "Notification configuration, template loading and cue saving use native SwiftUI forms and the existing local scheduler. Their UI is not established by these public screenshots.",
+    "Scheduled notifications preserve store totals and are targeted to the selected commerce scene; iOS supplies the installed app identity.",
+    "The existing Pulse recommendation uses local order and inventory state. Public posters do not establish all assistant conversations, actions or animated states."
+  ],
+  "fidelityClaim": "Reference-grounded visible portions and functional local actions; no complete app or pixel parity claim."
+}

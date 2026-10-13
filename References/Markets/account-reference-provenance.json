@@ -1,0 +1,106 @@
+{
+  "description": "Native SwiftUI account overview layouts reconstructed after viewing the original Apple App Store screenshots at original detail. Original reference bytes remain unchanged and are never shipped as full-screen playback backgrounds. Rewards, lock, cards, coins, charts and bars are rendered in SwiftUI; no screenshot cropping or transformed brand artwork was added. Financial values come from the saved portfolio, cash events or persisted accountState. New scene account summaries can seed the pictured reference values; old archives default to zero. The unpictured cash transfer, card-management, account-state editor and security-action sheets are inferred local interactions, not independently verified third-party screens. Advanced candles and chart-volume are deterministic illustrations of the saved chart; orders use the existing authoritative portfolio trade page. Staking overview retains pictured reference rates and does not credit rewards or execute staking. Card transactions and pending chequing requests are not invented. Exact device typography/spacing and all unpictured routes still require matched native screenshots for 1:1 verification.",
+  "inspected_original_detail": "2026-10-13",
+  "reference_sources": [
+    {
+      "theme": "coinbase",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/bf/09/24/bf092481-2182-256c-dcbe-3df32e174e15/0d351845-7fb0-4990-b8d9-4f20415db513_ASO-5.5_-SCREEN4.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/coinbase-4.jpg",
+      "original_sha256": "2ff551a38a76c470f135823abd324bf9e64a0376c5be89d69197744f688aaa0f",
+      "native_views": [
+        "CoinbaseRewardsPage",
+        "CoinbaseRewardsArtwork"
+      ]
+    },
+    {
+      "theme": "coinbase",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/72/f9/72/72f972f4-3009-4706-0043-fcc35acf193c/b990aef8-4b99-4dec-8220-45068ec3fa24_ASO-5.5_-SCREEN6.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/coinbase-6.jpg",
+      "original_sha256": "88a49d410a518e5880cd320539367015c5871c936f35cb5ac13abcbf174e1de7",
+      "native_views": [
+        "PortfolioSecurityContent",
+        "CoinbaseSecurityArtwork"
+      ]
+    },
+    {
+      "theme": "coinbase",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/10/68/d9/1068d9b0-6c9c-d656-f159-b8fb82aff439/9d02b389-ee32-41c1-adc5-088c36a1ec40_ASO-5.5_-SCREEN8.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/coinbase-7.jpg",
+      "original_sha256": "2776cbde77ff34eb21897aa2b4b63038e81ee81d15bb0c3664dd0816902034f6",
+      "native_views": [
+        "CoinbaseAdvancedTradePage",
+        "AdvancedMarketChart"
+      ]
+    },
+    {
+      "theme": "wealthsimple",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/5b/b7/2b/5bb72bf4-3260-7a54-5d46-0efb540dce6b/Wealthsimple_1242x2208_Generic_App_Store_EN_03.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/wealthsimple-3.jpg",
+      "original_sha256": "aea2a8ffd69ae3b0aafcb1a08cc458d9916735dad70750bbd954b558d2d73a02",
+      "native_views": [
+        "WealthsimpleChequingContent"
+      ]
+    },
+    {
+      "theme": "wealthsimple",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/40/78/8d/40788d69-10a5-0425-d370-8c6dfffb3271/Wealthsimple_1242x2208_Generic_App_Store_EN_04.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/wealthsimple-4.jpg",
+      "original_sha256": "ed2957f48d1f69c98889ffb466a96e7bcfe04bb4c2e3ba4ee0bd118522e02be3",
+      "native_views": [
+        "WealthsimpleVisaContent"
+      ]
+    },
+    {
+      "theme": "wealthsimple",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ff/ab/55/ffab5573-b56b-eb75-a224-292a9a4b74b7/Wealthsimple_1242x2208_Generic_App_Store_EN_05.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/wealthsimple-5.jpg",
+      "original_sha256": "4073e37c4552bfc2e0c126c34593c256f0585b208d530b070b72fe16f110073e",
+      "native_views": [
+        "WealthsimpleCryptoContent",
+        "PortfolioIridescentCoins"
+      ]
+    },
+    {
+      "theme": "wealthsimple",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/69/94/01/69940179-03ef-1214-8fc9-9b8797a4f272/Wealthsimple_1242x2208_Generic_App_Store_EN_06.png/1242x2688bb.jpg",
+      "original_file": "References/Markets/wealthsimple-6.jpg",
+      "original_sha256": "b18abb5d479f64aa6dddd7a634e3633495f0486d7260c17672fce88414852589",
+      "native_views": [
+        "PortfolioSecurityContent",
+        "WealthsimpleSecurityArtwork"
+      ]
+    },
+    {
+      "theme": "robinhood",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a0/c5/1d/a0c51d9e-b177-b885-550d-58a72d791845/ios-1242x2208__U00283_U0029.jpg/1242x2688bb.jpg",
+      "original_file": "References/Markets/robinhood-1.jpg",
+      "original_sha256": "50e9fc1d43922b16f73874c781621a4ec6c65393c8b505f049af11a0047dbf8e",
+      "native_views": [
+        "PortfolioPlayback.robinhoodDiscovery"
+      ]
+    },
+    {
+      "theme": "robinhood",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/33/e3/1e/33e31ef3-1c5a-c747-ecfc-bc07fb688eb4/ios-1242x2208__U002836_U0029.jpg/1242x2688bb.jpg",
+      "original_file": "References/Markets/robinhood-2.jpg",
+      "original_sha256": "fb97ada177a888bc30f2db0c34acb188f3a27a27c0b4a9b3238da2144a85de5b",
+      "native_views": [
+        "PortfolioCashAccountPage"
+      ]
+    },
+    {
+      "theme": "robinhood",
+      "original_url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a5/7b/8b/a57b8bb6-dc14-118e-4dac-b0c3ea500c1c/ios-1242x2208_ALT.jpg/1242x2688bb.jpg",
+      "original_file": "References/Markets/robinhood-4.jpg",
+      "original_sha256": "3a1ee71578e5fc13e149a52709de5b771aa70327f25f77031105f674ec8d83a8",
+      "native_views": [
+        "PortfolioPlayback.robinhoodHome"
+      ]
+    }
+  ],
+  "network_asset_attempt": {
+    "url": "https://www.wealthsimple.com/en-ca/credit-card",
+    "result": "HTTP 403; no asset bytes downloaded or added"
+  },
+  "new_downloaded_application_assets": []
+}
