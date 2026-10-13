@@ -55,6 +55,21 @@ final class ReverieUITests: XCTestCase {
                        "The control did not become hittable within \(timeout) seconds.", file: file, line: line)
     }
 
+    private func closeCleanCommerceScene(in app: XCUIApplication) {
+        let profile = app.buttons["Store profile and close scene"]
+        waitForHittable(profile)
+        profile.tap()
+        let close = app.buttons["Close scene"]
+        waitForHittable(close)
+        close.tap()
+    }
+
+    private func closeCleanBankScene(in app: XCUIApplication) {
+        let brand = app.buttons["bank-brand-exit"]
+        waitForHittable(brand)
+        brand.press(forDuration: 2.2)
+    }
+
     func testOnboardingStaysDismissedAfterRelaunch() {
         let app = makeApp()
         app.launch()
@@ -76,9 +91,8 @@ final class ReverieUITests: XCTestCase {
         welcome.tap()
         let home = app.buttons["commerce-tab-home"]
         waitForHittable(home)
-        let closeScene = app.buttons["close-scene"]
-        waitForHittable(closeScene)
-        closeScene.tap()
+        XCTAssertFalse(app.buttons["close-scene"].exists)
+        closeCleanCommerceScene(in: app)
         XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Northstar"].tap()
@@ -86,7 +100,8 @@ final class ReverieUITests: XCTestCase {
         app.launch()
         waitForHittable(home)
         XCTAssertFalse(welcome.exists)
-        closeScene.tap()
+        XCTAssertFalse(app.buttons["close-scene"].exists)
+        closeCleanCommerceScene(in: app)
     }
 
     func testBankBrandStartsInPlaybackAfterOnboardingAndRelaunch() {
@@ -95,21 +110,62 @@ final class ReverieUITests: XCTestCase {
         let welcome = app.buttons["Enter your studio"]
         XCTAssertTrue(welcome.waitForExistence(timeout: 5))
         welcome.tap()
-        let bankPicker = app.buttons["bank-theme-picker"]
-        waitForHittable(bankPicker)
-        XCTAssertTrue(bankPicker.label.contains("Chase"))
-        let closeScene = app.buttons["close-scene"]
-        closeScene.tap()
+        let brand = app.buttons["bank-brand-exit"]
+        waitForHittable(brand)
+        XCTAssertTrue(brand.label.localizedCaseInsensitiveContains("Chase"))
+        XCTAssertFalse(app.buttons["bank-theme-picker"].exists)
+        XCTAssertFalse(app.buttons["close-scene"].exists)
+        closeCleanBankScene(in: app)
         XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Northstar"].waitForExistence(timeout: 3))
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Studio Supply"].tap()
         app.terminate()
         app.launch()
-        waitForHittable(bankPicker)
-        XCTAssertTrue(bankPicker.label.contains("Chase"))
+        waitForHittable(brand)
+        XCTAssertTrue(brand.label.localizedCaseInsensitiveContains("Chase"))
         XCTAssertFalse(welcome.exists)
-        closeScene.tap()
+        closeCleanBankScene(in: app)
+    }
+
+    func testCleanPlaybackHidesChromeAndRetainsCommerceAndBankExitControls() {
+        let app = makeApp()
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        if welcome.waitForExistence(timeout: 3) { welcome.tap() }
+        app.tabBars.buttons["Settings"].tap()
+        let cleanPlayback = app.switches["clean-playback"]
+        scrollTo(cleanPlayback, in: app)
+        cleanPlayback.tap()
+        app.tabBars.buttons["Dashboard"].tap()
+        let openScene = app.buttons["open-scene"]
+        scrollTo(openScene, in: app)
+        openScene.tap()
+        waitForHittable(app.buttons["commerce-tab-home"])
+        XCTAssertFalse(app.buttons["close-scene"].exists)
+        let commerceScreenshot = XCTAttachment(screenshot: app.screenshot())
+        commerceScreenshot.name = "Clean commerce playback"
+        commerceScreenshot.lifetime = .keepAlways
+        add(commerceScreenshot)
+        closeCleanCommerceScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Settings"].tap()
+        let northstar = app.buttons["Northstar"]
+        scrollTo(northstar, in: app, upwards: false)
+        northstar.tap()
+        app.tabBars.buttons["Dashboard"].tap()
+        scrollTo(openScene, in: app)
+        openScene.tap()
+        waitForHittable(app.buttons["bank-brand-exit"])
+        XCTAssertFalse(app.buttons["close-scene"].exists)
+        XCTAssertFalse(app.buttons["bank-theme-picker"].exists)
+        let bankScreenshot = XCTAttachment(screenshot: app.screenshot())
+        bankScreenshot.name = "Clean bank playback Chase"
+        bankScreenshot.lifetime = .keepAlways
+        add(bankScreenshot)
+        closeCleanBankScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Northstar"].waitForExistence(timeout: 3))
     }
 
     func testNewSceneValidationAndPersistence() {

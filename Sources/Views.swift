@@ -549,7 +549,7 @@ struct ComposerView: View {
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text("REVERIE").font(.caption.bold())
+                                Text((Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Reverie").uppercased()).font(.caption.bold())
                                 Spacer()
                                 Text("now").font(.caption).foregroundStyle(.secondary)
                             }
@@ -560,7 +560,7 @@ struct ComposerView: View {
                     }
                     .padding(.vertical, 8)
                     .accessibilityElement(children: .combine)
-                    Text("iOS notifications always come from Reverie. Lock Screen appearance depends on your device settings.")
+                    Text("Alerts use this installed app’s name and icon. Lock Screen appearance depends on your device settings.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -898,6 +898,7 @@ struct SceneEditor: View {
 struct SettingsView: View {
     @EnvironmentObject var store: StudioStore
     @AppStorage("appearance") private var appearance = "System"
+    @AppStorage("cleanPlayback") private var cleanPlayback = false
     @State private var editing: StudioScene?
     @State private var importingFile = false
     @State private var exportingFile = false
@@ -918,7 +919,7 @@ struct SettingsView: View {
                 Section("About Reverie") {
                     StudioLabel()
                     Text("A private stage for fictional milestones. No accounts, real money, analytics tracking, or connections to financial services.")
-                    Text("Not affiliated with Shopify or any bank. Notifications identify Reverie. Charts are illustrative.")
+                    Text("Not affiliated with Shopify or any bank. Notifications use the name and icon of this installed app. Charts are illustrative.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Stored locally. Exported files and device backups may be stored by your chosen services.")
@@ -1012,10 +1013,12 @@ struct SettingsView: View {
     }
 
     private var experienceSection: some View {
-        Section("Experience") {
+        Section {
             Picker("Appearance", selection: $appearance) {
                 ForEach(["System", "Light", "Dark"], id: \.self) { Text($0).tag($0) }
             }
+            Toggle("Clean playback", isOn: $cleanPlayback)
+                .accessibilityIdentifier("clean-playback")
             LabeledContent("Notifications", value: store.notificationStatus)
             LabeledContent("Queued alerts", value: store.pendingCount.formatted())
             Button("Open iOS Settings") {
@@ -1025,6 +1028,10 @@ struct SettingsView: View {
                 Task { await store.cancelNotifications() }
             }
             .disabled(store.pendingCount == 0)
+        } header: {
+            Text("Experience")
+        } footer: {
+            Text("Clean playback hides extra close and theme controls. Exit a store from its profile or menu using Close scene. In banking, hold the bank name for 2 seconds to exit.")
         }
     }
 

@@ -39,6 +39,9 @@ struct AppPlaybackConfiguration {
             defaults = .standard
             startupStore = StudioStore()
         }
+        if AppPlaybackConfiguration.current != nil, defaults.object(forKey: "cleanPlayback") == nil {
+            defaults.set(true, forKey: "cleanPlayback")
+        }
         if let configuration = AppPlaybackConfiguration.current, !defaults.bool(forKey: "brandConfigured"),
            var scene = startupStore.scenes.first(where: { $0.kind == configuration.kind }) {
             if let bank = configuration.bank {

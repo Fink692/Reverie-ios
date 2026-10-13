@@ -5,6 +5,7 @@ import SwiftUI
 struct BankPlayback: View {
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("cleanPlayback") private var cleanPlayback = false
     let sceneID: UUID
     @State private var tab: BankPlaybackTab = .home
     @State private var showProfile = false
@@ -47,23 +48,35 @@ struct BankPlayback: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Menu {
-                        ForEach(BankTheme.allCases) { bank in
-                            Button {
-                                var updated = profile
-                                updated.theme = bank
-                                if store.updateBankProfile(updated) { tab = .home }
-                            } label: {
-                                Label(bank.name, systemImage: bank == theme ? "checkmark" : "building.columns")
-                            }
-                        }
-                    } label: {
+                    if cleanPlayback {
                         BankBrandMark(theme: theme, color: palette.headerInk)
                             .frame(minWidth: 140, minHeight: 44)
                             .contentShape(Rectangle())
+                            .onLongPressGesture(minimumDuration: 2) { dismiss() }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("\(theme.name), hold to return to Studio")
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityIdentifier("bank-brand-exit")
+                            .accessibilityAction(named: "Return to Studio") { dismiss() }
+                    } else {
+                        Menu {
+                            ForEach(BankTheme.allCases) { bank in
+                                Button {
+                                    var updated = profile
+                                    updated.theme = bank
+                                    if store.updateBankProfile(updated) { tab = .home }
+                                } label: {
+                                    Label(bank.name, systemImage: bank == theme ? "checkmark" : "building.columns")
+                                }
+                            }
+                        } label: {
+                            BankBrandMark(theme: theme, color: palette.headerInk)
+                                .frame(minWidth: 140, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .accessibilityLabel("Choose bank, currently \(theme.name)")
+                        .accessibilityIdentifier("bank-theme-picker")
                     }
-                    .accessibilityLabel("Choose bank, currently \(theme.name)")
-                    .accessibilityIdentifier("bank-theme-picker")
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button { showProfile = true } label: {
@@ -73,11 +86,13 @@ struct BankPlayback: View {
                     .accessibilityLabel("Account profile")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark").font(.system(size: 16, weight: .semibold)).frame(width: 44, height: 44)
+                    if !cleanPlayback {
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark").font(.system(size: 16, weight: .semibold)).frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel("Close bank playback")
+                        .accessibilityIdentifier("close-scene")
                     }
-                    .accessibilityLabel("Close bank playback")
-                    .accessibilityIdentifier("close-scene")
                 }
             }
             .toolbarBackground(palette.header, for: .navigationBar)

@@ -53,3 +53,5 @@ xcrun simctl launch booted com.reverie.simulator
 ## First launch
 
 Complete the onboarding explaining that figures and notifications are fictional. Edit your scene, totals, account holder, and currency in Studio. Use **Open scene** for playback; variants open their configured scene after onboarding. Enable notification permission when scheduling alerts. Sessions stay local and can be exported from Settings. Real bank/Shopify passwords, payment credentials, and account linking are unnecessary.
+
+Variants start with **Clean playback** enabled: return to Studio through the commerce profile/menu → **Close scene**, or hold the bank name for **two seconds**. Settings → Clean playback can restore visible close and bank-selection controls.

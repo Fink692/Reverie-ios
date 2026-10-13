@@ -6,6 +6,7 @@ struct CommercePlayback: View {
     let sceneID: UUID
     @EnvironmentObject private var store: StudioStore
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("cleanPlayback") private var cleanPlayback = false
     @State private var tab: CommerceTab = .home
     @State private var metric: CommerceMetric = .sales
     @State private var range: CommerceRange = .twoWeeks
@@ -129,11 +130,13 @@ struct CommercePlayback: View {
                 }
                 .accessibilityLabel("Store actions and close scene")
             }
-            Button { dismiss() } label: {
-                Image(systemName: "xmark").font(.system(size: 14, weight: .semibold)).frame(width: 44, height: 44)
+            if !cleanPlayback {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark").font(.system(size: 14, weight: .semibold)).frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Close scene")
+                .accessibilityIdentifier("close-scene")
             }
-            .accessibilityLabel("Close scene")
-            .accessibilityIdentifier("close-scene")
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 14).padding(.vertical, 4)

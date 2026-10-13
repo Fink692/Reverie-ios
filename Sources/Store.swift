@@ -127,7 +127,8 @@ import UserNotifications
             let allowed = try await center.requestAuthorization(options: [.alert, .sound])
             guard stillValid() else { return false }
             guard allowed else {
-                error = "Notifications are disabled. Enable Reverie notifications in iOS Settings."; await refreshNotifications(); return false
+                let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Reverie"
+                error = "Notifications are disabled. Enable \(appName) notifications in iOS Settings."; await refreshNotifications(); return false
             }
             let pending = await center.pendingNotificationRequests()
             guard stillValid() else { return false }
