@@ -44,7 +44,6 @@ struct PortfolioPlayback: View {
             .toolbar(.hidden, for: .navigationBar)
             .tint(palette.accent)
             .preferredColorScheme(palette.isDark ? .dark : .light)
-            .accessibilityIdentifier("portfolio-playback")
             .sheet(item: $modal) { destination in
                 switch destination {
                 case .menu: menuSheet
@@ -58,6 +57,7 @@ struct PortfolioPlayback: View {
                 }
             }
         }
+        .accessibilityIdentifier("portfolio-playback")
     }
 
     private var header: some View {
@@ -272,7 +272,8 @@ struct PortfolioPlayback: View {
                     ForEach(positions) { position in assetLink(position, scene: scene) }
                 }.padding(.horizontal, 24).padding(.bottom, 24)
             }
-        }.accessibilityIdentifier("portfolio-assets")
+            .accessibilityIdentifier("portfolio-assets")
+        }
     }
 
     private func assetFilterButton(_ title: String, kind: MarketAssetKind?) -> some View {
@@ -314,6 +315,7 @@ struct PortfolioPlayback: View {
         Button { tab = option } label: {
             VStack(spacing: 5) { Image(systemName: symbol).font(.system(size: 22, weight: tab == option ? .semibold : .regular)); if theme == .coinbase { Text(title).font(.system(size: 10, weight: .medium)) } }
                 .frame(maxWidth: .infinity, minHeight: 46).foregroundStyle(tab == option ? palette.accent : palette.secondary)
+                .contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityIdentifier("portfolio-tab-\(option.rawValue)")
     }
 

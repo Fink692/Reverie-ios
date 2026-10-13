@@ -25,7 +25,7 @@ Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINAT
 4. Settings: create, edit, delete, or select scenes; export a JSON file or import a saved session; change appearance; cancel notifications; reset data.
 5. Studio saved cues: save the current setup, edit and reuse named presets, and review or cancel individual queued alerts.
 
-Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Each build variant has its own unique bundle identity, display name, and icon. iOS renders notifications using that installed variant’s identity. Charts show explicitly labeled illustrative curves, not invented historical records. All currencies use the device locale for formatting. No real financial or commerce services are connected.
+Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Each build variant has its own unique bundle identity, display name, and icon. iOS renders notifications using that installed variant’s identity. Charts use editable fictional scene curves. All currencies use the device locale for formatting. No real financial or commerce services are connected.
 
 ## Validation status
 
@@ -82,7 +82,7 @@ Each transaction saves its balances, holdings, and record together. Invalid valu
 
 ## Separate branded packages
 
-After the base device build, run `./scripts/build-brand-variants.sh` on a Mac. It produces 20 unsigned packages and a verified SHA-256 manifest in `brand-artifacts` (uploaded as `Reverie-unsigned-apps`): Shopify-style commerce plus Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC, Barclays, Lloyds Bank, NatWest, Monzo, Revolut and Starling Bank, plus Robinhood, Wealthsimple, Coinbase, MetaMask, Phantom, Trust Wallet, and Polymarket. Use `--only chase` (or another ID from `References/Branding/variants.json`) to build one package. GitHub Actions builds and uploads all 20 automatically.
+Run `./scripts/verify-macos.sh device`, then `./scripts/build-brand-variants.sh` on a Mac. The first build compiles all reference icons once; packaging reuses that executable and icon catalog and configures each app through its runtime metadata. It produces 20 unsigned packages and a verified SHA-256 manifest in `brand-artifacts` (uploaded as `Reverie-unsigned-apps`): Shopify-style commerce plus Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC, Barclays, Lloyds Bank, NatWest, Monzo, Revolut and Starling Bank, plus Robinhood, Wealthsimple, Coinbase, MetaMask, Phantom, Trust Wallet, and Polymarket. Use `--only chase` (or another ID from `References/Branding/variants.json`) to build one package. GitHub Actions builds and uploads all 20 automatically.
 
 Each variant launches its matching immersive scene after the roleplay onboarding and on subsequent launches. Branded variants restore their configured appearance on relaunch while preserving existing scene data. Reset clears the session and restores starter account data. Clean playback is enabled by default in variants. Return to Studio from a profile/menu → Close scene, or hold the bank name for two seconds in banking. Studio → Settings can show the extra playback controls again. All variants remain local fictional simulators with separate storage; their identities do not replace the genuine apps. See `INSTALL.md` for signing and installation options.
 

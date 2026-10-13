@@ -51,7 +51,16 @@ final class ReverieUITests: XCTestCase {
             },
             object: element
         )
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed,
+        let result = XCTWaiter.wait(for: [expectation], timeout: timeout)
+        if result != .completed {
+            let app = XCUIApplication()
+            let tree = XCTAttachment(string: app.debugDescription)
+            tree.name = "Application accessibility tree after failed control wait"
+            tree.lifetime = .keepAlways
+            add(tree)
+            captureScreen("Failed control wait", in: app)
+        }
+        XCTAssertEqual(result, .completed,
                        "The control did not become hittable within \(timeout) seconds.", file: file, line: line)
     }
 
@@ -610,7 +619,7 @@ extension ReverieUITests {
         scrollTo(review, in: app)
         XCTAssertTrue(review.isEnabled)
         review.tap()
-        XCTAssertTrue(app.staticTexts["$2,464.00"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Cash after trade, $2,464.00"].waitForExistence(timeout: 3))
         let confirm = app.buttons["prediction-confirm"]
         waitForHittable(confirm)
         confirm.tap()

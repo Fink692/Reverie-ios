@@ -6,9 +6,10 @@
 - Native model/storage/Store XCTest cases.
 - iPhone simulator onboarding, scene editing, accounting, persistence and notification queue scheduling/cancellation.
 - Immersive commerce Home, Orders, product editing and order fulfillment.
+- All 12 bank themes, account navigation, clean playback and branded relaunch/reset (native baseline).
 - Native commerce and bank screenshots inspected against public references.
 
-The current final build will additionally check all 12 bank themes, branded startup/relaunch and all 13 packaged app identities/icons. See `Verification/STATUS.md` and the Actions run for exact results.
+The expanded build checks all 12 bank themes and seven investing/wallet/prediction styles, purchase/send/relaunch flows, all 20 packaged app identities/icons, and five production-metadata startup screens. See `Verification/STATUS.md` and the Actions run for exact results.
 
 ## Still requires a signed physical device or additional runtime coverage
 

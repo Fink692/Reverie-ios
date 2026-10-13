@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - README.md
       - INSTALL.md
+      - DEVICE-CHECKLIST.md
       - Verification/**
       - References/**/*.md
       - References/**/*.jpg

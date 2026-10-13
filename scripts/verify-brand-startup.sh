@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 
 [[ -n "${SIMULATOR_ID:-}" ]] || { echo 'SIMULATOR_ID is required for brand startup screenshots.' >&2; exit 1; }
 command -v xcodebuild >/dev/null || { echo 'Xcode and its command line tools are required.' >&2; exit 1; }
+[[ -f scripts/brand_bundle.py ]] || { echo 'Missing scripts/brand_bundle.py.' >&2; exit 1; }
 
 startup_work="$(mktemp -d "${TMPDIR:-/tmp}/reverie-brand-startup.XXXXXX")"
 trap 'rm -rf "$startup_work"' EXIT
@@ -12,96 +13,50 @@ mkdir -p brand-artifacts
 python3 - "$startup_work" <<'PY'
 from pathlib import Path
 import json
-import plistlib
 import sys
 
 work = Path(sys.argv[1])
-source = Path('build/Build/Products/Debug-iphonesimulator/Reverie.app/Info.plist')
-if not source.is_file():
-    raise SystemExit('Base simulator app missing. Run the native simulator tests first.')
-base = plistlib.loads(source.read_bytes())
-if base.get('CFBundleIdentifier') != 'com.reverie.simulator':
-    raise SystemExit('Simulator output must be the base Reverie app before startup checks.')
 raw = json.loads(Path('References/Branding/variants.json').read_text())
 variants = raw['variants'] if isinstance(raw, dict) else raw
-representatives = ('commerce', 'chase', 'robinhood', 'phantom', 'polymarket')
-selected = []
-for name in representatives:
-    matches = [entry for entry in variants if entry['id'] == name]
-    if len(matches) != 1:
-        raise SystemExit(f'Expected exactly one startup representative: {name}.')
-    selected.append(matches[0])
-theme_keys = {
-    'bankTheme': 'ReverieBankTheme',
-    'portfolioTheme': 'ReveriePortfolioTheme',
-    'walletTheme': 'ReverieWalletTheme',
-    'predictionTheme': 'ReveriePredictionTheme',
+representatives = {
+    'commerce': 'commerce',
+    'chase': 'banking',
+    'robinhood': 'portfolio',
+    'phantom': 'wallet',
+    'polymarket': 'prediction',
 }
-for entry in selected:
-    info = dict(base)
-    for key in ('CFBundleIcons', 'CFBundleIcons~ipad', 'CFBundleIconFiles', 'CFBundleIconName', 'ReveriePlaybackKind', *theme_keys.values()):
-        info.pop(key, None)
-    info['CFBundleIdentifier'] = entry['bundleIdentifier']
-    info['CFBundleDisplayName'] = entry['displayName']
-    info['ReveriePlaybackKind'] = entry['playbackKind']
-    for field, key in theme_keys.items():
-        if field in entry:
-            info[key] = entry[field]
-    (work / f"{entry['id']}.plist").write_bytes(plistlib.dumps(info))
-(work / 'variants.json').write_text(json.dumps(selected, indent=2) + '\n')
+selected = []
+for name, kind in representatives.items():
+    matches = [entry for entry in variants if entry['id'] == name]
+    if len(matches) != 1 or matches[0].get('playbackKind') != kind:
+        raise SystemExit(f'Missing or invalid {kind} startup representative: {name}.')
+    selected.append(matches[0])
 with (work / 'variants.tsv').open('w') as rows:
     for entry in selected:
-        rows.write('\t'.join(entry[key] for key in ('id', 'displayName', 'bundleIdentifier', 'appIcon')) + '\n')
+        rows.write('\t'.join(entry[key] for key in ('id', 'displayName', 'bundleIdentifier')) + '\n')
 PY
 
+# Compile all icon resources once. CI's native tests use the same settings, so
+# this build reuses their Debug executable and catalog rather than each flavor
+# compiling the Swift application again.
+brand_icons="$(./scripts/verify-macos.sh --brand-icon-names)"
+xcodebuild -project Reverie.xcodeproj -scheme Reverie -configuration Debug \
+    -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build \
+    ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=YES \
+    "ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES=$brand_icons" \
+    CODE_SIGNING_ALLOWED=NO build 2>&1 | tee brand-artifacts/startup-base-simulator-build.log
+
+startup_base=build/Build/Products/Debug-iphonesimulator/Reverie.app
 xcrun simctl bootstatus "$SIMULATOR_ID" -b
-while IFS=$'\t' read -r startup_id startup_name startup_bundle startup_icon; do
-    xcodebuild -project Reverie.xcodeproj -scheme Reverie -configuration Debug \
-        -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build \
-        PRODUCT_NAME=Reverie PRODUCT_MODULE_NAME=Reverie \
-        PRODUCT_BUNDLE_IDENTIFIER="$startup_bundle" \
-        ASSETCATALOG_COMPILER_APPICON_NAME="$startup_icon" \
-        GENERATE_INFOPLIST_FILE=NO INFOPLIST_FILE="$startup_work/$startup_id.plist" \
-        INFOPLIST_KEY_CFBundleDisplayName="$startup_name" \
-        CODE_SIGNING_ALLOWED=NO build 2>&1 | tee "brand-artifacts/$startup_id-simulator-build.log"
-    xcrun simctl install "$SIMULATOR_ID" build/Build/Products/Debug-iphonesimulator/Reverie.app
+while IFS=$'\t' read -r startup_id startup_name startup_bundle; do
+    startup_app="$startup_work/$startup_id/Reverie.app"
+    python3 scripts/brand_bundle.py prepare --base-app "$startup_base" \
+        --output-app "$startup_app" --variant-id "$startup_id" --platform iPhoneSimulator
+    xcrun simctl install "$SIMULATOR_ID" "$startup_app"
     startup_container="$(xcrun simctl get_app_container "$SIMULATOR_ID" "$startup_bundle" app)"
-    python3 - "$startup_work" "$startup_id" "$startup_container" <<'PY'
-from pathlib import Path
-import json
-import plistlib
-import sys
-
-entry = next(item for item in json.loads((Path(sys.argv[1]) / 'variants.json').read_text()) if item['id'] == sys.argv[2])
-app = Path(sys.argv[3])
-info = plistlib.loads((app / 'Info.plist').read_bytes())
-for key, expected in [('CFBundleIdentifier', entry['bundleIdentifier']), ('CFBundleDisplayName', entry['displayName']), ('ReveriePlaybackKind', entry['playbackKind'])]:
-    if info.get(key) != expected:
-        raise SystemExit(f"Installed {entry['id']} has unexpected {key}.")
-theme_keys = {
-    'bankTheme': 'ReverieBankTheme',
-    'portfolioTheme': 'ReveriePortfolioTheme',
-    'walletTheme': 'ReverieWalletTheme',
-    'predictionTheme': 'ReveriePredictionTheme',
-}
-for field, key in theme_keys.items():
-    if info.get(key) != entry.get(field):
-        raise SystemExit(f"Installed {entry['id']} has unexpected {key}.")
-primary = info.get('CFBundleIcons', {}).get('CFBundlePrimaryIcon', {})
-if primary.get('CFBundleIconName') != entry['appIcon']:
-    raise SystemExit(f"Installed {entry['id']} has unexpected primary app icon.")
-if info.get('CFBundleSupportedPlatforms') != ['iPhoneSimulator']:
-    raise SystemExit(f"Installed {entry['id']} is not a simulator build.")
-if not (app / 'Order.caf').is_file():
-    raise SystemExit(f"Installed {entry['id']} is missing its order notification sound.")
-print(f"Verified installed {entry['displayName']} simulator app metadata and bundled sound.")
-Path('brand-artifacts', f"{entry['id']}-installed-info.json").write_text(json.dumps({
-    **entry,
-    'installedInfo': {key: info[key] for key in ('CFBundleIdentifier', 'CFBundleDisplayName', 'ReveriePlaybackKind', 'CFBundleSupportedPlatforms', *theme_keys.values()) if key in info},
-    'installedIcon': primary,
-}, indent=2) + '\n')
-PY
-    # Set the existing onboarding preference for these isolated simulator checks.
+    python3 scripts/brand_bundle.py validate --app "$startup_container" \
+        --variant-id "$startup_id" --platform iPhoneSimulator \
+        --output-json "brand-artifacts/$startup_id-installed-info.json"
     # No UI-test brand override is supplied: startup reads the installed Info.plist.
     xcrun simctl launch --terminate-running-process "$SIMULATOR_ID" "$startup_bundle" \
         -welcomed YES -AppleLanguages '(en)' -AppleLocale en_US
