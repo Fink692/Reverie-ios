@@ -55,12 +55,12 @@ xcrun simctl launch booted com.reverie.simulator
 
 Complete the onboarding explaining that figures and notifications are fictional. Edit your scene, totals, account holder, and currency in Studio. Use **Open scene** for playback; variants open their configured scene after onboarding. Enable notification permission when scheduling alerts. Sessions stay local and can be exported from Settings. No real service login, wallet recovery phrase, or private key is needed.
 
-Variants start with **Clean playback** enabled: return to Studio through a profile/menu → **Close scene**, or hold the bank name for **two seconds**. Settings → Clean playback can restore visible close and bank-selection controls.
+Variants start with **Clean playback** enabled: return to Studio through a profile/menu → **Close scene**. Wealthsimple opens that menu from its **Holdings** title. For banking, hold the central area of the top toolbar for **two seconds**; HSBC uses the **Your products** heading on Home. Settings → Clean playback can restore visible close and bank-selection controls.
 
 ## Quick notification setup
 
 1. Install the matching brand IPA from **Choose a build** above; that installed app supplies the notification name and icon.
-2. Return from playback through profile/menu → **Close scene** or the bank-name hold described above, then open **Studio**.
+2. Return from playback through profile/menu → **Close scene** or the banking hold described above, then open **Studio**.
 3. Tap **Browse notification templates**. Commerce includes **New Shopify order** and **Shopify order burst**; other scenes offer their relevant alerts. You can also choose **Notification style → Custom notification**. Edit the title, **Details**, and any shown amount, customer, item quantity, and order number.
 4. Set **1–20 alerts**, **Start after**, and **Repeat interval**. The start menu offers 5 seconds, 30 seconds, 1 minute, or 5 minutes; repeat intervals offer 5, 10, 15, 20, 30, or 60 seconds. Template and imported custom values are retained. Optionally use **Save current cue** to keep the setup for later.
 5. Tap **Cue notifications**, choose **Allow** if iOS asks, and wait for the queued confirmation. You can then lock your phone.

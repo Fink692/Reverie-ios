@@ -21,3 +21,8 @@ All eight screenshots were visually inspected as a contact sheet; `polymarket-2.
 Use white/light content surfaces, compact dark typography, blue selection/action accents and sport/category navigation for the directly observed Home route. Keep illustrative local event questions and balances customizable. Standard Yes/No market details, order-entry forms, portfolio rows and history can be consistent local simulation routes, but these sources do not justify claiming their exact current Polymarket layout.
 
 The current listing's screenshots are public promotional assets without individual capture dates. They do not verify every current-binary screen, system notification name, notification sound, gestures, keyboard states or precise spacing. App Store listing title is recorded separately from the selected short display label Polymarket; the genuine installed CFBundleDisplayName was not inspected. Exact full-app parity requires a same-device comparison against the target app.
+
+
+## Implemented public artwork
+
+`implemented-artwork-sources.json` records the exact URLs, filenames, dimensions, byte sizes, SHA-256 hashes and attribution for 12 downloaded public league/team/helmet PNGs used by the native sports views. Downloaded bytes are preserved without transformation. These are proprietary public brand assets; no open-content license is asserted. The banner helmet differs from the specific promotional screenshot helmet, and the app's single-outcome local ticket does not implement the pictured combo/chat/livestream products.

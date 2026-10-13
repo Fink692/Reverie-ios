@@ -2,6 +2,8 @@
 
 Retrieved 13 October 2026 from Apple's public App Store lookup service. Each bank's JSON file preserves the official listing metadata and screenshot URLs. The numbered JPG files preserve screenshots supplied by the bank's developer. These are research references; the app renders native SwiftUI views and does not display marketing screenshots as its interface.
 
+All 103 listing screenshots are now preserved. `expanded-image-sources.json` records the URLs, filenames, sizes and SHA-256 hashes for 52 additional screenshots recovered from these saved listing URLs during the fidelity review. Some marketing shots visibly contain older dates/devices; the listing version is not proof of a screenshot's capture version.
+
 The twelve included banks are a concrete selection of major US and UK banks plus Revolut. This selection does not represent every major bank worldwide. A country's own banking app may differ from another country's app with the same brand.
 
 | Appearance | App Store listing | Version observed | Screenshot observations used |

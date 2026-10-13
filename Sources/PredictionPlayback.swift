@@ -127,13 +127,13 @@ struct PredictionPlayback: View {
             return first.league < second.league
         }
         return ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: 18) {
                 leagueNavigation
                 if !liveOnly { seasonBanner }
                 if !liveOnly && !trending.isEmpty {
                     Text("Trending").font(.headline).accessibilityAddTraits(.isHeader)
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             ForEach(trending) { game in
                                 Button { sheet = .market(game.marketID) } label: { PredictionScoreCard(game: game) }
                                     .buttonStyle(.plain).accessibilityIdentifier("prediction-trending-\(game.id.uuidString)")
@@ -186,8 +186,8 @@ struct PredictionPlayback: View {
                 ForEach(leagues, id: \.self) { value in
                     Button { league = value } label: {
                         VStack(spacing: 7) {
-                            Text(predictionLeagueGlyph(value)).font(.system(size: 25))
-                                .frame(width: 46, height: 46)
+                            PredictionLeagueArtwork(league: value)
+                                .frame(width: 42, height: 42)
                                 .background(league == value ? PredictionColors.fill : .clear, in: RoundedRectangle(cornerRadius: 12))
                             Text(value).font(.caption.weight(league == value ? .semibold : .regular))
                                 .foregroundStyle(league == value ? .primary : .secondary)
@@ -207,13 +207,28 @@ struct PredictionPlayback: View {
             ZStack(alignment: .leading) {
                 LinearGradient(colors: [Color(red: 0.10, green: 0.13, blue: 0.23), Color(red: 0.21, green: 0.30, blue: 0.48)], startPoint: .topLeading, endPoint: .bottomTrailing)
                 GeometryReader { geometry in
-                    Circle().fill(.white.opacity(0.06)).frame(width: geometry.size.width * 0.9).offset(x: geometry.size.width * 0.42, y: -40)
-                    PredictionHelmet().frame(width: 150, height: 142).rotationEffect(.degrees(-9)).position(x: geometry.size.width - 72, y: 98)
+                    Path { path in
+                        path.move(to: CGPoint(x: geometry.size.width * 0.46, y: 0))
+                        path.addLine(to: CGPoint(x: geometry.size.width * 0.75, y: 0))
+                        path.addLine(to: CGPoint(x: geometry.size.width * 0.56, y: geometry.size.height))
+                        path.addLine(to: CGPoint(x: geometry.size.width * 0.28, y: geometry.size.height))
+                        path.closeSubpath()
+                    }.fill(.white.opacity(0.035))
+                    Ellipse().fill(.white.opacity(0.065)).frame(width: geometry.size.width * 0.64, height: 260)
+                        .rotationEffect(.degrees(24)).offset(x: geometry.size.width * 0.56, y: -40)
+                    Image("PredictionFidelity-SeasonHelmet").resizable().scaledToFit()
+                        .frame(width: 165, height: 150).rotationEffect(.degrees(-8))
+                        .position(x: geometry.size.width - 69, y: 88)
+                        .shadow(color: .black.opacity(0.25), radius: 8, y: 5)
                 }
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("PRO  FOOTBALL").font(.title2.weight(.heavy)).foregroundStyle(.white)
+                    HStack(spacing: 5) {
+                        Text("PRO")
+                        Image("PredictionFidelity-SeasonFootball").resizable().scaledToFit().frame(width: 31, height: 24).accessibilityHidden(true)
+                        Text("FOOTBALL")
+                    }.font(.system(size: 20, weight: .heavy)).foregroundStyle(.white)
                     Text("Regular Season").font(.subheadline).foregroundStyle(.white.opacity(0.8))
-                    Spacer(minLength: 15)
+                    Spacer(minLength: 12)
                     Text("Week 3 of 18").font(.subheadline).foregroundStyle(.white.opacity(0.8))
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.2)).frame(width: 125, height: 4)
@@ -221,9 +236,9 @@ struct PredictionPlayback: View {
                         Circle().fill(.white).frame(width: 13, height: 13).offset(x: 18)
                     }.frame(height: 13).accessibilityHidden(true)
                 }
-                .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                .padding(18).frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 172).clipShape(RoundedRectangle(cornerRadius: 22))
+            .frame(height: 146).clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain).accessibilityLabel("Pro Football regular season, view markets")
         .accessibilityIdentifier("prediction-season-banner")
@@ -232,13 +247,16 @@ struct PredictionPlayback: View {
     private func squads(_ scene: StudioScene) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
-                Text("Squads").font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
-                Text("Your market groups").font(.headline).foregroundStyle(.secondary)
+                VStack(spacing: 8) {
+                    Text("SQUADS").font(.system(size: 36, weight: .heavy)).italic().accessibilityAddTraits(.isHeader)
+                    Text("Trade your favorite matchups").font(.subheadline).foregroundStyle(.secondary)
+                }.frame(maxWidth: .infinity).padding(.vertical, 16)
                 ForEach(Array(Set(games.map(\.league))).sorted(), id: \.self) { value in
                     let fixtures = games.filter { $0.league == value }
                     Button { league = value; tab = .home } label: {
                         HStack(spacing: 14) {
-                            Text(predictionLeagueGlyph(value)).font(.largeTitle).frame(width: 60, height: 60).background(PredictionColors.fill, in: RoundedRectangle(cornerRadius: 16))
+                            PredictionLeagueArtwork(league: value).frame(width: 48, height: 48)
+                                .frame(width: 60, height: 60).background(PredictionColors.fill, in: RoundedRectangle(cornerRadius: 16))
                             VStack(alignment: .leading, spacing: 7) {
                                 Text("\(value) watchlist").font(.headline)
                                 Text("\(fixtures.count) game\(fixtures.count == 1 ? "" : "s") · view markets").font(.subheadline).foregroundStyle(.secondary)
@@ -426,6 +444,8 @@ struct PredictionPlayback: View {
                     VStack(spacing: 5) {
                         if value == .portfolio, let scene {
                             Text(scene.money(profile.total(cash: scene.balance))).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(height: 23)
+                        } else if value == .home {
+                            PredictionHomeMark(selected: tab == .home).frame(width: 26, height: 23)
                         } else { Image(systemName: value.symbol).font(.title3).frame(height: 23) }
                         Text(value.title).font(.caption2.weight(tab == value ? .semibold : .regular))
                     }
@@ -445,22 +465,27 @@ struct PredictionPlayback: View {
 private struct PredictionScoreCard: View {
     let game: PredictionGame
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label(game.status, systemImage: game.isLive ? "circle.fill" : "clock")
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                if game.isLive { Circle().fill(PredictionColors.red).frame(width: 5, height: 5).accessibilityHidden(true) }
+                else { Image(systemName: "clock").font(.caption2).foregroundStyle(.secondary).accessibilityHidden(true) }
+                Text(game.status)
                     .font(.caption.weight(.semibold)).foregroundStyle(game.isLive ? PredictionColors.red : .secondary)
                 Spacer(minLength: 8)
                 Text(game.league).font(.caption).foregroundStyle(.secondary)
             }
+            PredictionDashedLine().stroke(Color.secondary.opacity(0.13), style: StrokeStyle(lineWidth: 1, dash: [4, 4])).frame(height: 1)
             scoreRow(game.homeTeam, score: game.homeScore, color: PredictionColors.blue)
             scoreRow(game.awayTeam, score: game.awayScore, color: Color(red: 0.76, green: 0.35, blue: 0.18))
         }
-        .padding(15).frame(width: 205, alignment: .leading).predictionSurface()
+        .padding(.horizontal, 13).padding(.vertical, 12).frame(width: 190, alignment: .leading)
+        .background(PredictionScoreTicket().fill(.white))
+        .overlay(PredictionScoreTicket().stroke(Color.secondary.opacity(0.11)))
         .accessibilityElement(children: .combine)
     }
     private func scoreRow(_ team: String, score: Int, color: Color) -> some View {
         HStack(spacing: 9) {
-            Text(predictionTeamInitials(team)).font(.caption2.weight(.heavy)).foregroundStyle(color).frame(width: 23, height: 22)
+            PredictionTeamArtwork(team: team, league: game.league, color: color).frame(width: 23, height: 23)
             Text(team).font(.subheadline).foregroundStyle(.primary).lineLimit(1)
             Spacer(minLength: 4)
             Text(score.formatted()).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
@@ -498,14 +523,14 @@ private struct PredictionGameCard: View {
                 }.font(.caption).foregroundStyle(.secondary).frame(minHeight: 44)
             }.buttonStyle(.plain)
         }
-        .padding(16).predictionSurface()
+        .padding(.vertical, 5)
+        .overlay(alignment: .bottom) { Divider().offset(y: 9) }
     }
     private func choice(_ outcome: PredictionOutcome, team: String, color: Color) -> some View {
         let price = market.price(for: outcome)
         return Button { onBuy(outcome) } label: {
             HStack(spacing: 12) {
-                Text(predictionTeamInitials(team)).font(.caption.weight(.heavy)).foregroundStyle(color)
-                    .frame(width: 34, height: 34).background(color.opacity(0.09), in: RoundedRectangle(cornerRadius: 10))
+                PredictionTeamArtwork(team: team, league: game.league, color: color).frame(width: 40, height: 40)
                 VStack(alignment: .leading, spacing: 7) {
                     Text(team).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
                     Capsule().fill(color).frame(width: max(22, price * 115), height: 3)
@@ -536,35 +561,91 @@ private struct PredictionWordmark: Shape {
     }
 }
 
-private struct PredictionHelmet: View {
+/// Public artwork is bundled so playback never needs a network request.
+private struct PredictionLeagueArtwork: View {
+    let league: String
+    private var asset: String? {
+        switch league {
+        case "MLB": return "PredictionFidelity-LeagueMLB"
+        case "Pro": return "PredictionFidelity-LeaguePro"
+        case "CFB": return "PredictionFidelity-LeagueCFB"
+        case "NHL": return "PredictionFidelity-LeagueNHL"
+        default: return nil
+        }
+    }
     var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-            ZStack {
-                Path { path in
-                    path.move(to: CGPoint(x: width * 0.08, y: height * 0.63))
-                    path.addCurve(to: CGPoint(x: width * 0.82, y: height * 0.58), control1: CGPoint(x: -width * 0.05, y: -height * 0.2), control2: CGPoint(x: width, y: -height * 0.1))
-                    path.addLine(to: CGPoint(x: width * 0.61, y: height * 0.63))
-                    path.addLine(to: CGPoint(x: width * 0.56, y: height * 0.91))
-                    path.addLine(to: CGPoint(x: width * 0.22, y: height * 0.81))
-                    path.closeSubpath()
-                }
-                .fill(LinearGradient(colors: [.white, Color(red: 0.67, green: 0.75, blue: 0.88)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Path { path in
-                    path.move(to: CGPoint(x: width * 0.42, y: height * 0.06))
-                    path.addCurve(to: CGPoint(x: width * 0.47, y: height * 0.83), control1: CGPoint(x: width * 0.77, y: height * 0.06), control2: CGPoint(x: width * 0.7, y: height * 0.51))
-                }.stroke(Color(red: 0.09, green: 0.26, blue: 0.49), lineWidth: width * 0.09)
-                Path { path in
-                    path.move(to: CGPoint(x: width * 0.63, y: height * 0.52))
-                    path.addLine(to: CGPoint(x: width * 0.96, y: height * 0.72))
-                    path.addLine(to: CGPoint(x: width * 0.82, y: height * 0.98))
-                    path.addLine(to: CGPoint(x: width * 0.54, y: height * 0.86))
-                    path.move(to: CGPoint(x: width * 0.61, y: height * 0.66))
-                    path.addLine(to: CGPoint(x: width * 0.9, y: height * 0.84))
-                }.stroke(Color(red: 0.18, green: 0.24, blue: 0.34), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+        Group {
+            if let asset { Image(asset).resizable().scaledToFit().padding(3) }
+            else { Text(predictionLeagueGlyph(league)).font(.system(size: 28)) }
+        }.accessibilityHidden(true)
+    }
+}
+
+private struct PredictionTeamArtwork: View {
+    let team: String
+    let league: String
+    let color: Color
+    private var asset: String? {
+        switch (league, team.lowercased()) {
+        case ("Pro", "los angeles"), ("Pro", "los angeles rams"), ("Pro", "rams"): return "PredictionFidelity-TeamRams"
+        case ("Pro", "denver"), ("Pro", "denver broncos"), ("Pro", "broncos"): return "PredictionFidelity-TeamBroncos"
+        case ("MLB", "dodgers"), ("MLB", "los angeles dodgers"): return "PredictionFidelity-TeamDodgers"
+        case ("MLB", "rangers"), ("MLB", "texas rangers"): return "PredictionFidelity-TeamTexasRangers"
+        case ("NHL", "rangers"), ("NHL", "new york rangers"): return "PredictionFidelity-TeamNewYorkRangers"
+        case ("NHL", "bruins"), ("NHL", "boston bruins"): return "PredictionFidelity-TeamBruins"
+        default: return nil
+        }
+    }
+    var body: some View {
+        Group {
+            if let asset { Image(asset).resizable().scaledToFit() }
+            else {
+                Text(predictionTeamInitials(team)).font(.caption.weight(.heavy)).foregroundStyle(color)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(color.opacity(0.09), in: RoundedRectangle(cornerRadius: 9))
             }
         }.accessibilityHidden(true)
+    }
+}
+
+private struct PredictionHomeMark: View {
+    let selected: Bool
+    var body: some View {
+        Circle().fill(selected ? PredictionColors.blue : Color.secondary.opacity(0.75))
+            .overlay {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(.white).frame(width: 10, height: 10).rotationEffect(.degrees(-13))
+            }.accessibilityHidden(true)
+    }
+}
+
+private struct PredictionDashedLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in path.move(to: CGPoint(x: 0, y: rect.midY)); path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) }
+    }
+}
+
+private struct PredictionScoreTicket: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius: CGFloat = 14
+        let notch: CGFloat = 5
+        let divider = min(rect.height - radius - notch, 36)
+        return Path { path in
+            path.move(to: CGPoint(x: radius, y: 0))
+            path.addLine(to: CGPoint(x: rect.width - radius, y: 0))
+            path.addQuadCurve(to: CGPoint(x: rect.width, y: radius), control: CGPoint(x: rect.width, y: 0))
+            path.addLine(to: CGPoint(x: rect.width, y: divider - notch))
+            path.addQuadCurve(to: CGPoint(x: rect.width, y: divider + notch), control: CGPoint(x: rect.width - notch * 2, y: divider))
+            path.addLine(to: CGPoint(x: rect.width, y: rect.height - radius))
+            path.addQuadCurve(to: CGPoint(x: rect.width - radius, y: rect.height), control: CGPoint(x: rect.width, y: rect.height))
+            path.addLine(to: CGPoint(x: radius, y: rect.height))
+            path.addQuadCurve(to: CGPoint(x: 0, y: rect.height - radius), control: CGPoint(x: 0, y: rect.height))
+            path.addLine(to: CGPoint(x: 0, y: divider + notch))
+            path.addQuadCurve(to: CGPoint(x: 0, y: divider - notch), control: CGPoint(x: notch * 2, y: divider))
+            path.addLine(to: CGPoint(x: 0, y: radius))
+            path.addQuadCurve(to: CGPoint(x: radius, y: 0), control: .zero)
+            path.closeSubpath()
+        }
     }
 }
 
@@ -646,6 +727,7 @@ private struct PredictionMarketDetail: View {
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: PredictionProfile { store.predictionProfile(for: sceneID) }
     private var market: PredictionMarket? { profile.market(for: marketID) }
+    private var game: PredictionGame? { profile.games?.first { $0.marketID == marketID } }
     private var owned: Double { profile.positions.first { $0.marketID == marketID && $0.outcome == outcome }?.shares ?? 0 }
 
     var body: some View {
@@ -654,7 +736,8 @@ private struct PredictionMarketDetail: View {
                 if let market, let scene {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
-                            Text(market.category).font(.subheadline.weight(.semibold)).foregroundStyle(PredictionColors.blue)
+                            if let game { PredictionMatchHeader(game: game) }
+                            else { Text(market.category).font(.subheadline.weight(.semibold)).foregroundStyle(PredictionColors.blue) }
                             Text(market.question).font(.title2.bold()).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                             VStack(alignment: .leading, spacing: 12) {
                                 Text((market.yesPrice * 100).formatted(.number.precision(.fractionLength(0...1))) + "% chance")
@@ -692,6 +775,31 @@ private struct PredictionMarketDetail: View {
             .tint(PredictionColors.blue).preferredColorScheme(.light)
         }
         .accessibilityIdentifier("prediction-market-detail")
+    }
+}
+
+private struct PredictionMatchHeader: View {
+    let game: PredictionGame
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 5) {
+                if game.isLive { Circle().fill(PredictionColors.red).frame(width: 5, height: 5).accessibilityHidden(true) }
+                Text(game.status).foregroundStyle(game.isLive ? PredictionColors.red : .secondary)
+                Text("· \(game.league == "Pro" ? "Pro Football" : game.league)").foregroundStyle(.secondary)
+            }.font(.caption.weight(.medium))
+            HStack(alignment: .center, spacing: 16) {
+                team(game.homeTeam, score: game.homeScore, color: PredictionColors.blue)
+                Text("vs").font(.subheadline).foregroundStyle(.secondary)
+                team(game.awayTeam, score: game.awayScore, color: Color(red: 0.88, green: 0.36, blue: 0.18))
+            }
+        }.frame(maxWidth: .infinity).padding(.vertical, 10)
+    }
+    private func team(_ name: String, score: Int, color: Color) -> some View {
+        VStack(spacing: 8) {
+            PredictionTeamArtwork(team: name, league: game.league, color: color).frame(width: 60, height: 60)
+            Text(name).font(.subheadline.weight(.semibold)).lineLimit(2).multilineTextAlignment(.center)
+            if game.isLive { Text(score.formatted()).font(.title3.weight(.semibold)).monospacedDigit() }
+        }.frame(maxWidth: .infinity)
     }
 }
 

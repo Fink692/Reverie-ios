@@ -18,21 +18,13 @@ import sys
 work = Path(sys.argv[1])
 raw = json.loads(Path('References/Branding/variants.json').read_text())
 variants = raw['variants'] if isinstance(raw, dict) else raw
-representatives = {
-    'commerce': 'commerce',
-    'chase': 'banking',
-    'robinhood': 'portfolio',
-    'phantom': 'wallet',
-    'polymarket': 'prediction',
-}
-selected = []
-for name, kind in representatives.items():
-    matches = [entry for entry in variants if entry['id'] == name]
-    if len(matches) != 1 or matches[0].get('playbackKind') != kind:
-        raise SystemExit(f'Missing or invalid {kind} startup representative: {name}.')
-    selected.append(matches[0])
+required_kinds = {'commerce', 'banking', 'portfolio', 'wallet', 'prediction'}
+if {entry.get('playbackKind') for entry in variants} != required_kinds:
+    raise SystemExit('Startup captures require all five reference scene styles.')
+if len({entry['id'] for entry in variants}) != len(variants):
+    raise SystemExit('Startup variant identities must be unique.')
 with (work / 'variants.tsv').open('w') as rows:
-    for entry in selected:
+    for entry in variants:
         rows.write('\t'.join(entry[key] for key in ('id', 'displayName', 'bundleIdentifier')) + '\n')
 PY
 
@@ -72,4 +64,4 @@ while IFS=$'\t' read -r startup_id startup_name startup_bundle; do
     xcrun simctl io "$SIMULATOR_ID" screenshot "brand-artifacts/$startup_id-springboard-simulator.png"
 done < "$startup_work/variants.tsv"
 
-echo 'Captured production Info.plist startup screenshots for Shopify, Chase, Robinhood, Phantom, and Polymarket simulator variants.'
+echo 'Captured production Info.plist startup and SpringBoard screenshots for every reference variant.'

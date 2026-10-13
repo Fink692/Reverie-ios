@@ -1,0 +1,423 @@
+{
+  "retrievedAt": "2026-10-13",
+  "source": "Previously preserved official Apple listing screenshotUrls",
+  "files": [
+    {
+      "brand": "bankOfAmerica",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3f/9c/e3/3f9ce35a-1abd-645d-f9d7-42240d698d19/b524d592-ee05-4c8c-95e8-5f4f8413b73a_iphone8-appstore-send-money.png/392x696bb.png",
+      "file": "bankOfAmerica-3.jpg",
+      "sizeBytes": 223646,
+      "sha256": "96ef327339c48e293beec94b8e34a61c625b82cd0859f8cbda8b16d66a8edc9d"
+    },
+    {
+      "brand": "bankOfAmerica",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2e/fd/df/2efddf3e-1737-95d3-913a-aed790038a29/7de36735-4eda-44bc-851a-75c68eb6aab5_iphone8-appstore-activity-transfers-paybills.png/392x696bb.png",
+      "file": "bankOfAmerica-4.jpg",
+      "sizeBytes": 248428,
+      "sha256": "880b0ebff6334aa8a080b301b82c9409170bbf03acff9c97a182c553fafb54ca"
+    },
+    {
+      "brand": "bankOfAmerica",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/38/4b/00/384b0099-d2a8-a7b3-6698-e2b34ab1d86f/4229d922-a8c4-430d-92fa-e187813cab6c_iphone8-appstore-deposit-checks.png/392x696bb.png",
+      "file": "bankOfAmerica-5.jpg",
+      "sizeBytes": 238927,
+      "sha256": "40c21e41462e39a9684ffd042a7a43465754fda2a803515dc790b5f59e150590"
+    },
+    {
+      "brand": "bankOfAmerica",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b2/c6/46/b2c646e0-57c9-0763-657b-02c3dcd2b5dd/962733b1-4ac6-47f5-a7de-c0e87131f415_iphone8-appstore-activity-wire_transfers.png/392x696bb.png",
+      "file": "bankOfAmerica-6.jpg",
+      "sizeBytes": 244658,
+      "sha256": "7b7709f0ce6982b443ad976d337e5d8990f19656daccc98a569a97b957125dce"
+    },
+    {
+      "brand": "bankOfAmerica",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/de/f3/32/def332a1-32f9-bee5-0c31-0d73ecc6d92d/efa6a8d6-b2e1-4903-ab8e-0ddc1053d3de_iphone8-appstore-track-rewards.png/392x696bb.png",
+      "file": "bankOfAmerica-7.jpg",
+      "sizeBytes": 270673,
+      "sha256": "4e4a5fdf994a59ae685a232b2416a641ddbae3cac1cc806306bf7573d6a19331"
+    },
+    {
+      "brand": "bankOfAmerica",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/34/de/36/34de3642-e176-f5b0-3119-f88851bc946d/ad733acb-4d81-4e5b-a23d-df14a42522ad_iphone8-appstore-monitor-accounts.png/392x696bb.png",
+      "file": "bankOfAmerica-8.jpg",
+      "sizeBytes": 248952,
+      "sha256": "cd57a45db7e177a9e68a4adb9e85ec08e514c3853b50e1f9c9b8201d9761ef2c"
+    },
+    {
+      "brand": "chase",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/89/ac/32/89ac3225-8750-82ac-1b90-cc2272efa293/73a5aa50-adb5-4cde-921c-1d651f6b533c_Screen_3-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-3.jpg",
+      "sizeBytes": 60380,
+      "sha256": "a0984de9e7865cb34c2c7930dd68f65a05485f7617b30b04ae83461c3d7a3d58"
+    },
+    {
+      "brand": "chase",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4b/89/2b/4b892bc3-a365-f686-5cfb-229135f59e87/bc1231a8-8b99-4521-8926-cbbf6926fa03_Screen_4-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-4.jpg",
+      "sizeBytes": 47567,
+      "sha256": "66e7322386e0eaccb340ea4bd0cde8cf90443792a7bc3523d3cd371083a6becf"
+    },
+    {
+      "brand": "chase",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/0e/2e/6a/0e2e6a16-dd07-87fa-a5bb-c01f35de9956/1445c14d-d6f9-4f7d-bae6-7da53b764675_Screen_6-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-5.jpg",
+      "sizeBytes": 48624,
+      "sha256": "20b5846ce81358647e24b5fe3850a543b4fcef6472f1c2dbc5eaa3eee2e72354"
+    },
+    {
+      "brand": "chase",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5b/8e/29/5b8e29c4-00e7-6c2b-b9cf-5077f65c3713/b5189061-e843-454a-abeb-6a78cfd0aee1_Screen_7-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-6.jpg",
+      "sizeBytes": 59130,
+      "sha256": "2e13b662ded05e063eedeac18c9f5b6de9deec4407370378ce0cf104eadcd747"
+    },
+    {
+      "brand": "chase",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b5/57/26/b55726ff-f023-5bab-a8c8-7b5182b4e6e1/fa75c977-8d8e-4f64-a08e-eeb79b8b88a7_Screen_8-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-7.jpg",
+      "sizeBytes": 46990,
+      "sha256": "1307cbab01da6e851c5d49ea3e5166301ca9e12e20584fcdd8f35956659bb54c"
+    },
+    {
+      "brand": "chase",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/af/5d/9d/af5d9d39-5ee7-312c-af1e-ba25e3c7cc59/922634f5-1d96-40b4-89b8-9e9008028a76_Screen_9-1242x2208.jpg/392x696bb.jpg",
+      "file": "chase-8.jpg",
+      "sizeBytes": 47720,
+      "sha256": "f6c6fda10e1cc44a1ee3b8b50d1b967421cbada0a362928c3dd1934e75e21d80"
+    },
+    {
+      "brand": "chase",
+      "index": 9,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/96/91/39/9691399d-ddbb-aa60-1688-b43849236d3a/9db835f2-d95d-4352-95fc-c48671f9d48b_1242_x_2208_WP_appstore5.5.jpg/392x696bb.jpg",
+      "file": "chase-9.jpg",
+      "sizeBytes": 55358,
+      "sha256": "bc640c9e6bd912ba56fb6d0f97f9cdab50979c3618769838406e10fc9ecee24d"
+    },
+    {
+      "brand": "citi",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource123/v4/5f/0e/21/5f0e21cc-7349-4b52-f32f-a7adbb6211bb/0e07c80a-d3fa-43fb-8b7b-ef64f8b2e89b_CItiCC_5.5_Screen_3.png/392x696bb.png",
+      "file": "citi-3.jpg",
+      "sizeBytes": 291791,
+      "sha256": "561b23fdcf0b122afa3b6fc876182f10fc6ab4e839ec9d755f2593647d99732d"
+    },
+    {
+      "brand": "citi",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource123/v4/43/c9/fb/43c9fb3f-1dd0-bbab-d669-0df59c5ca0f8/0ea71db7-ccbe-4318-b301-45985d55a720_CItiCC_5.5_Screen_4.png/392x696bb.png",
+      "file": "citi-4.jpg",
+      "sizeBytes": 165959,
+      "sha256": "cb3030fc093ff24cccee4a6fad309a8fed8521047f16dfc7f8694b2b5b28e748"
+    },
+    {
+      "brand": "citi",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource113/v4/d0/5b/2a/d05b2a99-8fb4-ace8-3675-0801d519a7ee/f4627e5d-91f5-465f-8fd3-400419f712ed_CItiCC_5.5_Screen_5.png/392x696bb.png",
+      "file": "citi-5.jpg",
+      "sizeBytes": 317416,
+      "sha256": "5afaa73e0f0be9d72da4afef88a0f7b32f2599a0d4d3ae0a408384caf3c14503"
+    },
+    {
+      "brand": "citi",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource123/v4/33/09/9c/33099ce5-33c2-f4d7-5d63-8388e8657738/7298ae67-fb8d-4597-84b0-100adc311115_CItiCC_5.5_Screen_6.png/392x696bb.png",
+      "file": "citi-6.jpg",
+      "sizeBytes": 172275,
+      "sha256": "be2383aac4b51ff86dd05e7135c797c39189cee5ef5b3b1a20575b6514943bf9"
+    },
+    {
+      "brand": "citi",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource113/v4/b3/01/25/b30125fe-20b9-5b5b-1b7f-c6de31aa30ed/83e67cf4-f811-499a-a24b-5e29bf9a0e44_CItiCC_5.5_Screen_7.png/392x696bb.png",
+      "file": "citi-7.jpg",
+      "sizeBytes": 163059,
+      "sha256": "6a5cc381301899a212bd75183946d4c764643c5ce815bd09e03741908e1a3c3b"
+    },
+    {
+      "brand": "lloyds",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8b/d2/af/8bd2af18-bfea-7a46-e0fc-17d29a88f1da/99521b73-e7f1-4a4c-9105-f06dda6371e8_03._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-3.jpg",
+      "sizeBytes": 120365,
+      "sha256": "37ecfa183df38f626da7e48ad34dfb7c87420fdf451894bb4e500bf23dbe3766"
+    },
+    {
+      "brand": "lloyds",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/10/be/ad/10bead1d-dac8-c509-8532-e3549f7cee9a/9f710f4e-9470-40dc-bd0d-6844b1b562b1_04._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-4.jpg",
+      "sizeBytes": 130536,
+      "sha256": "9f899889e870269073c4bdf75eb9abc1c8bdab255f388f51b24b3eaca3e7067d"
+    },
+    {
+      "brand": "lloyds",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c8/1e/4c/c81e4c91-0e79-08c1-be6b-f520c1649dd8/25d8b042-7872-4486-aa3c-dd96b8feaa9e_05._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-5.jpg",
+      "sizeBytes": 120834,
+      "sha256": "a6e605260140eff77bef1d5b763d7725ad4310ce8eb95f861622c17e277acbeb"
+    },
+    {
+      "brand": "lloyds",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/09/eb/97/09eb97e8-017c-14ea-ed43-54a5161ab553/487a4dfb-0fd1-4819-ac6e-681f54f27c99_06._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-6.jpg",
+      "sizeBytes": 139370,
+      "sha256": "9056b3165e6ae2be66ab93bcea9db7afe36849dd8e3f2ecc3471b75444aad02c"
+    },
+    {
+      "brand": "lloyds",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6d/0f/92/6d0f92ac-bb7e-9186-f84f-d37d50ff215a/60600ae9-9078-485b-8cf7-8c5b0471bb89_07._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-7.jpg",
+      "sizeBytes": 110875,
+      "sha256": "3d7a75d5b8645b18d368c65e25d7fb06735785ec32d3620451f98d236d7f2bc8"
+    },
+    {
+      "brand": "lloyds",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/94/2d/cd/942dcd17-f897-233e-fde0-b47469e2d603/09ea472b-af28-4d3b-bce6-6e00d8f52ad7_08._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-8.jpg",
+      "sizeBytes": 124768,
+      "sha256": "ab5d8967f011aff828b46c1e2d7a8ac667cd9d5a8a8190650057fba8e6a5d7f3"
+    },
+    {
+      "brand": "lloyds",
+      "index": 9,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/89/6d/0e/896d0e4a-bec0-400a-2580-591614b064c2/23d1b343-1e22-423e-88ac-5f81016956c1_09._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-9.jpg",
+      "sizeBytes": 129795,
+      "sha256": "084c34bd61ec08a5ae0fea6b19e37d80ef376674b5b3d5fc567698625142ac05"
+    },
+    {
+      "brand": "lloyds",
+      "index": 10,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/1a/ff/bf/1affbf20-070a-4444-2896-c201c3fc6f24/f4654d22-e5a9-40b0-a309-b374b52d0d7a_10._App_store_1242_x_2208.png/392x696bb.png",
+      "file": "lloyds-10.jpg",
+      "sizeBytes": 130319,
+      "sha256": "15e6f186df51ec680bc3024e28c928b01cdad48e2561ad10bdfcb604abb40792"
+    },
+    {
+      "brand": "monzo",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/92/b5/7e/92b57eb5-408f-77f1-b81d-252be00d58b7/iOS_1242x2208_03.jpg/392x696bb.jpg",
+      "file": "monzo-3.jpg",
+      "sizeBytes": 133655,
+      "sha256": "e632adcacf4cfd075a60fc583dcd77de126680bcd00d28d7df5d7e0d61a544cf"
+    },
+    {
+      "brand": "monzo",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3d/00/6c/3d006cf2-681d-e133-4a38-088239e5b509/iOS_1242x2208_04.jpg/392x696bb.jpg",
+      "file": "monzo-4.jpg",
+      "sizeBytes": 78230,
+      "sha256": "965548e8453ac8843cec05ef8eade21fdb35e838a6936783a9147f1e715d13be"
+    },
+    {
+      "brand": "monzo",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/01/1e/7c/011e7c3a-46c2-939a-23a7-fe390cba5f28/iOS_1242x2208_05.jpg/392x696bb.jpg",
+      "file": "monzo-5.jpg",
+      "sizeBytes": 59985,
+      "sha256": "d7d0666bc6a8193b0085649d86f4fd59c23b115f95db4b06bc838bd65018c09b"
+    },
+    {
+      "brand": "monzo",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2c/34/fc/2c34fc7b-b788-ebee-d83e-249360fb79bd/iOS_1242x2208_06.jpg/392x696bb.jpg",
+      "file": "monzo-6.jpg",
+      "sizeBytes": 58669,
+      "sha256": "505f5c3208e7479764563013cf3fbef8669a1d3e11c4be4cee411a46f44d594c"
+    },
+    {
+      "brand": "monzo",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/57/96/21/57962135-59c6-59e2-5bad-0d2279beceef/iOS_1242x2208_07.jpg/392x696bb.jpg",
+      "file": "monzo-7.jpg",
+      "sizeBytes": 62457,
+      "sha256": "fc69d8b8a0af87954317df9e7a2395ef93cc71494af9cd9eafefce0e4900e0ed"
+    },
+    {
+      "brand": "monzo",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/88/d8/88/88d8886d-0c49-5f81-c0ea-6f4d3375f81a/iOS_1242x2208_08.jpg/392x696bb.jpg",
+      "file": "monzo-8.jpg",
+      "sizeBytes": 65171,
+      "sha256": "fb87aae02e0f250710f45dd297aac087b387b7be85ab4e2a2f620f45ddee0c88"
+    },
+    {
+      "brand": "natWest",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/15/f0/b9/15f0b933-f00f-1248-9268-d436db128741/NWB_IOS_03_Widgets.png/320x480bb.jpg",
+      "file": "natWest-3.jpg",
+      "sizeBytes": 20677,
+      "sha256": "26d1002dc9f158f072146ddf3a7f8b9435027cf7af3347bc392a64c17800cddd"
+    },
+    {
+      "brand": "natWest",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/5e/36/f6/5e36f6b2-a0d9-245c-8fbf-bdb7fa8e2755/NWB_IOS_04_Spending.png/320x480bb.jpg",
+      "file": "natWest-4.jpg",
+      "sizeBytes": 22486,
+      "sha256": "4aeb9db874b25503f1a5f38d2e98fc411ad9df04990bdf47d56df1b1413de6b1"
+    },
+    {
+      "brand": "natWest",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/97/f6/8f/97f68f66-53ab-ea3d-30e8-27900a805a5c/NWB_IOS_05_Credit_score.png/320x480bb.jpg",
+      "file": "natWest-5.jpg",
+      "sizeBytes": 21344,
+      "sha256": "a28b029c391a0dfa507c4eefdc8c70524f61c50e36204af7184a657e0f32a1a7"
+    },
+    {
+      "brand": "natWest",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9b/81/b1/9b81b1aa-4a2d-b16c-9722-9cd77b39728a/NWB_IOS_06_Manage_my_card.png/320x480bb.jpg",
+      "file": "natWest-6.jpg",
+      "sizeBytes": 19927,
+      "sha256": "0b2de6e832b95989a69d75f34d57ccd10c07c3b6e74a688667d57006a7ad3fa8"
+    },
+    {
+      "brand": "natWest",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b9/f3/fd/b9f3fd08-50f6-df25-0ed0-4191c209afc3/NWB_IOS_07_Pots.png/320x480bb.jpg",
+      "file": "natWest-7.jpg",
+      "sizeBytes": 18620,
+      "sha256": "4b1b357b49350906c3db9b921771b8492131236dda525fa7064e186daacedd71"
+    },
+    {
+      "brand": "natWest",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/db/05/82/db05826d-006d-6eed-16e9-5a4bbd6b8b1d/NWB_IOS_08_Travel_account.png/320x480bb.jpg",
+      "file": "natWest-8.jpg",
+      "sizeBytes": 20493,
+      "sha256": "cf9ec675c4b048e523e4a8ee4780dfd537bd4867d176cf82f06687edcbba6cbd"
+    },
+    {
+      "brand": "natWest",
+      "index": 9,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3f/ae/e6/3faee6b5-8230-e27c-d5a5-456858b35c70/NWB_IOS_09_Dark_mode.png/320x480bb.jpg",
+      "file": "natWest-9.jpg",
+      "sizeBytes": 18143,
+      "sha256": "76c64dae97c184a6537ebe5bb1927878726703e990b4b621e4dbf58818d3e3d4"
+    },
+    {
+      "brand": "starling",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/59/05/7f/59057fe2-5ef1-b123-1185-150117d87903/iPhone-5.5-1242x2208-2025-03.png/392x696bb.png",
+      "file": "starling-3.jpg",
+      "sizeBytes": 94607,
+      "sha256": "2b78cfab27e6f03c20e31a4a96170755c8147692df57df2423c106f171bb4783"
+    },
+    {
+      "brand": "starling",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/eb/35/15/eb351502-f92d-9d61-bfb0-cc0a1274aa66/iPhone-5.5-1242x2208-2025-04.png/392x696bb.png",
+      "file": "starling-4.jpg",
+      "sizeBytes": 198298,
+      "sha256": "ee01297a66e7b45cf4e648094ff4abf2731907b83366317accfd85d11e62f899"
+    },
+    {
+      "brand": "starling",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f4/fa/34/f4fa34d6-b5db-a14a-91d2-b2b0d24cd753/iPhone-5.5-1242x2208-2025-05.png/392x696bb.png",
+      "file": "starling-5.jpg",
+      "sizeBytes": 101402,
+      "sha256": "1c66f2d74da323f665db247c3fafaf373b72cd67ea29370767dd2f03ce02e0b3"
+    },
+    {
+      "brand": "starling",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b4/4e/0b/b44e0beb-79fe-5554-6d83-f8e8a2de7d1c/iPhone-5.5-1242x2208-2025-06.png/392x696bb.png",
+      "file": "starling-6.jpg",
+      "sizeBytes": 101790,
+      "sha256": "19f286a6b3b6fc7a0e14134d47f0ad3eecb3ee9470ef65dc94783a5e11fb2892"
+    },
+    {
+      "brand": "starling",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ff/a2/1c/ffa21cec-482b-2b93-56ed-b9cdcef82fc8/iPhone-5.5-1242x2208-2025-07.png/392x696bb.png",
+      "file": "starling-7.jpg",
+      "sizeBytes": 81917,
+      "sha256": "7030513eedd296a6ec05330ca9632875c00855d485f65882a26aeadfcd6e24d1"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 3,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/10/76/4a/10764a44-cf68-5e25-2622-706c12d60a52/2_APP_IPHONE_55_2.jpg/392x696bb.jpg",
+      "file": "wellsFargo-3.jpg",
+      "sizeBytes": 52683,
+      "sha256": "4b65a469b4dd5910d002a0f7e741b604dff654a4b9b5bb7283072051dc185385"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 4,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b4/23/55/b423557c-8288-4a58-8e06-dd0759839f54/3_APP_IPHONE_55_3.jpg/392x696bb.jpg",
+      "file": "wellsFargo-4.jpg",
+      "sizeBytes": 56970,
+      "sha256": "a1eb8fe1c4e06325791a69b0c3480a378069aaf1bc1ddb2127f89bc09da1e866"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 5,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8b/de/c6/8bdec637-9100-24ef-c4f2-c5b9cdde755f/4_APP_IPHONE_55_4.jpg/392x696bb.jpg",
+      "file": "wellsFargo-5.jpg",
+      "sizeBytes": 49142,
+      "sha256": "efdc3727a97207bb1427dc26d0bd18e037a089744db8df39dc264277cf47e72b"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 6,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/f1/c2/61/f1c26160-d18a-e558-d28f-a0ba0b2c8898/5_APP_IPHONE_55_5.jpg/392x696bb.jpg",
+      "file": "wellsFargo-6.jpg",
+      "sizeBytes": 46059,
+      "sha256": "0f94b94836d2af09254e0eee2adda2229f1c4d08041fb6037a133087be6e8158"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 7,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/98/15/22/981522b6-f338-d9d6-fe1e-3a7a8560a41a/6_APP_IPHONE_55_6.jpg/392x696bb.jpg",
+      "file": "wellsFargo-7.jpg",
+      "sizeBytes": 55294,
+      "sha256": "9fb927db5e8833f22920dc8ed7492b2da199764c905d4ab76cbf332b2226f3ae"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 8,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/49/80/dd/4980dd33-b8c4-faf7-4c58-32aab4f77d4e/7_APP_IPHONE_55_7.jpg/392x696bb.jpg",
+      "file": "wellsFargo-8.jpg",
+      "sizeBytes": 53563,
+      "sha256": "2447f4d64696c20e449af5f2080a9f7dbf561fb9f9bb28aed46f630095742dbd"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 9,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/d8/ec/67/d8ec6759-7aee-cea6-d9af-797d6ad01c29/8_APP_IPHONE_55_8.jpg/392x696bb.jpg",
+      "file": "wellsFargo-9.jpg",
+      "sizeBytes": 63397,
+      "sha256": "a06c6b02683081ccc6fe3de9106c888510acdde98272638473a2a295f6f98424"
+    },
+    {
+      "brand": "wellsFargo",
+      "index": 10,
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/26/d3/fc/26d3fcd9-da3a-9725-26e4-7fa4405f44e8/9_APP_IPHONE_55_9.jpg/392x696bb.jpg",
+      "file": "wellsFargo-10.jpg",
+      "sizeBytes": 51445,
+      "sha256": "1a81dd203df7fe9830ee4926299b0feba3c1336fc22b22818ebd66da3bb9d6cb"
+    }
+  ],
+  "failures": []
+}

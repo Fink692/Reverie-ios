@@ -635,6 +635,53 @@ extension ReverieUITests {
         XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
     }
 
+    func testTrustWalletSearchAndCollectibleNavigationPreserveBalances() {
+        let app = makeApp(brand: "trustWallet")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        waitForHittable(app.buttons["wallet-tab-assets"])
+        let originalBalance = app.staticTexts["wallet-total"].label
+        let usdCoin = app.buttons["wallet-asset-usdc"]
+        scrollTo(usdCoin, in: app)
+        let search = app.textFields["wallet-home-search"]
+        scrollTo(search, in: app, upwards: false)
+        search.tap()
+        search.typeText("Ethereum")
+        let submit = app.keyboards.buttons["Search"]
+        waitForHittable(submit)
+        submit.tap()
+        let ethereum = app.buttons["wallet-asset-eth"]
+        scrollTo(ethereum, in: app)
+        XCTAssertFalse(usdCoin.exists)
+        captureScreen("Trust Wallet filtered assets", in: app)
+
+        let clear = app.buttons["wallet-clear-search"]
+        scrollTo(clear, in: app, upwards: false)
+        clear.tap()
+        let collectibles = app.buttons["wallet-section-nfts"]
+        scrollTo(collectibles, in: app)
+        collectibles.tap()
+        let collectible = app.buttons["wallet-nft-sunset"]
+        scrollTo(collectible, in: app)
+        captureScreen("Trust Wallet collectible home", in: app)
+        collectible.tap()
+        let detail = app.descendants(matching: .any).matching(identifier: "wallet-nft-detail").firstMatch
+        XCTAssertTrue(detail.waitForExistence(timeout: 5))
+        let done = app.navigationBars.buttons["Done"]
+        waitForHittable(done)
+        done.tap()
+        let crypto = app.buttons["wallet-section-crypto"]
+        scrollTo(crypto, in: app, upwards: false)
+        crypto.tap()
+        scrollTo(ethereum, in: app)
+        scrollTo(app.staticTexts["wallet-total"], in: app, upwards: false)
+        XCTAssertEqual(app.staticTexts["wallet-total"].label, originalBalance)
+        closeWalletScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+    }
+
     func testRobinhoodPurchaseUpdatesCashAndActivityAfterRelaunch() {
         let app = makeApp(brand: "robinhood")
         app.launch()

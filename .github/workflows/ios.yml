@@ -73,7 +73,7 @@ jobs:
           sleep 3
           xcrun simctl io "$SIMULATOR_ID" screenshot simulator.png
           ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/Reverie.app Reverie-simulator.zip
-      - name: Capture installed startup for all five scene styles
+      - name: Capture installed startup for all 20 reference styles
         run: |
           set -o pipefail
           ./scripts/verify-brand-startup.sh 2>&1 | tee brand-startup.log

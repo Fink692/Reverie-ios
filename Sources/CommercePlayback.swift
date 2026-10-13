@@ -13,6 +13,7 @@ struct CommercePlayback: View {
     @State private var filter: CommerceOrderFilter = .all
     @State private var query = ""
     @State private var descending = true
+    @State private var storeLocationOnly = false
     @State private var sheet: CommerceSheet?
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
@@ -76,6 +77,9 @@ struct CommercePlayback: View {
                 Menu {
                     Button("Edit store") { sheet = .store }
                     Button("Edit analytics") { sheet = .analytics }
+                    Picker("Date range", selection: $range) {
+                        ForEach(CommerceRange.allCases) { Text($0.title).tag($0) }
+                    }
                     Button("Close scene") { dismiss() }
                 } label: {
                     Image(systemName: "person.fill")
@@ -124,6 +128,9 @@ struct CommercePlayback: View {
                 Menu {
                     Button("Edit store") { sheet = .store }
                     Button("Edit analytics") { sheet = .analytics }
+                    Picker("Date range", selection: $range) {
+                        ForEach(CommerceRange.allCases) { Text($0.title).tag($0) }
+                    }
                     Button("Close scene") { dismiss() }
                 } label: {
                     Image(systemName: "ellipsis").font(.system(size: 24)).frame(width: 44, height: 44)
@@ -187,7 +194,7 @@ struct CommercePlayback: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Live").font(.system(size: 13)).foregroundStyle(.white.opacity(0.68))
                             HStack(spacing: 5) {
-                                Image(systemName: "sun.max").foregroundStyle(CommerceColors.green).font(.system(size: 15))
+                                CommerceLiveMark().foregroundStyle(CommerceColors.green).frame(width: 15, height: 15)
                                 Text(profile.liveVisitors.formatted()).font(.system(size: 17, weight: .semibold))
                             }
                         }
@@ -205,21 +212,14 @@ struct CommercePlayback: View {
                 .frame(height: 160)
                 .padding(.horizontal, 14)
                 .accessibilityLabel("\(metric.title) chart for \(range.title)")
-            HStack {
-                Menu {
+                .contextMenu {
                     Picker("Date range", selection: $range) {
                         ForEach(CommerceRange.allCases) { Text($0.title).tag($0) }
                     }
-                } label: {
-                    Label(range.title, systemImage: "calendar").font(.system(size: 11, weight: .medium))
                 }
-                Spacer()
-                Text("Compared with previous period").font(.system(size: 10)).foregroundStyle(.white.opacity(0.55))
-            }
-            .padding(.horizontal, 18).padding(.bottom, 12)
         }
         .foregroundStyle(.white)
-        .padding(.top, 9)
+        .padding(.top, 9).padding(.bottom, 8)
         .background(.black)
     }
 
@@ -245,7 +245,13 @@ struct CommercePlayback: View {
     private var pulseCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 9) {
-                Image(systemName: "circle.inset.filled").font(.system(size: 17))
+                ZStack {
+                    Circle().fill(.white.opacity(0.16)).frame(width: 23, height: 23)
+                    Circle().fill(.white.opacity(0.24)).frame(width: 17, height: 17)
+                    Circle().fill(.white).frame(width: 8, height: 8)
+                }
+                .frame(width: 23, height: 23)
+                .accessibilityHidden(true)
                 Text("Sidekick Pulse").font(.system(size: 19, weight: .medium))
                 Spacer()
             }
@@ -284,7 +290,13 @@ struct CommercePlayback: View {
                 HStack {
                     Text(value).font(.system(size: 16, weight: .semibold)).lineLimit(1)
                     Spacer(minLength: 8)
-                    Image(systemName: symbol).font(.system(size: 17)).foregroundStyle(CommerceColors.secondary)
+                    if symbol == "gauge.with.dots.needle.33percent" {
+                        CommercePayoutMark().stroke(style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                            .frame(width: 20, height: 20).foregroundStyle(CommerceColors.secondary)
+                            .accessibilityHidden(true)
+                    } else {
+                        Image(systemName: symbol).font(.system(size: 17)).foregroundStyle(CommerceColors.secondary)
+                    }
                 }
             }
             .padding(15).frame(width: 170, alignment: .leading)
@@ -313,6 +325,16 @@ struct CommercePlayback: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 searchField("Search orders")
+                Menu {
+                    Picker("Order location", selection: $storeLocationOnly) {
+                        Text("All locations").tag(false)
+                        Text(scene.name).tag(true)
+                    }
+                } label: {
+                    Image(systemName: "mappin.and.ellipse").font(.system(size: 18)).frame(width: 44, height: 44)
+                        .background(CommerceColors.fill, in: Circle())
+                }
+                .accessibilityLabel(storeLocationOnly ? "Order location, \(scene.name)" : "Order location, all locations")
                 Button { descending.toggle() } label: {
                     Image(systemName: "arrow.up.arrow.down").font(.system(size: 18)).frame(width: 44, height: 44)
                         .background(CommerceColors.fill, in: Circle())
@@ -348,27 +370,30 @@ struct CommercePlayback: View {
             } else {
                 List {
                     ForEach(orderDays, id: \.self) { day in
-                        Section {
-                            ForEach(orders(on: day)) { order in
-                                Button { sheet = .order(order.id) } label: { CommerceOrderRow(order: order, scene: scene) }
-                                    .buttonStyle(.plain)
-                                    .listRowInsets(EdgeInsets(top: 14, leading: 17, bottom: 14, trailing: 17))
-                                    .listRowBackground(Color.white)
-                                    .swipeActions(edge: .trailing) {
-                                        Button(order.fulfillment == .fulfilled ? "Unfulfill" : "Fulfill") {
-                                            store.setOrderStatus(orderID: order.id, sceneID: sceneID, status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
-                                        }
-                                        .tint(CommerceColors.green)
-                                        Button("Archive") { store.setOrderStatus(orderID: order.id, sceneID: sceneID, status: .archived) }.tint(.gray)
+                        Text(day.formatted(.dateTime.month(.wide).day()))
+                            .font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 17).padding(.vertical, 9)
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(CommerceColors.fill)
+                        ForEach(orders(on: day)) { order in
+                            Button { sheet = .order(order.id) } label: { CommerceOrderRow(order: order, scene: scene) }
+                                .buttonStyle(.plain)
+                                .listRowInsets(EdgeInsets(top: 14, leading: 17, bottom: 14, trailing: 17))
+                                .listRowBackground(Color.white)
+                                .swipeActions(edge: .trailing) {
+                                    Button(order.fulfillment == .fulfilled ? "Unfulfill" : "Fulfill") {
+                                        store.setOrderStatus(orderID: order.id, sceneID: sceneID, status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
                                     }
-                            }
-                        } header: {
-                            Text(day.formatted(.dateTime.month(.wide).day()))
-                                .font(.system(size: 13)).foregroundStyle(CommerceColors.secondary).textCase(nil)
+                                    .tint(CommerceColors.green)
+                                    Button("Archive") { store.setOrderStatus(orderID: order.id, sceneID: sceneID, status: .archived) }.tint(.gray)
+                                }
                         }
                     }
                 }
                 .listStyle(.plain).scrollContentBackground(.hidden)
+                .environment(\.defaultMinListRowHeight, 0)
             }
         }
         .foregroundStyle(Color.black)
@@ -556,6 +581,35 @@ private enum CommerceColors {
     static let secondary = Color(red: 0.45, green: 0.46, blue: 0.46)
     static let green = Color(red: 0.02, green: 0.65, blue: 0.37)
 }
+
+private struct CommerceLiveMark: View {
+    var body: some View {
+        ZStack {
+            Circle().stroke(style: StrokeStyle(lineWidth: 1.1, dash: [1, 2]))
+            Circle().stroke(lineWidth: 1.3).padding(3)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// A simple open gauge, drawn locally rather than copied from a third-party icon set.
+private struct CommercePayoutMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        let scale = min(rect.width, rect.height) / 20
+        let origin = CGPoint(x: rect.midX - 10 * scale, y: rect.midY - 10 * scale)
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: origin.x + x * scale, y: origin.y + y * scale)
+        }
+        var path = Path()
+        path.addArc(center: point(10, 9.5), radius: 6 * scale,
+                    startAngle: .degrees(150), endAngle: .degrees(390), clockwise: false)
+        path.move(to: point(3.5, 17))
+        path.addLine(to: point(16.5, 17))
+        path.move(to: point(10, 6.5))
+        path.addQuadCurve(to: point(13, 9.5), control: point(13, 6.5))
+        return path
+    }
+}
 private enum CommerceTab: String, CaseIterable, Identifiable {
     case home, orders, products, menu
     var id: String { rawValue }
@@ -631,6 +685,11 @@ private struct CommerceAnalyticsChart: View {
             return CommerceChartPoint(id: index, date: date, value: max(0, scaled))
         }
     }
+    private var axisDates: [Date] {
+        let points = data
+        let step = max(1, Int(ceil(Double(range.days) / 3)))
+        return stride(from: 0, to: points.count, by: step).map { points[$0].date }
+    }
     var body: some View {
         Chart(data) { point in
             LineMark(x: .value("Date", point.date), y: .value(metric.title, previousValue(point)), series: .value("Period", "Previous"))
@@ -654,7 +713,7 @@ private struct CommerceAnalyticsChart: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .automatic(desiredCount: 3)) { value in
+            AxisMarks(values: axisDates) { value in
                 AxisValueLabel(format: .dateTime.month(.abbreviated).day()).foregroundStyle(.white.opacity(0.75)).font(.system(size: 10))
             }
         }

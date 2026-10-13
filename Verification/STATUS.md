@@ -1,5 +1,7 @@
 # Verification status
 
+The current visual fidelity revision is awaiting its native build and 20 production startup captures. Results below describe the preceding verified baseline. See `VISUAL-COVERAGE.md` for exact reference limits.
+
 Repository: https://github.com/Fink692/Reverie-ios. Native build: [38367881655](https://github.com/Fink692/Reverie-ios/actions/runs/38367881655), commit `dceee7ba9a0f0e16d8c8a2ab49c3ec3d1ac6ffd8`.
 
 | Check | Final result |

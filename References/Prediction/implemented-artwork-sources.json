@@ -1,0 +1,194 @@
+[
+  {
+    "asset": "PredictionFidelity-LeagueMLB",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/league-images/MLB.png",
+    "sha256": "33149f09404486b84f0ba2edd58ee47e9f0687906a00699475c81a4c6c6c71a4",
+    "bytes": 4195,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-LeagueMLB.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      250,
+      250
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-LeaguePro",
+    "url": "https://static.polymarket.us/images/new-category-icons/Icon-Football.png",
+    "sha256": "e7c1346719797fb89103ed631f6e929fa81eb7f8a67af30e224c616cc8cfad9e",
+    "bytes": 3905,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-LeaguePro.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      60,
+      60
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-LeagueCFB",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/CFB/Polymarket_CFB_Notre-Dame-Fighting-Irish_L@320x320.png",
+    "sha256": "ce26fd7b0c822253e42d31b2d9dcfd524104aeaa0a24bbd89f3f0946c8c4f223",
+    "bytes": 37302,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-LeagueCFB.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      320,
+      320
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-LeagueNHL",
+    "url": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
+    "sha256": "e93e6820046d34f4b24d4d2c66e14a889de1dbdd2e8bdf9cb4d55a519b8ec63e",
+    "bytes": 39677,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-LeagueNHL.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "ESPN publicly served league/team logo; underlying team/league marks",
+    "dimensions": [
+      500,
+      500
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-SeasonHelmet",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/NFL/Polymarket_NFL_DallasCowboys_R@320x320.png",
+    "sha256": "a0aead0deff82acccf729107e972d6b71f69e758e14ebb286b8f741db89b4a7c",
+    "bytes": 298732,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-SeasonHelmet.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-SeasonFootball",
+    "url": "https://polymarket.us/_next/static/immutable/media/nfl.35jyoe7vo2rcz.png",
+    "sha256": "559682bd74163fca559a0cda48ad5e7c826a828d0363c4d96c279d931a06c135",
+    "bytes": 103983,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-SeasonFootball.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      276,
+      178
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamRams",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/NFL/Polymarket_NFL_LosAngelesRams_L@320x320.png",
+    "sha256": "bf6b566a6c0d5ddbde57f56f8a87c0da12686986c89d9032b2c54cf730fbb68a",
+    "bytes": 236064,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamRams.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamBroncos",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/us-logos/NFL/Polymarket_NFL_DenverBroncos_L@320x320.png",
+    "sha256": "bc039ee4dbc23ada0455da5931f8df207792e516b79a44a5a87fd8010997b69d",
+    "bytes": 240795,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamBroncos.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamDodgers",
+    "url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/los-angeles-dodgers-light-c8267be279.png",
+    "sha256": "f9422187a049bd1b78efa165ab7c7ab9f8aea775c84bc5fabf8c3ac4c2268891",
+    "bytes": 1439,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamDodgers.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "Polymarket public website asset",
+    "dimensions": [
+      224,
+      224
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamTexasRangers",
+    "url": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
+    "sha256": "b19ee28a151164ed231d98cafbcebe471faaa876a202e9c558b925be3ac3dac9",
+    "bytes": 20268,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamTexasRangers.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "ESPN publicly served league/team logo; underlying team/league marks",
+    "dimensions": [
+      500,
+      500
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamNewYorkRangers",
+    "url": "https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png",
+    "sha256": "7a43515a4551cc0708140f89d2f54d57259dde1498001c29ec28cc5b1d96fa7f",
+    "bytes": 77274,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamNewYorkRangers.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "ESPN publicly served league/team logo; underlying team/league marks",
+    "dimensions": [
+      500,
+      500
+    ],
+    "format": "PNG"
+  },
+  {
+    "asset": "PredictionFidelity-TeamBruins",
+    "url": "https://a.espncdn.com/i/teamlogos/nhl/500/bos.png",
+    "sha256": "70f79a2352abcf9ea24bcab9e4863ddfcf1a4d329c9edecb3b64bfbda24409ed",
+    "bytes": 40484,
+    "retrieved": "2026-10-13",
+    "transformation": "none",
+    "localFile": "Sources/Assets.xcassets/PredictionFidelity-TeamBruins.imageset/Artwork.png",
+    "license": "Publicly served proprietary league/team/Polymarket branding; no open-content license asserted",
+    "attribution": "ESPN publicly served league/team logo; underlying team/league marks",
+    "dimensions": [
+      500,
+      500
+    ],
+    "format": "PNG"
+  }
+]
