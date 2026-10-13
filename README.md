@@ -29,7 +29,7 @@ Notification permission is requested only when cueing alerts. Focus modes, notif
 
 ## Validation status
 
-The shared Swift suite passes 47 tests with Swift 6.0.3. Native Apple SDK and simulator verification of the latest notification and prediction-screen changes is pending. Previous native results, screenshots, package checks, and current limitations are recorded in [Verification/STATUS.md](Verification/STATUS.md). Physical-device installation and distribution signing still require an Apple account and a device; the hosted packages are unsigned.
+The final [hosted build](https://github.com/Fink692/Reverie-ios/actions/runs/38367881655) passes **47 shared Swift tests, 71 native unit tests, and 17 UI tests** with zero failures. All **20 branded IPAs** pass native and independent downloaded-package checks. Shopify, Chase, Robinhood, Phantom, and Polymarket production-metadata installs launch successfully; their startup screens and selected Home Screen names/icons were visually reviewed. Evidence and remaining limitations are recorded in [Verification/STATUS.md](Verification/STATUS.md). Physical-device installation and distribution signing still require an Apple account and a device; the hosted packages are unsigned.
 
 ## Design references
 

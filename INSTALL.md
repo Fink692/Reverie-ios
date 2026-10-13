@@ -61,9 +61,9 @@ Variants start with **Clean playback** enabled: return to Studio through a profi
 
 1. Install the matching brand IPA from **Choose a build** above; that installed app supplies the notification name and icon.
 2. Return from playback through profile/menu → **Close scene** or the bank-name hold described above, then open **Studio**.
-3. Tap **Browse notification templates**, or choose **Notification style → Custom notification**. Edit the title, message, and any shown amount, customer, item quantity, and order number.
-4. Set the notification count, **Start after**, and **Repeat interval**. Optionally use **Save current cue** to keep the setup for later.
+3. Tap **Browse notification templates**. Commerce includes **New Shopify order** and **Shopify order burst**; other scenes offer their relevant alerts. You can also choose **Notification style → Custom notification**. Edit the title, **Details**, and any shown amount, customer, item quantity, and order number.
+4. Set **1–20 alerts**, **Start after**, and **Repeat interval**. The start menu offers 5 seconds, 30 seconds, 1 minute, or 5 minutes; repeat intervals offer 5, 10, 15, 20, 30, or 60 seconds. Template and imported custom values are retained. Optionally use **Save current cue** to keep the setup for later.
 5. Tap **Cue notifications**, choose **Allow** if iOS asks, and wait for the queued confirmation. You can then lock your phone.
 6. Open **View queued alerts** to review or cancel individual alerts, or use the session’s cancel button to clear the queue.
 
-Queued alerts leave dashboard balances unchanged.
+At most **60 alerts** can be queued per installed app. The saved-cue editor accepts start delays from 2 seconds to 24 hours; saved or imported repeat intervals from 5 to 3,600 seconds are retained. Queued alerts leave dashboard balances unchanged.

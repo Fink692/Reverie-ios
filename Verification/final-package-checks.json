@@ -1,0 +1,188 @@
+{
+  "result": "passed",
+  "runID": "38367881655",
+  "variantCount": 20,
+  "distinctBundleIdentifiers": 20,
+  "sourcePreviewPNGsVerified": 20,
+  "nativeIconNamesVerified": 20,
+  "sharedExecutableSHA256": "0d032728fa39fb7b33050d314970255173162353fa13fd694a7a7a898e35dd5a",
+  "sharedAssetCatalogSHA256": "44a7de0d8008420cbccd50408c50385f2c15519b3de1ee28f31b8a51605ad62e",
+  "sharedBinarySHA256": {
+    "Reverie": "0d032728fa39fb7b33050d314970255173162353fa13fd694a7a7a898e35dd5a"
+  },
+  "nativeMachO": {
+    "cpu": "arm64",
+    "buildVersions": [
+      {
+        "platform": 2,
+        "minimumOS": 1114112,
+        "sdk": 1180928
+      }
+    ],
+    "hasCodeSignature": false
+  },
+  "variants": [
+    {
+      "id": "commerce",
+      "bundleIdentifier": "com.reverie.brand.commerce",
+      "playbackKind": "commerce",
+      "archiveSHA256": "2964a019dd007e83466dfdccb68c9ecaae24bad2c6908b6fe54e6b6d44004bd0",
+      "previewPNG": "Brand-commerce.png",
+      "previewSHA256": "25bd3ffd082b2b08df298a77c2085ad1236e23473b85f359381ea967f92fd1ba"
+    },
+    {
+      "id": "chase",
+      "bundleIdentifier": "com.reverie.brand.chase",
+      "playbackKind": "banking",
+      "archiveSHA256": "e75e91ce5934147bb091212b4eae204bfcbee1119a8c1b9827e4a219c054f824",
+      "previewPNG": "Brand-chase.png",
+      "previewSHA256": "cc19606c5474f21b1a84315ae343427c47eba949c1a13c9ad44f213320a50f89"
+    },
+    {
+      "id": "bankOfAmerica",
+      "bundleIdentifier": "com.reverie.brand.bankofamerica",
+      "playbackKind": "banking",
+      "archiveSHA256": "52ac846437f3f613090148683751cd684e3a111dc996115134355cbd312e2692",
+      "previewPNG": "Brand-bankOfAmerica.png",
+      "previewSHA256": "9b75fdc0636c2c75ff245823e81347014bb48c4f0d6c83acf8ede47a0c489047"
+    },
+    {
+      "id": "wellsFargo",
+      "bundleIdentifier": "com.reverie.brand.wellsfargo",
+      "playbackKind": "banking",
+      "archiveSHA256": "aece69ea75ca775f2d158036c30eeaf11f01ae1d74e002535981db27268d3db3",
+      "previewPNG": "Brand-wellsFargo.png",
+      "previewSHA256": "0ffbdeaa2b76b11c75a0ae4881d958e8f1bdb37c8245ce02162c04f5b6d7a009"
+    },
+    {
+      "id": "citi",
+      "bundleIdentifier": "com.reverie.brand.citi",
+      "playbackKind": "banking",
+      "archiveSHA256": "ed279143c87dc5f9fe53541a93d045508bd4d348aa6d11ccb41d5bcec11d02e3",
+      "previewPNG": "Brand-citi.png",
+      "previewSHA256": "1f55379b3aa95b62957a3df06e6363cdaceac371e050ced3f669fedec655fcee"
+    },
+    {
+      "id": "capitalOne",
+      "bundleIdentifier": "com.reverie.brand.capitalone",
+      "playbackKind": "banking",
+      "archiveSHA256": "eaaac8ee0b736b12578301ba2e1bf00c2a7dbc4797beb14817652e1121123583",
+      "previewPNG": "Brand-capitalOne.png",
+      "previewSHA256": "dbdb4b2f4bfeb82f16801d6c53fe48e09cf5d0253fe3135f39de25125cd4a881"
+    },
+    {
+      "id": "hsbc",
+      "bundleIdentifier": "com.reverie.brand.hsbc",
+      "playbackKind": "banking",
+      "archiveSHA256": "75bb4f1ff600d741769323879776b7e78daa8a464cafaa2f063a021e51e1bcc5",
+      "previewPNG": "Brand-hsbc.png",
+      "previewSHA256": "121dc9ba0fd73ae606399a638b2370d28d92457dd73febbe5bbc739ab42a1525"
+    },
+    {
+      "id": "barclays",
+      "bundleIdentifier": "com.reverie.brand.barclays",
+      "playbackKind": "banking",
+      "archiveSHA256": "39d75f08d66b990a61d769fd9349bd3132899f9209029332bd32d5beee202914",
+      "previewPNG": "Brand-barclays.png",
+      "previewSHA256": "46560ed033644fc0b9f71e409b34ac5b47c0a3f3680d6ca199bd75df93a118fc"
+    },
+    {
+      "id": "lloyds",
+      "bundleIdentifier": "com.reverie.brand.lloyds",
+      "playbackKind": "banking",
+      "archiveSHA256": "0a79ee016353d8cfde0e22a5cfd0f08046646452790931bd2dbc1f737e852975",
+      "previewPNG": "Brand-lloyds.png",
+      "previewSHA256": "2a969d2b358df566e9041169c757c3637c1ed3b9827d3fd1617359a44e13290d"
+    },
+    {
+      "id": "natWest",
+      "bundleIdentifier": "com.reverie.brand.natwest",
+      "playbackKind": "banking",
+      "archiveSHA256": "dcaacafec5998c7341f24641de9581778cc1694166a34f67eee2f7105d55b7a0",
+      "previewPNG": "Brand-natWest.png",
+      "previewSHA256": "899eb62b519a7d375d60ea9264b708d356e09ac50fa19501c08a6609f6f750d9"
+    },
+    {
+      "id": "monzo",
+      "bundleIdentifier": "com.reverie.brand.monzo",
+      "playbackKind": "banking",
+      "archiveSHA256": "6ba9abd9261b11f62fc7ebde96208f0955ff6c5b56253315f5b90b57e29c48de",
+      "previewPNG": "Brand-monzo.png",
+      "previewSHA256": "95be56f0f315d623c3b904e62d085939184391afadc4d2496f4544021604d6f3"
+    },
+    {
+      "id": "revolut",
+      "bundleIdentifier": "com.reverie.brand.revolut",
+      "playbackKind": "banking",
+      "archiveSHA256": "23ac181fff3c23c1aa9da8100a82af54c8e83109ab7e6ebd63bbbed6dbd33571",
+      "previewPNG": "Brand-revolut.png",
+      "previewSHA256": "2602694c741351e37953f0a8c95ce2c37ee73f29c83d1a7e3e500b0c715f9169"
+    },
+    {
+      "id": "starling",
+      "bundleIdentifier": "com.reverie.brand.starling",
+      "playbackKind": "banking",
+      "archiveSHA256": "d9c77b66cbadbbf7a4cf410f70978b56794c383b5c185745521773fd0a52968f",
+      "previewPNG": "Brand-starling.png",
+      "previewSHA256": "76b0fb2e0973928a3d056a93aba28c4e7d2589f309b46471c596a22647929ce9"
+    },
+    {
+      "id": "robinhood",
+      "bundleIdentifier": "com.reverie.brand.robinhood",
+      "playbackKind": "portfolio",
+      "archiveSHA256": "686be42e6e7153fc5084eb011e71633b8d159676bcd88021667edada5e9d0a4a",
+      "previewPNG": "Brand-robinhood.png",
+      "previewSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5"
+    },
+    {
+      "id": "wealthsimple",
+      "bundleIdentifier": "com.reverie.brand.wealthsimple",
+      "playbackKind": "portfolio",
+      "archiveSHA256": "85d5dde8803851905d004eecfbc33c87c1377598ae8ae2df6ebd6a03e6cad3fe",
+      "previewPNG": "Brand-wealthsimple.png",
+      "previewSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4"
+    },
+    {
+      "id": "coinbase",
+      "bundleIdentifier": "com.reverie.brand.coinbase",
+      "playbackKind": "portfolio",
+      "archiveSHA256": "8c2cc53e15a126fc88823a20789704a6b66a26b2c1eeddbc1c7a7825e32de4dd",
+      "previewPNG": "Brand-coinbase.png",
+      "previewSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a"
+    },
+    {
+      "id": "polymarket",
+      "bundleIdentifier": "com.reverie.brand.polymarket",
+      "playbackKind": "prediction",
+      "archiveSHA256": "ecf778c8fdb9051d3554932a864d43a5bfd40b7c8b16955f537478fa1bccd729",
+      "previewPNG": "Brand-polymarket.png",
+      "previewSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b"
+    },
+    {
+      "id": "metamask",
+      "bundleIdentifier": "com.reverie.brand.metamask",
+      "playbackKind": "wallet",
+      "archiveSHA256": "82aebed6bdd488f15d8231ddc3767b3643f5786a12a7069256b7db9f35290e16",
+      "previewPNG": "Brand-metamask.png",
+      "previewSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8"
+    },
+    {
+      "id": "phantom",
+      "bundleIdentifier": "com.reverie.brand.phantom",
+      "playbackKind": "wallet",
+      "archiveSHA256": "b73be4b807ea79881d6fc32fe472128b378581472c522da86d595f54678ff30b",
+      "previewPNG": "Brand-phantom.png",
+      "previewSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e"
+    },
+    {
+      "id": "trustWallet",
+      "bundleIdentifier": "com.reverie.brand.trustwallet",
+      "playbackKind": "wallet",
+      "archiveSHA256": "9db52fc85e26aba38de147bac5cf49f271ea9a87de03775205204b1e8ac745db",
+      "previewPNG": "Brand-trustWallet.png",
+      "previewSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785"
+    }
+  ],
+  "nativeBuildCommit": "dceee7ba9a0f0e16d8c8a2ab49c3ec3d1ac6ffd8",
+  "workflowURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38367881655"
+}
