@@ -1,0 +1,89 @@
+{
+  "description": "Public company logo PNGs used for editable local holdings. Original downloaded PNG bytes are preserved. SwiftUI template rendering colors selected transparent logos white on a colored tile; no image files were cropped or transformed. These company marks are proprietary branding, not an open-license assertion. Wealthsimple Holdings reference is wealthsimple-2.jpg; the pictured Zoom Z is drawn as text because the currently supplied company PNG uses a different full wordmark. NVIDIA and Tesla are authentic company glyphs for additional editable holdings, not pictured in that saved reference. The pictured Vanguard V is drawn as serif text on a red tile; the downloaded public Vanguard PNG had an opaque white background and was not added as an app asset.",
+  "images": [
+    {
+      "symbol": "NVDA",
+      "asset": "PortfolioFidelity-Nvidia",
+      "source_url": "https://financialmodelingprep.com/image-stock/NVDA.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-Nvidia.imageset/Artwork.png",
+      "width": 250,
+      "height": 250,
+      "bytes": 11180,
+      "sha256": "65adfc123c82dd816d8bebeaded5d0bdd72a4a799d1c0e23d310eaf6e2c457e6",
+      "presentation": "template white glyph on NVIDIA green tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "TSLA",
+      "asset": "PortfolioFidelity-Tesla",
+      "source_url": "https://financialmodelingprep.com/image-stock/TSLA.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-Tesla.imageset/Artwork.png",
+      "width": 250,
+      "height": 250,
+      "bytes": 9738,
+      "sha256": "4f1bd145f2ad8de3c83d973ab4c2a36e352fdd838bf3ba10e8b186f53509f8c0",
+      "presentation": "template white glyph on Tesla red tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "AC.TO",
+      "asset": "PortfolioFidelity-AirCanada",
+      "source_url": "https://financialmodelingprep.com/image-stock/AC.TO.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-AirCanada.imageset/Artwork.png",
+      "width": 100,
+      "height": 100,
+      "bytes": 4158,
+      "sha256": "49e78b6675067fa84faed35f03066f63bce8ff37f511cc1d9b47fc3aebd3370e",
+      "presentation": "original PNG, preserves red tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "IVV",
+      "asset": "PortfolioFidelity-IShares",
+      "source_url": "https://financialmodelingprep.com/image-stock/IVV.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-IShares.imageset/Artwork.png",
+      "width": 144,
+      "height": 144,
+      "bytes": 547,
+      "sha256": "e2e412bfa41dde6f425bf4e428f3aa52f4b7d4e5a8ceab052dd4d8fc3f2919ff",
+      "presentation": "original PNG, preserves white tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "AXP",
+      "asset": "PortfolioFidelity-AmericanExpress",
+      "source_url": "https://financialmodelingprep.com/image-stock/AXP.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-AmericanExpress.imageset/Artwork.png",
+      "width": 250,
+      "height": 250,
+      "bytes": 11496,
+      "sha256": "7c00ed137b208b3a8ba8607a212a2ff9961874c8c93a0488a5123875d99cd201",
+      "presentation": "template white glyph on blue tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "GME",
+      "asset": "PortfolioFidelity-GameStop",
+      "source_url": "https://financialmodelingprep.com/image-stock/GME.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-GameStop.imageset/Artwork.png",
+      "width": 250,
+      "height": 250,
+      "bytes": 10569,
+      "sha256": "990f9da8969274640407783c2f68bc366114cc693f039f3c36b55e87997f1a4e",
+      "presentation": "original PNG on black tile",
+      "retrieved": "2026-10-13"
+    },
+    {
+      "symbol": "JNJ",
+      "asset": "PortfolioFidelity-JohnsonJohnson",
+      "source_url": "https://financialmodelingprep.com/image-stock/JNJ.png",
+      "local_path": "Sources/Assets.xcassets/PortfolioFidelity-JohnsonJohnson.imageset/Artwork.png",
+      "width": 250,
+      "height": 250,
+      "bytes": 30876,
+      "sha256": "fcec0737190e8ba4f725075149ab35a7f16ab74ac13586fd7b164228beb6f1af",
+      "presentation": "template white glyph on red tile",
+      "retrieved": "2026-10-13"
+    }
+  ]
+}

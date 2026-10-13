@@ -37,6 +37,12 @@ No send-address entry, receive QR, or completed-transfer screenshot is supplied 
 
 The public listing uses an older iPhone physical frame in this marketing artwork. That does not establish the screenshot's capture date or prove that every current Trust Wallet route still matches it.
 
+## Implemented token artwork
+
+The app uses unchanged Bitcoin, Ethereum, Solana and USDC PNG files from the public Trust Wallet assets repository at immutable revision `d541ca5c51609e24966712403e10a4b438c47982`. [implemented-artwork-sources.json](implemented-artwork-sources.json) records the exact download URLs, byte counts, dimensions and SHA-256 values. The gray Ethereum asset is used by Phantom; MetaMask and Trust Wallet use a separately drawn white Ethereum diamond on the blue circular background shown in their references. These token files provide artwork provenance, not proof of complete wallet UI parity.
+
+The Phantom account avatar, Trust rewards chest and Trust collectible images remain original vector approximations. The public references do not supply complete original artwork for those elements. The roleplay NFT titles and collection details remain fictional. Home token rows and Receive rows preserve the saved account's assets and quantities rather than replacing them with promotional screenshot balances.
+
 ## Fidelity limits
 
 These references support visible compositions only. They do not establish exact installed app display names, hidden screens, input states, keyboard behavior, recovery/import flows, signing confirmations, chain-specific UI, current notification sounds, or every latest-binary interaction. Custom local send/receive/history functionality must not be described as an exact reproduction of states not shown here. The local roleplay app does not need seed phrases, private keys, live wallet imports, or live-chain operations to implement these scenes.

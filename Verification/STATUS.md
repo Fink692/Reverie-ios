@@ -1,5 +1,7 @@
 # Verification status
 
+The next precision revision is awaiting Apple verification. It refines bank, investing, wallet, commerce and prediction layouts; seeds seven Wealthsimple reference holdings only for new profiles; and adds Chase/Bank of America payment review/commit/relaunch UI coverage. Results below remain the previously verified native baseline until the new hosted run completes.
+
 The fidelity revision passes its native build, all 136 tests, and independent checks of all 20 branded packages. Complete 1:1 parity is not established. The remaining visible differences and missing reference states are recorded in [VISUAL-COVERAGE.md](VISUAL-COVERAGE.md).
 
 Repository: https://github.com/Fink692/Reverie-ios. Native build: [38411196377](https://github.com/Fink692/Reverie-ios/actions/runs/38411196377), commit `261945d1a99a7828d8dc551467ccf2819fc12f94`. Application source and artwork are unchanged in subsequent verification/documentation commits. The readiness harness was verified separately on commit `5b5c752481ac50639ba0a0fb036b75306e62908e`.

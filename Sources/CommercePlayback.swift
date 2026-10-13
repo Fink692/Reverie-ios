@@ -252,7 +252,7 @@ struct CommercePlayback: View {
                 }
                 .frame(width: 23, height: 23)
                 .accessibilityHidden(true)
-                Text("Sidekick Pulse").font(.system(size: 19, weight: .medium))
+                Text("Sidekick Pulse").font(.system(size: 18, weight: .regular))
                 Spacer()
             }
             .foregroundStyle(.white)
@@ -484,8 +484,8 @@ struct CommercePlayback: View {
             HStack(spacing: 2) {
                 ForEach(CommerceTab.allCases) { destination in
                     Button { tab = destination } label: {
-                        Image(systemName: tab == destination ? destination.selectedSymbol : destination.symbol)
-                            .font(.system(size: 19, weight: .medium))
+                        CommerceNavigationMark(tab: destination, selected: tab == destination)
+                            .frame(width: 22, height: 22)
                             .foregroundStyle(tab == destination ? Color.black : CommerceColors.secondary)
                             .frame(maxWidth: .infinity).frame(height: 44)
                             .background(tab == destination ? CommerceColors.fill : .clear, in: Circle())
@@ -498,7 +498,8 @@ struct CommercePlayback: View {
             .padding(4).background(.white, in: Capsule())
             .shadow(color: .black.opacity(0.10), radius: 5, y: 2)
             Button { sheet = .pulse } label: {
-                Image(systemName: "sparkles").font(.system(size: 20)).frame(width: 48, height: 48)
+                CommerceAssistantMark().frame(width: 23, height: 23)
+                    .frame(width: 48, height: 48)
                     .background(.white, in: Circle())
                     .shadow(color: .black.opacity(0.12), radius: 5, y: 2)
             }
@@ -610,6 +611,108 @@ private struct CommercePayoutMark: Shape {
         return path
     }
 }
+
+/// Locally drawn navigation marks follow the pictured silhouettes independently
+/// of changes to SF Symbols between iOS releases.
+private struct CommerceNavigationMark: View {
+    let tab: CommerceTab
+    let selected: Bool
+    @ViewBuilder var body: some View {
+        switch tab {
+        case .home:
+            if selected { CommerceHomeMark().fill() }
+            else { CommerceHomeMark().stroke(style: StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round)) }
+        case .orders:
+            CommerceInboxMark().stroke(style: StrokeStyle(lineWidth: selected ? 2.1 : 1.8, lineCap: .round, lineJoin: .round))
+        case .products:
+            Image(systemName: selected ? "tag.fill" : "tag").font(.system(size: 19, weight: .regular))
+        case .menu:
+            Image(systemName: "line.3.horizontal").font(.system(size: 19, weight: .regular))
+        }
+    }
+}
+
+private struct CommerceHomeMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        let scale = min(rect.width, rect.height) / 24
+        let origin = CGPoint(x: rect.midX - 12 * scale, y: rect.midY - 12 * scale)
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: origin.x + x * scale, y: origin.y + y * scale)
+        }
+        var path = Path()
+        path.move(to: point(3, 10.5))
+        path.addLine(to: point(10.6, 3.5))
+        path.addQuadCurve(to: point(13.4, 3.5), control: point(12, 2.2))
+        path.addLine(to: point(21, 10.5))
+        path.addQuadCurve(to: point(21.5, 12), control: point(21.8, 11.2))
+        path.addLine(to: point(21.5, 19))
+        path.addQuadCurve(to: point(19.5, 21), control: point(21.5, 21))
+        path.addLine(to: point(14.3, 21))
+        path.addLine(to: point(14.3, 15.5))
+        path.addQuadCurve(to: point(9.7, 15.5), control: point(12, 13.5))
+        path.addLine(to: point(9.7, 21))
+        path.addLine(to: point(4.5, 21))
+        path.addQuadCurve(to: point(2.5, 19), control: point(2.5, 21))
+        path.addLine(to: point(2.5, 12))
+        path.addQuadCurve(to: point(3, 10.5), control: point(2.2, 11.2))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct CommerceInboxMark: Shape {
+    func path(in rect: CGRect) -> Path {
+        let scale = min(rect.width, rect.height) / 24
+        let origin = CGPoint(x: rect.midX - 12 * scale, y: rect.midY - 12 * scale)
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: origin.x + x * scale, y: origin.y + y * scale)
+        }
+        var path = Path()
+        path.move(to: point(6.5, 5))
+        path.addLine(to: point(17.5, 5))
+        path.addQuadCurve(to: point(19, 6.5), control: point(18.6, 5))
+        path.addLine(to: point(21, 12))
+        path.addLine(to: point(21, 18))
+        path.addQuadCurve(to: point(19, 20), control: point(21, 20))
+        path.addLine(to: point(5, 20))
+        path.addQuadCurve(to: point(3, 18), control: point(3, 20))
+        path.addLine(to: point(3, 12))
+        path.addLine(to: point(5, 6.5))
+        path.addQuadCurve(to: point(6.5, 5), control: point(5.4, 5))
+        path.closeSubpath()
+        path.move(to: point(3, 12))
+        path.addLine(to: point(8, 12))
+        path.addQuadCurve(to: point(10, 15), control: point(8, 15))
+        path.addLine(to: point(14, 15))
+        path.addQuadCurve(to: point(16, 12), control: point(16, 15))
+        path.addLine(to: point(21, 12))
+        return path
+    }
+}
+
+/// Original small assistant avatar replacing an unrelated sparkle symbol.
+private struct CommerceAssistantMark: View {
+    var body: some View {
+        ZStack {
+            Circle().fill(CommerceColors.secondary)
+            Ellipse().fill(.white).frame(width: 18, height: 11).offset(y: 2)
+            HStack(spacing: 2) {
+                Ellipse().fill(CommerceColors.secondary).frame(width: 5, height: 4)
+                Ellipse().fill(CommerceColors.secondary).frame(width: 5, height: 4)
+            }.offset(y: 0.5)
+            Path { path in
+                path.move(to: CGPoint(x: 4, y: 6))
+                path.addLine(to: CGPoint(x: 8, y: 8))
+                path.addLine(to: CGPoint(x: 11.5, y: 4))
+                path.addLine(to: CGPoint(x: 15, y: 8))
+                path.addLine(to: CGPoint(x: 19, y: 6))
+            }.stroke(.white, style: StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round))
+            Capsule().fill(CommerceColors.secondary).frame(width: 5, height: 1.5).offset(y: 5)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 private enum CommerceTab: String, CaseIterable, Identifiable {
     case home, orders, products, menu
     var id: String { rawValue }

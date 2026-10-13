@@ -1,0 +1,220 @@
+{
+  "retrieved_date": "2026-10-13",
+  "purpose": "Research reference images for the pictured local roleplay payment flows. No complete current-version parity or redistribution license is asserted.",
+  "image_count": 8,
+  "images": [
+    {
+      "file": "chase-zelle-amount.png",
+      "bytes": 102158,
+      "sha256": "0afeae05709eaf6ccdf5f8b0fff9e7485713120188a175f8d6b584bc901f5066",
+      "format": "PNG",
+      "width": 1280,
+      "height": 720,
+      "retrieved_date": "2026-10-13",
+      "style": "Chase US",
+      "source_page_url": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "transcript_url": "https://www.chase.com/content/chase-ux/en/personal/zelle.transcript.html/6375111027112",
+      "media_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+      "derivation": "Unscaled, uncropped PNG frame extracted from the downloaded public MP4 with ffmpeg -ss <timestamp> -frames:v 1.",
+      "video_timestamp_seconds": 71,
+      "pictured_state": "Enter Amount",
+      "reference_kind": "First-party public tutorial video frame",
+      "source_video": {
+        "public_player_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+        "video_id": "6375111027112",
+        "title": "Zelle_Send-Money_English-Video_Standard",
+        "published_at": "2025-07-01T19:08:12.476Z",
+        "created_at": "2025-07-01T18:59:48.234Z",
+        "duration_ms": 104811,
+        "source_file_bytes": 18448883,
+        "source_file_sha256": "f79a65256b7e52e48819a8db5efeeb6c2e7f7dcd6efb8b2ab07b87343e58a043",
+        "source_media_url_without_temporary_signature": "https://fastly-signed-us-east-1-prod.brightcovecdn.com/media/v1/pmp4/static/clear/4394098893001/b71d8daa-1681-4afe-afba-f000e9ee75ae/0d6080af-77d5-4c51-b716-b0efe90a3b7a/main.mp4",
+        "temporary_signature_note": "The public player supplied a signed MP4 URL. Its expiring fastly_token query is intentionally omitted; the permanent player URL is the reproducible source. The full signed response remains in the temporary research workspace, not this repository.",
+        "film_in_repository": false
+      },
+      "limitations": [
+        "The film was published July 2025 and the pictured payment uses a February 2025 sample date; neither establishes an app version.",
+        "The native screen is inside a marketing phone frame, with instructional text and pointer overlays outside or over the app.",
+        "Pixel spacing depends on the tutorial composition and is not matching-device capture evidence."
+      ]
+    },
+    {
+      "file": "chase-zelle-review.png",
+      "bytes": 121553,
+      "sha256": "1ccae7bfbb70ef0c11796bf46b6cbf2a68da25baf39da62ca9d81c986f5674ff",
+      "format": "PNG",
+      "width": 1280,
+      "height": 720,
+      "retrieved_date": "2026-10-13",
+      "style": "Chase US",
+      "source_page_url": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "transcript_url": "https://www.chase.com/content/chase-ux/en/personal/zelle.transcript.html/6375111027112",
+      "media_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+      "derivation": "Unscaled, uncropped PNG frame extracted from the downloaded public MP4 with ffmpeg -ss <timestamp> -frames:v 1.",
+      "video_timestamp_seconds": 74,
+      "pictured_state": "Review",
+      "reference_kind": "First-party public tutorial video frame",
+      "source_video": {
+        "public_player_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+        "video_id": "6375111027112",
+        "title": "Zelle_Send-Money_English-Video_Standard",
+        "published_at": "2025-07-01T19:08:12.476Z",
+        "created_at": "2025-07-01T18:59:48.234Z",
+        "duration_ms": 104811,
+        "source_file_bytes": 18448883,
+        "source_file_sha256": "f79a65256b7e52e48819a8db5efeeb6c2e7f7dcd6efb8b2ab07b87343e58a043",
+        "source_media_url_without_temporary_signature": "https://fastly-signed-us-east-1-prod.brightcovecdn.com/media/v1/pmp4/static/clear/4394098893001/b71d8daa-1681-4afe-afba-f000e9ee75ae/0d6080af-77d5-4c51-b716-b0efe90a3b7a/main.mp4",
+        "temporary_signature_note": "The public player supplied a signed MP4 URL. Its expiring fastly_token query is intentionally omitted; the permanent player URL is the reproducible source. The full signed response remains in the temporary research workspace, not this repository.",
+        "film_in_repository": false
+      },
+      "limitations": [
+        "The film was published July 2025 and the pictured payment uses a February 2025 sample date; neither establishes an app version.",
+        "The native screen is inside a marketing phone frame, with instructional text and pointer overlays outside or over the app.",
+        "Pixel spacing depends on the tutorial composition and is not matching-device capture evidence."
+      ]
+    },
+    {
+      "file": "chase-zelle-confirmation.png",
+      "bytes": 68072,
+      "sha256": "329ab526bdeab2096f01d4f3591142096800b918fe945899c9f48b7411cc09b8",
+      "format": "PNG",
+      "width": 1280,
+      "height": 720,
+      "retrieved_date": "2026-10-13",
+      "style": "Chase US",
+      "source_page_url": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "transcript_url": "https://www.chase.com/content/chase-ux/en/personal/zelle.transcript.html/6375111027112",
+      "media_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+      "derivation": "Unscaled, uncropped PNG frame extracted from the downloaded public MP4 with ffmpeg -ss <timestamp> -frames:v 1.",
+      "video_timestamp_seconds": 78,
+      "pictured_state": "Confirmation",
+      "reference_kind": "First-party public tutorial video frame",
+      "source_video": {
+        "public_player_url": "https://players.brightcove.net/4394098893001/sTS8bOYQM_default/index.html?videoId=6375111027112",
+        "video_id": "6375111027112",
+        "title": "Zelle_Send-Money_English-Video_Standard",
+        "published_at": "2025-07-01T19:08:12.476Z",
+        "created_at": "2025-07-01T18:59:48.234Z",
+        "duration_ms": 104811,
+        "source_file_bytes": 18448883,
+        "source_file_sha256": "f79a65256b7e52e48819a8db5efeeb6c2e7f7dcd6efb8b2ab07b87343e58a043",
+        "source_media_url_without_temporary_signature": "https://fastly-signed-us-east-1-prod.brightcovecdn.com/media/v1/pmp4/static/clear/4394098893001/b71d8daa-1681-4afe-afba-f000e9ee75ae/0d6080af-77d5-4c51-b716-b0efe90a3b7a/main.mp4",
+        "temporary_signature_note": "The public player supplied a signed MP4 URL. Its expiring fastly_token query is intentionally omitted; the permanent player URL is the reproducible source. The full signed response remains in the temporary research workspace, not this repository.",
+        "film_in_repository": false
+      },
+      "limitations": [
+        "The film was published July 2025 and the pictured payment uses a February 2025 sample date; neither establishes an app version.",
+        "The native screen is inside a marketing phone frame, with instructional text and pointer overlays outside or over the app.",
+        "Pixel spacing depends on the tutorial composition and is not matching-device capture evidence."
+      ]
+    },
+    {
+      "file": "bank-of-america-zelle-amount.jpg",
+      "bytes": 83140,
+      "sha256": "1acc9d777a9739317a646b9f849b54d61647ae18c610eab9100b4e9bd9b87d1a",
+      "format": "JPEG",
+      "width": 500,
+      "height": 540,
+      "retrieved_date": "2026-10-13",
+      "style": "Bank of America US",
+      "source_page_url": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "media_url": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/12-mobile-banking-send-money-demo.jpg",
+      "derivation": "Unchanged original JPG downloaded from the exact page image URL.",
+      "pictured_state": "Pay amount",
+      "reference_kind": "First-party simulated guided-demo image",
+      "source_capture_version": null,
+      "limitations": [
+        "The page says screens are simulated for illustrative purposes and actual experience may differ.",
+        "Sample payment date is October 25, 2024; current app build is not established.",
+        "The image includes phone hardware and green instructional highlight circles. These are not native controls.",
+        "The preserved frame is 500 by 540 pixels, not a full-resolution matching-device app screenshot."
+      ]
+    },
+    {
+      "file": "bank-of-america-zelle-review.jpg",
+      "bytes": 68047,
+      "sha256": "e83a97fd4d87993444abf2c590d464b88dcb311288e9158bad3343e153fe17a1",
+      "format": "JPEG",
+      "width": 500,
+      "height": 540,
+      "retrieved_date": "2026-10-13",
+      "style": "Bank of America US",
+      "source_page_url": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "media_url": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/16-mobile-banking-send-money-demo.jpg",
+      "derivation": "Unchanged original JPG downloaded from the exact page image URL.",
+      "pictured_state": "Review payment details",
+      "reference_kind": "First-party simulated guided-demo image",
+      "source_capture_version": null,
+      "limitations": [
+        "The page says screens are simulated for illustrative purposes and actual experience may differ.",
+        "Sample payment date is October 25, 2024; current app build is not established.",
+        "The image includes phone hardware and green instructional highlight circles. These are not native controls.",
+        "The preserved frame is 500 by 540 pixels, not a full-resolution matching-device app screenshot."
+      ]
+    },
+    {
+      "file": "bank-of-america-zelle-success.jpg",
+      "bytes": 69258,
+      "sha256": "bb82b38db54fa239dbdc6263d33277907ee995efe7fa6ff6eda23255e30871ec",
+      "format": "JPEG",
+      "width": 500,
+      "height": 540,
+      "retrieved_date": "2026-10-13",
+      "style": "Bank of America US",
+      "source_page_url": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "media_url": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/19-mobile-banking-send-money-demo.jpg",
+      "derivation": "Unchanged original JPG downloaded from the exact page image URL.",
+      "pictured_state": "Your payment is scheduled",
+      "reference_kind": "First-party simulated guided-demo image",
+      "source_capture_version": null,
+      "limitations": [
+        "The page says screens are simulated for illustrative purposes and actual experience may differ.",
+        "Sample payment date is October 25, 2024; current app build is not established.",
+        "The image includes phone hardware and green instructional highlight circles. These are not native controls.",
+        "The preserved frame is 500 by 540 pixels, not a full-resolution matching-device app screenshot."
+      ]
+    },
+    {
+      "file": "wells-fargo-zelle-recipient.png",
+      "bytes": 46794,
+      "sha256": "f6d5e814e0600b0e7319bf4ba48313c350bd4651793417e8ee643435fc408428",
+      "format": "JPEG",
+      "width": 1232,
+      "height": 706,
+      "retrieved_date": "2026-10-13",
+      "style": "Wells Fargo US",
+      "source_page_url": "https://www.wellsfargo.com/mobile-online-banking/zelle/get-started/",
+      "media_url": "https://www17.wellsfargomedia.com/assets/images/rwd/Zelle_screens_recipient%20616x353-3.png",
+      "derivation": "Unchanged original PNG downloaded from the exact page image URL.",
+      "pictured_state": "Select recipient",
+      "reference_kind": "First-party public product-guide image",
+      "source_capture_version": null,
+      "limitations": [
+        "No app build or capture date is supplied.",
+        "The marketing phone image is cropped. The amount image does not expose its bottom submit controls or final confirmation.",
+        "Phone hardware is outside the native UI."
+      ]
+    },
+    {
+      "file": "wells-fargo-zelle-amount.png",
+      "bytes": 54058,
+      "sha256": "b8f6d330ee4f092b30e646687cf42113141ee38941d4e87a999fcbe07fd60813",
+      "format": "JPEG",
+      "width": 1232,
+      "height": 706,
+      "retrieved_date": "2026-10-13",
+      "style": "Wells Fargo US",
+      "source_page_url": "https://www.wellsfargo.com/mobile-online-banking/zelle/get-started/",
+      "media_url": "https://www17.wellsfargomedia.com/assets/images/rwd/Zelle_screens_amount%20616x353-3.png",
+      "derivation": "Unchanged original PNG downloaded from the exact page image URL.",
+      "pictured_state": "Partial Enter amount",
+      "reference_kind": "First-party public product-guide image",
+      "source_capture_version": null,
+      "limitations": [
+        "No app build or capture date is supplied.",
+        "The marketing phone image is cropped. The amount image does not expose its bottom submit controls or final confirmation.",
+        "Phone hardware is outside the native UI."
+      ]
+    }
+  ]
+}

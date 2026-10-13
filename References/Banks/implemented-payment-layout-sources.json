@@ -1,0 +1,79 @@
+{
+  "retrievedAt": "2026-10-13",
+  "implementationSource": "Sources/BankPlayback.swift",
+  "purpose": "Primary payment-entry, review and completed-local-payment compositions. Reference files preserve received bytes; Chase files are supplied video frames. No source artwork is embedded in the executable.",
+  "limitations": [
+    "No current-version 1:1 claim. Recipient enrollment, verification, bank limits, future scheduling and recurring payments are not implemented.",
+    "Chase omits unmodeled enrollment email, registered-name and activity-date claims.",
+    "Bank of America keeps instant local-payment semantics: its result says payment sent, rather than the pictured scheduled result. The tutorial authorization and scheduling-terms pages are not reproduced.",
+    "Local sender, recipient, amount, memo, account suffix and confirmation number derive from real local state; reference sample values are not fake ledger content."
+  ],
+  "references": [
+    {
+      "theme": "chase",
+      "state": "enter-amount",
+      "sourcePage": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "sourceVideoId": "6375111027112",
+      "sourcePublishedAt": "2025-07-01T19:08:12.476Z",
+      "sourceTimestampSeconds": 71,
+      "referenceFile": "Guides/chase-zelle-amount.png",
+      "referenceBytes": 102158,
+      "referenceSHA256": "0afeae05709eaf6ccdf5f8b0fff9e7485713120188a175f8d6b584bc901f5066",
+      "captureVersion": "Video published July 2025; an app build and device are not established."
+    },
+    {
+      "theme": "chase",
+      "state": "review",
+      "sourcePage": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "sourceVideoId": "6375111027112",
+      "sourcePublishedAt": "2025-07-01T19:08:12.476Z",
+      "sourceTimestampSeconds": 74,
+      "referenceFile": "Guides/chase-zelle-review.png",
+      "referenceBytes": 121553,
+      "referenceSHA256": "1ccae7bfbb70ef0c11796bf46b6cbf2a68da25baf39da62ca9d81c986f5674ff",
+      "captureVersion": "Video published July 2025; an app build and device are not established."
+    },
+    {
+      "theme": "chase",
+      "state": "confirmation",
+      "sourcePage": "https://www.chase.com/digital/customer-service/helpful-tips/online-banking/zelle/send-money",
+      "sourceVideoId": "6375111027112",
+      "sourcePublishedAt": "2025-07-01T19:08:12.476Z",
+      "sourceTimestampSeconds": 78,
+      "referenceFile": "Guides/chase-zelle-confirmation.png",
+      "referenceBytes": 68072,
+      "referenceSHA256": "329ab526bdeab2096f01d4f3591142096800b918fe945899c9f48b7411cc09b8",
+      "captureVersion": "Video published July 2025; an app build and device are not established."
+    },
+    {
+      "theme": "bankOfAmerica",
+      "state": "pay",
+      "sourcePage": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "sourceImage": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/12-mobile-banking-send-money-demo.jpg",
+      "referenceFile": "Guides/bank-of-america-zelle-amount.jpg",
+      "referenceBytes": 83140,
+      "referenceSHA256": "1acc9d777a9739317a646b9f849b54d61647ae18c610eab9100b4e9bd9b87d1a",
+      "captureVersion": "Tutorial screens show October 2024; an app build and device are not established."
+    },
+    {
+      "theme": "bankOfAmerica",
+      "state": "review",
+      "sourcePage": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "sourceImage": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/16-mobile-banking-send-money-demo.jpg",
+      "referenceFile": "Guides/bank-of-america-zelle-review.jpg",
+      "referenceBytes": 68047,
+      "referenceSHA256": "e83a97fd4d87993444abf2c590d464b88dcb311288e9158bad3343e153fe17a1",
+      "captureVersion": "Tutorial screens show October 2024; an app build and device are not established."
+    },
+    {
+      "theme": "bankOfAmerica",
+      "state": "success",
+      "sourcePage": "https://info.bankofamerica.com/en/digital-banking/how-to/mobile-banking-send-money-demo",
+      "sourceImage": "https://info.bankofamerica.com/content/dam/consumer-info/en/digital-banking/how-to/send-money-with-zelle/19-mobile-banking-send-money-demo.jpg",
+      "referenceFile": "Guides/bank-of-america-zelle-success.jpg",
+      "referenceBytes": 69258,
+      "referenceSHA256": "bb82b38db54fa239dbdc6263d33277907ee995efe7fa6ff6eda23255e30871ec",
+      "captureVersion": "Tutorial screens show October 2024; an app build and device are not established."
+    }
+  ]
+}

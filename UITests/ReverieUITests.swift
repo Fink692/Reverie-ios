@@ -466,6 +466,82 @@ final class ReverieUITests: XCTestCase {
 }
 
 extension ReverieUITests {
+    func testReferencedBankPaymentReviewCommitAndRelaunch() {
+        for brand in ["chase", "bankOfAmerica"] {
+            testSessionID = UUID().uuidString
+            let app = makeApp(brand: brand)
+            app.launch()
+            let welcome = app.buttons["Enter your studio"]
+            XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+            welcome.tap()
+            waitForHittable(app.buttons["bank-brand-exit"])
+            let initialBalance = app.descendants(matching: .any).matching(
+                NSPredicate(format: "label CONTAINS %@", "$84,250.75")
+            )
+            XCTAssertTrue(initialBalance.allElementsBoundByIndex.contains { $0.isHittable })
+            let pay = app.buttons["bank-tab-payments"]
+            waitForHittable(pay)
+            pay.tap()
+
+            let recipient = app.textFields["bank.payment.recipient"]
+            replaceText(in: recipient, with: "Jordan Lee")
+            let amount = app.textFields["bank.payment.amount"]
+            replaceText(in: amount, with: "100000")
+            let keyboardDone = app.buttons["bank.payment.keyboard.done"]
+            waitForHittable(keyboardDone)
+            keyboardDone.tap()
+            let review = app.buttons["bank.payment.review"]
+            scrollTo(review, in: app)
+            XCTAssertFalse(review.isEnabled, "An overdraft must not reach payment review")
+
+            scrollTo(amount, in: app, upwards: false)
+            replaceText(in: amount, with: "36.25")
+            let memo = app.textFields["bank.payment.reference"]
+            scrollTo(memo, in: app)
+            replaceText(in: memo, with: "Invoice 241")
+            waitForHittable(keyboardDone)
+            keyboardDone.tap()
+            scrollTo(review, in: app)
+            review.tap()
+            let confirm = app.buttons["bank.payment.confirm"]
+            waitForHittable(confirm)
+            XCTAssertTrue(app.staticTexts["$36.25"].exists)
+            captureScreen("\(brand) payment review", in: app)
+
+            let edit = brand == "chase" ? app.buttons["Edit payment"] : app.buttons["bank.payment.edit"]
+            scrollTo(edit, in: app, upwards: false)
+            edit.tap()
+            XCTAssertTrue(initialBalance.allElementsBoundByIndex.contains { $0.isHittable }, "Review must leave the balance unchanged")
+            scrollTo(review, in: app)
+            review.tap()
+            waitForHittable(confirm)
+            confirm.tap()
+            XCTAssertTrue(app.staticTexts["bank.payment.receipt"].waitForExistence(timeout: 5))
+            captureScreen("\(brand) payment receipt", in: app)
+            let done = app.buttons["bank.payment.done"]
+            waitForHittable(done)
+            done.tap()
+            waitForHittable(app.buttons["bank-brand-exit"])
+            let paidBalance = app.descendants(matching: .any).matching(
+                NSPredicate(format: "label CONTAINS %@", "$84,214.50")
+            )
+            XCTAssertTrue(paidBalance.allElementsBoundByIndex.contains { $0.isHittable })
+            app.terminate()
+            app.launch()
+            waitForHittable(app.buttons["bank-brand-exit"])
+            XCTAssertTrue(paidBalance.allElementsBoundByIndex.contains { $0.isHittable }, "Confirmed payment must survive relaunch")
+            closeCleanBankScene(in: app)
+            app.tabBars.buttons["Activity"].tap()
+            let savedPayment = app.descendants(matching: .any).matching(
+                NSPredicate(format: "label CONTAINS %@", "Invoice 241")
+            )
+            XCTAssertTrue(savedPayment.allElementsBoundByIndex.contains { $0.isHittable })
+            XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Invoice 241")).count, 1,
+                           "Review and relaunch must not duplicate the payment")
+            app.terminate()
+        }
+    }
+
     func testEditableShopifyCuePersistsAndQueuesItsCustomizedPayload() {
         let app = makeApp()
         app.launch()

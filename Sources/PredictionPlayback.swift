@@ -443,7 +443,8 @@ struct PredictionPlayback: View {
                 } label: {
                     VStack(spacing: 5) {
                         if value == .portfolio, let scene {
-                            Text(scene.money(profile.total(cash: scene.balance))).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(height: 23)
+                            Text(profile.total(cash: scene.balance).formatted(.currency(code: scene.currency).precision(.fractionLength(0))))
+                                .font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6).frame(height: 23)
                         } else if value == .home {
                             PredictionHomeMark(selected: tab == .home).frame(width: 26, height: 23)
                         } else { Image(systemName: value.symbol).font(.title3).frame(height: 23) }
@@ -464,6 +465,8 @@ struct PredictionPlayback: View {
 
 private struct PredictionScoreCard: View {
     let game: PredictionGame
+    @ScaledMetric(relativeTo: .caption) private var statusHeight: CGFloat = 16
+    private var dividerOffset: CGFloat { 12 + statusHeight + 8 }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
@@ -474,13 +477,15 @@ private struct PredictionScoreCard: View {
                 Spacer(minLength: 8)
                 Text(game.league).font(.caption).foregroundStyle(.secondary)
             }
+            .frame(height: statusHeight)
             PredictionDashedLine().stroke(Color.secondary.opacity(0.13), style: StrokeStyle(lineWidth: 1, dash: [4, 4])).frame(height: 1)
             scoreRow(game.homeTeam, score: game.homeScore, color: PredictionColors.blue)
             scoreRow(game.awayTeam, score: game.awayScore, color: Color(red: 0.76, green: 0.35, blue: 0.18))
         }
         .padding(.horizontal, 13).padding(.vertical, 12).frame(width: 190, alignment: .leading)
-        .background(PredictionScoreTicket().fill(.white))
-        .overlay(PredictionScoreTicket().stroke(Color.secondary.opacity(0.11)))
+        .background(PredictionScoreTicket(divider: dividerOffset).fill(.white)
+            .shadow(color: .black.opacity(0.035), radius: 6, y: 3))
+        .overlay(PredictionScoreTicket(divider: dividerOffset).stroke(Color.secondary.opacity(0.11)))
         .accessibilityElement(children: .combine)
     }
     private func scoreRow(_ team: String, score: Int, color: Color) -> some View {
@@ -549,14 +554,14 @@ private struct PredictionGameCard: View {
 private struct PredictionWordmark: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.width * 0.1, y: rect.height * 0.2))
-        path.addLine(to: CGPoint(x: rect.width * 0.85, y: rect.height * 0.05))
+        path.move(to: CGPoint(x: rect.width * 0.05, y: rect.height * 0.24))
+        path.addLine(to: CGPoint(x: rect.width * 0.95, y: rect.height * 0.05))
         path.addLine(to: CGPoint(x: rect.width * 0.95, y: rect.height * 0.95))
-        path.addLine(to: CGPoint(x: rect.width * 0.15, y: rect.height * 0.75))
+        path.addLine(to: CGPoint(x: rect.width * 0.05, y: rect.height * 0.76))
         path.closeSubpath()
-        path.move(to: CGPoint(x: rect.width * 0.1, y: rect.height * 0.2))
-        path.addLine(to: CGPoint(x: rect.width * 0.9, y: rect.height * 0.5))
-        path.addLine(to: CGPoint(x: rect.width * 0.15, y: rect.height * 0.75))
+        path.move(to: CGPoint(x: rect.width * 0.05, y: rect.height * 0.24))
+        path.addLine(to: CGPoint(x: rect.width * 0.95, y: rect.height * 0.5))
+        path.addLine(to: CGPoint(x: rect.width * 0.05, y: rect.height * 0.76))
         return path
     }
 }
@@ -613,9 +618,27 @@ private struct PredictionHomeMark: View {
     var body: some View {
         Circle().fill(selected ? PredictionColors.blue : Color.secondary.opacity(0.75))
             .overlay {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(.white).frame(width: 10, height: 10).rotationEffect(.degrees(-13))
+                PredictionHomeTile().fill(.white).frame(width: 12, height: 12)
             }.accessibilityHidden(true)
+    }
+}
+
+/// The Home glyph is a skewed tile rather than a rotated square.
+private struct PredictionHomeTile: Shape {
+    func path(in rect: CGRect) -> Path {
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.width * x, y: rect.height * y) }
+        return Path { path in
+            path.move(to: point(0.31, 0.16))
+            path.addLine(to: point(0.78, 0.06))
+            path.addQuadCurve(to: point(0.94, 0.21), control: point(0.97, 0.01))
+            path.addLine(to: point(0.79, 0.80))
+            path.addQuadCurve(to: point(0.65, 0.94), control: point(0.76, 0.91))
+            path.addLine(to: point(0.20, 0.99))
+            path.addQuadCurve(to: point(0.06, 0.83), control: point(0.01, 1))
+            path.addLine(to: point(0.18, 0.31))
+            path.addQuadCurve(to: point(0.31, 0.16), control: point(0.21, 0.20))
+            path.closeSubpath()
+        }
     }
 }
 
@@ -626,10 +649,11 @@ private struct PredictionDashedLine: Shape {
 }
 
 private struct PredictionScoreTicket: Shape {
+    let divider: CGFloat
     func path(in rect: CGRect) -> Path {
-        let radius: CGFloat = 14
-        let notch: CGFloat = 5
-        let divider = min(rect.height - radius - notch, 36)
+        let radius: CGFloat = 16
+        let notch: CGFloat = 6
+        let divider = min(rect.height - radius - notch, max(radius + notch, self.divider))
         return Path { path in
             path.move(to: CGPoint(x: radius, y: 0))
             path.addLine(to: CGPoint(x: rect.width - radius, y: 0))
@@ -1201,7 +1225,7 @@ private enum PredictionTab: String, CaseIterable, Identifiable {
         case .home: return "house.fill"
         case .live: return "dot.radiowaves.left.and.right"
         case .portfolio: return "chart.pie"
-        case .squads: return "person.2"
+        case .squads: return "bubble.left.and.bubble.right"
         case .search: return "magnifyingglass"
         case .activity: return "clock"
         case .profile: return "person.crop.circle"
@@ -1230,9 +1254,9 @@ private struct PredictionReview {
     let price: Double
 }
 private enum PredictionColors {
-    static let blue = Color(red: 0.18, green: 0.40, blue: 0.92)
+    static let blue = Color(red: 47 / 255.0, green: 92 / 255.0, blue: 1)
     static let green = Color(red: 0.12, green: 0.51, blue: 0.34)
-    static let red = Color(red: 0.78, green: 0.22, blue: 0.27)
+    static let red = Color(red: 0.84, green: 0.06, blue: 0.08)
     static let fill = Color(red: 0.95, green: 0.96, blue: 0.97)
     static let background = Color(red: 0.98, green: 0.98, blue: 0.99)
 }

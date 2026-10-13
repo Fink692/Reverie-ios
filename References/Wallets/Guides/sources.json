@@ -1,0 +1,76 @@
+{
+  "retrieved_date": "2026-10-13",
+  "purpose": "Research-only older MetaMask screenshots. No current-version parity or open redistribution license is asserted.",
+  "image_count": 3,
+  "images": [
+    {
+      "file": "metamask-older-send-recipient.png",
+      "bytes": 313428,
+      "sha256": "fe86e34467100e87f9287355131b41d1af325ed425f84e311ae59dce99cb4ff0",
+      "format": "PNG",
+      "width": 1284,
+      "height": 1632,
+      "retrieved_date": "2026-10-13",
+      "style": "MetaMask",
+      "source_page_url": "https://support.metamask.io/fr/manage-crypto/move-crypto/send/how-to-send-tokens-from-your-metamask-wallet",
+      "media_url": "https://metamask-support.myfilebase.com/ipfs/QmdGqnYhAFxCVWm3xpcS8U2ka7DULzWipjV4oxQEEyP9JX",
+      "derivation": "Unchanged original PNG downloaded from the exact image URL in the localized first-party guide.",
+      "pictured_state": "Send to recipient",
+      "reference_kind": "Older first-party mobile-help screenshot",
+      "implementation_status": "Research only; not implemented as the current dark-style UI.",
+      "source_capture_version": null,
+      "limitations": [
+        "The screenshots show an older white and blue design, unlike the saved current dark App Store baseline.",
+        "The current English help page describes amount before recipient, while this localized guide depicts recipient before amount.",
+        "No screenshot capture version/date is supplied.",
+        "These images must not be silently combined with the current dark baseline or presented as current-version proof."
+      ]
+    },
+    {
+      "file": "metamask-older-send-amount.png",
+      "bytes": 498094,
+      "sha256": "5ebf0f5c39ef4c531a7bf49f3951fc3d71959f3dd479ccf442232346026cd4ad",
+      "format": "PNG",
+      "width": 1284,
+      "height": 2572,
+      "retrieved_date": "2026-10-13",
+      "style": "MetaMask",
+      "source_page_url": "https://support.metamask.io/fr/manage-crypto/move-crypto/send/how-to-send-tokens-from-your-metamask-wallet",
+      "media_url": "https://metamask-support.myfilebase.com/ipfs/Qmdn5isBsKBHAarfaMpuvBEHqeBEuejREkaQ2eB9cNZa1u",
+      "derivation": "Unchanged original PNG downloaded from the exact image URL in the localized first-party guide.",
+      "pictured_state": "Amount",
+      "reference_kind": "Older first-party mobile-help screenshot",
+      "implementation_status": "Research only; not implemented as the current dark-style UI.",
+      "source_capture_version": null,
+      "limitations": [
+        "The screenshots show an older white and blue design, unlike the saved current dark App Store baseline.",
+        "The current English help page describes amount before recipient, while this localized guide depicts recipient before amount.",
+        "No screenshot capture version/date is supplied.",
+        "These images must not be silently combined with the current dark baseline or presented as current-version proof."
+      ]
+    },
+    {
+      "file": "metamask-older-send-confirm.png",
+      "bytes": 532711,
+      "sha256": "4b832d41ab2532c9f22e0835ea6355e607a0f731c66fbda34d16dbb1a208d271",
+      "format": "PNG",
+      "width": 1284,
+      "height": 2572,
+      "retrieved_date": "2026-10-13",
+      "style": "MetaMask",
+      "source_page_url": "https://support.metamask.io/fr/manage-crypto/move-crypto/send/how-to-send-tokens-from-your-metamask-wallet",
+      "media_url": "https://metamask-support.myfilebase.com/ipfs/QmeQgR2tWVGYa6CTbB6crDKzMDaixwf4j4kp7gBwkn48Gs",
+      "derivation": "Unchanged original PNG downloaded from the exact image URL in the localized first-party guide.",
+      "pictured_state": "Confirm with gas fees",
+      "reference_kind": "Older first-party mobile-help screenshot",
+      "implementation_status": "Research only; not implemented as the current dark-style UI.",
+      "source_capture_version": null,
+      "limitations": [
+        "The screenshots show an older white and blue design, unlike the saved current dark App Store baseline.",
+        "The current English help page describes amount before recipient, while this localized guide depicts recipient before amount.",
+        "No screenshot capture version/date is supplied.",
+        "These images must not be silently combined with the current dark baseline or presented as current-version proof."
+      ]
+    }
+  ]
+}

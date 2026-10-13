@@ -157,7 +157,7 @@ struct PortfolioProfile: Codable, Identifiable, Equatable {
         var positions = MarketSamples.positions
         switch theme {
         case .robinhood: positions = positions.filter { $0.kind == .stock }
-        case .wealthsimple: positions = positions.filter { $0.kind == .stock }; for index in positions.indices { positions[index].units *= 1.8 }
+        case .wealthsimple: positions = MarketSamples.wealthsimpleHoldings
         case .coinbase: positions = positions.filter { $0.kind == .crypto }
         }
         return PortfolioProfile(sceneID: sceneID, theme: theme, dailyChange: 1.84,
@@ -377,4 +377,23 @@ private enum MarketSamples {
         MarketPosition(id: id("06"), symbol: "ETH", name: "Ethereum", kind: .crypto, units: 4.2, price: 3520.45, averageCost: 2980, changePercent: 2.31, chart: risingChart),
         MarketPosition(id: id("07"), symbol: "SOL", name: "Solana", kind: .crypto, units: 52.2, price: 142.80, averageCost: 116.40, changePercent: 3.24, chart: risingChart)
     ]
+    /// Fictional starter holdings following the visible public Holdings composition.
+    /// Derived prices and cost bases keep row values and local trading consistent.
+    /// Existing saved portfolios are preserved; these rows only seed a new profile.
+    static let wealthsimpleHoldings: [MarketPosition] = [
+        holding("51", symbol: "AC", name: "Air Canada", units: 12.527, value: 231.13, gain: 111.08),
+        holding("52", symbol: "ZM", name: "Zoom", units: 0.157, value: 10.65, gain: -24.55),
+        holding("53", symbol: "IVV", name: "iShares Core S&P 500 ETF", units: 14.611, value: 7485.43, gain: 4394.87),
+        holding("54", symbol: "AXP", name: "American Express", units: 1.845, value: 415.96, gain: -21.89),
+        holding("55", symbol: "GME", name: "GameStop", units: 23.796, value: 355.03, gain: -4674.83),
+        holding("56", symbol: "JNJ", name: "Johnson & Johnson", units: 19.252, value: 2935.87, gain: 1064.82),
+        holding("57", symbol: "AAPL", name: "Apple", units: 4.399, value: 824.51, gain: 376.79)
+    ]
+    private static func holding(_ suffix: String, symbol: String, name: String,
+                                units: Double, value: Double, gain: Double) -> MarketPosition {
+        MarketPosition(id: id(suffix), symbol: symbol, name: name, kind: .stock,
+            units: units, price: value / units, averageCost: (value - gain) / units,
+            changePercent: gain >= 0 ? 1.36 : -1.82,
+            chart: gain >= 0 ? risingChart : fallingChart)
+    }
 }

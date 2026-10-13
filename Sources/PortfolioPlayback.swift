@@ -14,7 +14,7 @@ struct PortfolioPlayback: View {
     @State private var search = ""
     @State private var range: PortfolioRange = .day
     @State private var assetFilter: MarketAssetKind?
-    @State private var holdingsFilter = "Stocks"
+    @State private var holdingsFilter: String?
     @State private var discoveryCategory = "Now"
     @State private var cryptoAccount = false
     @State private var choosingAccount = false
@@ -64,6 +64,10 @@ struct PortfolioPlayback: View {
                 case .sendCrypto: PortfolioTransferPage(sceneID: sceneID, kind: .send)
                 case .receiveCrypto: PortfolioTransferPage(sceneID: sceneID, kind: .receive)
                 case .scan: PortfolioScanPage(sceneID: sceneID)
+                case .coinbaseCard: coinbaseUnavailableFeature(.card)
+                case .coinbaseRewards: coinbaseUnavailableFeature(.rewards)
+                case .coinbaseWallet: coinbaseUnavailableFeature(.wallet)
+                case .coinbaseAdvanced: coinbaseUnavailableFeature(.advanced)
                 }
             }
         }
@@ -173,7 +177,7 @@ struct PortfolioPlayback: View {
     private var cryptoValue: Double { profile.positions.filter { $0.kind == .crypto }.reduce(0) { $0 + $1.value } }
 
     private func wealthsimpleHome(_ scene: StudioScene) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(["Stocks", "ETFs", "Crypto", "CAD", "USD"], id: \.self) { category in
@@ -194,12 +198,13 @@ struct PortfolioPlayback: View {
                             Text("$").font(.system(size: 24, weight: .medium)).frame(width: 34, height: 34).background(.white, in: RoundedRectangle(cornerRadius: 8))
                             VStack(alignment: .leading, spacing: 4) { Text(scene.currency).font(.system(size: 16, weight: .medium)); Text("Cash").font(.system(size: 14)).foregroundStyle(palette.secondary) }
                             Spacer()
-                            Text(scene.money(scene.balance)).font(.system(size: 16, weight: .medium)).monospacedDigit()
+                            Text(PortfolioFormatting.holdingsMoney(scene.balance, currency: scene.currency)).font(.system(size: 16, weight: .medium)).monospacedDigit()
                         }.frame(minHeight: 66).padding(.horizontal, 18)
                     }.buttonStyle(.plain)
                 } else { holdingsEmptyState }
             } else {
                 let positions = profile.positions.filter { position in
+                    if holdingsFilter == nil { return position.units > 0 }
                     if holdingsFilter == "Crypto" { return position.kind == .crypto }
                     let isETF = Self.etfSymbols.contains(position.symbol.uppercased())
                     return position.kind == .stock && (holdingsFilter == "ETFs" ? isETF : !isETF)
@@ -208,7 +213,7 @@ struct PortfolioPlayback: View {
                 VStack(spacing: 0) {
                     ForEach(positions) { position in
                         assetLink(position, scene: scene)
-                        Divider().padding(.leading, 46).overlay(palette.separator)
+                        Divider().overlay(palette.separator).padding(.leading, 46)
                     }
                 }.padding(.horizontal, 18)
             }
@@ -228,8 +233,8 @@ struct PortfolioPlayback: View {
             NavigationLink { PortfolioBalancePage(sceneID: sceneID) } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("My balance").font(.system(size: 14)).foregroundStyle(palette.secondary)
-                        HStack(spacing: 8) { Text(scene.money(profile.total(cash: scene.balance))).font(.system(size: 30, weight: .semibold)).monospacedDigit(); Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)) }
+                        Text("My balance").font(.system(size: 14, weight: .semibold)).foregroundStyle(palette.secondary)
+                        Text(scene.money(profile.total(cash: scene.balance))).font(.system(size: 30, weight: .semibold)).monospacedDigit()
                     }
                     Spacer(minLength: 12)
                     PortfolioTrend(values: profile.chart, range: .day, color: palette.accent).frame(width: 76, height: 35).accessibilityHidden(true)
@@ -242,10 +247,10 @@ struct PortfolioPlayback: View {
                 coinbaseAction("Scan", symbol: "viewfinder") { modal = .scan }
             }.padding(.horizontal, 24)
             HStack(spacing: 0) {
-                coinbaseShortcut("Card", symbol: "creditcard") { modal = .menu }
-                coinbaseShortcut("Rewards", symbol: "gift") { modal = .menu }
-                coinbaseShortcut("Coinbase\nWallet", symbol: "wallet.pass") { tab = .profile }
-                coinbaseShortcut("Advanced\ntrade", symbol: "chart.bar.xaxis") { tab = .assets }
+                coinbaseShortcut("Card", symbol: "creditcard") { modal = .coinbaseCard }
+                coinbaseShortcut("Rewards", symbol: "gift") { modal = .coinbaseRewards }
+                coinbaseShortcut("Coinbase\nWallet", symbol: "wallet.pass") { modal = .coinbaseWallet }
+                coinbaseShortcut("Advanced\ntrade", symbol: "chart.bar.xaxis") { modal = .coinbaseAdvanced }
             }.padding(.horizontal, 24)
             Divider().overlay(palette.separator)
             VStack(alignment: .leading, spacing: 16) {
@@ -274,6 +279,15 @@ struct PortfolioPlayback: View {
 
     private func coinbaseShortcut(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) { VStack(spacing: 8) { CoinbaseShortcutMark(kind: symbol).frame(width: 36, height: 36); Text(title).font(.system(size: 11)).multilineTextAlignment(.center) }.frame(maxWidth: .infinity, minHeight: 75).contentShape(Rectangle()) }.buttonStyle(.plain)
+    }
+
+    private func coinbaseUnavailableFeature(_ feature: CoinbaseUnavailableFeature) -> some View {
+        NavigationStack {
+            ContentUnavailableView(feature.title, systemImage: feature.symbol, description: Text(feature.message))
+                .navigationTitle(feature.title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { modal = nil } } }
+        }
     }
 
     private func performanceLabel(_ scene: StudioScene, value: Double, percent: Double) -> some View {
@@ -499,7 +513,25 @@ struct PortfolioPlayback: View {
 
 private enum PortfolioModal: String, Identifiable {
     case menu, themes, editor, addCash, sendCash, sendCrypto, receiveCrypto, scan
+    case coinbaseCard, coinbaseRewards, coinbaseWallet, coinbaseAdvanced
     var id: String { rawValue }
+}
+private enum CoinbaseUnavailableFeature {
+    case card, rewards, wallet, advanced
+    var title: String {
+        switch self { case .card: return "Card"; case .rewards: return "Rewards"; case .wallet: return "Coinbase Wallet"; case .advanced: return "Advanced trade" }
+    }
+    var symbol: String {
+        switch self { case .card: return "creditcard"; case .rewards: return "gift"; case .wallet: return "wallet.pass"; case .advanced: return "chart.bar.xaxis" }
+    }
+    var message: String {
+        switch self {
+        case .card: return "Card information is unavailable."
+        case .rewards: return "No rewards are available."
+        case .wallet: return "A separate wallet is not set up."
+        case .advanced: return "Advanced trading is unavailable."
+        }
+    }
 }
 private enum PortfolioTab: String { case home, assets, activity, profile }
 private enum PortfolioRange: String, CaseIterable, Identifiable {
@@ -545,6 +577,11 @@ private struct PortfolioPalette {
 private enum PortfolioFormatting {
     static func percent(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(2))) + "%" }
     static func quantity(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
+    // Holdings uses the compact currency symbol while CAD/USD remain explicit filters.
+    // This changes presentation only; saved amounts and their currency are preserved.
+    static func holdingsMoney(_ value: Double, currency: String) -> String {
+        value.formatted(.currency(code: currency).presentation(.narrow))
+    }
 }
 
 private struct PortfolioTrend: View {
@@ -605,12 +642,12 @@ private struct PortfolioAssetRow: View {
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 5) {
-                    Text(scene.money(showsPrice ? position.price : position.value)).font(.system(size: 16, weight: .medium)).monospacedDigit()
+                    Text(PortfolioFormatting.holdingsMoney(showsPrice ? position.price : position.value, currency: scene.currency)).font(.system(size: 16, weight: .medium)).monospacedDigit()
                     let percent = position.costBasis > 0 ? position.unrealizedGain / position.costBasis * 100 : 0
-                    Text("\(position.unrealizedGain >= 0 ? "+" : "−") \(scene.money(abs(position.unrealizedGain))) (\(percent >= 0 ? "+" : "−")\(PortfolioFormatting.percent(abs(percent))))")
+                    Text("\(position.unrealizedGain >= 0 ? "+" : "−") \(PortfolioFormatting.holdingsMoney(abs(position.unrealizedGain), currency: scene.currency)) (\(percent >= 0 ? "+" : "−")\(PortfolioFormatting.percent(abs(percent))))")
                         .font(.system(size: 13, weight: .semibold)).foregroundStyle(position.unrealizedGain >= 0 ? palette.gain : palette.loss).lineLimit(1).minimumScaleFactor(0.75)
                 }
-            }.frame(minHeight: 76).contentShape(Rectangle())
+            }.frame(minHeight: 74).contentShape(Rectangle())
         } else {
         HStack(spacing: 12) {
             if theme != .robinhood { PortfolioAssetIcon(position: position).frame(width: 40, height: 40) }
@@ -636,17 +673,81 @@ private struct PortfolioAssetRow: View {
 private struct PortfolioAssetIcon: View {
     let position: MarketPosition
     var square = false
+    private var symbol: String { position.symbol.uppercased() }
     private var color: Color {
-        switch position.symbol.uppercased() { case "BTC": return Color(portfolioHex: 0xF7931A); case "ETH": return Color(portfolioHex: 0x627EEA); case "SOL": return Color(portfolioHex: 0x161B22); case "USDC": return Color(portfolioHex: 0x2775CA); case "AAPL": return .black; case "TSLA": return Color(portfolioHex: 0xD71920); case "NVDA": return Color(portfolioHex: 0x76B900); default: return Color(portfolioHex: 0x4B6786) }
+        switch symbol {
+        case "BTC": return Color(portfolioHex: 0xF7931A)
+        case "ETH": return Color(portfolioHex: 0x627EEA)
+        case "SOL": return Color(portfolioHex: 0x161B22)
+        case "USDC": return Color(portfolioHex: 0x2775CA)
+        case "AAPL", "GME": return .black
+        case "TSLA", "JNJ": return Color(portfolioHex: 0xD71920)
+        case "AC", "AC.TO": return Color(portfolioHex: 0xEF1231)
+        case "NVDA": return Color(portfolioHex: 0x76B900)
+        case "ZM", "AXP": return Color(portfolioHex: 0x0052FF)
+        case "VOOG", "VOO", "VTI": return Color(portfolioHex: 0xA71930)
+        case "IVV": return .white
+        default: return Color(portfolioHex: 0x4B6786)
+        }
+    }
+    private var publicGlyph: String? {
+        switch symbol {
+        case "AC", "AC.TO": return "AirCanada"
+        case "NVDA": return "Nvidia"
+        case "TSLA": return "Tesla"
+        case "IVV": return "IShares"
+        case "AXP": return "AmericanExpress"
+        case "GME": return "GameStop"
+        case "JNJ": return "JohnsonJohnson"
+        default: return nil
+        }
+    }
+    private var templateGlyph: Bool { ["NVDA", "TSLA", "AXP", "JNJ"].contains(symbol) }
+    @ViewBuilder private var glyph: some View {
+        if let publicGlyph {
+            Image("PortfolioFidelity-\(publicGlyph)")
+                .resizable()
+                .renderingMode(templateGlyph ? .template : .original)
+                .scaledToFit()
+                .foregroundStyle(.white)
+                .padding(symbol == "AC" || symbol == "AC.TO" || symbol == "IVV" ? 0 : symbol == "AXP" ? 3 : 5)
+        } else if symbol == "BTC" {
+            Image(systemName: "bitcoinsign").font(.system(size: 25, weight: .semibold)).rotationEffect(.degrees(14)).foregroundStyle(.white)
+        } else if symbol == "AAPL" {
+            Image(systemName: "apple.logo").font(.system(size: 24)).foregroundStyle(.white)
+        } else if symbol == "ETH" {
+            PortfolioEthereumMark().padding(8)
+        } else if symbol == "SOL" {
+            PortfolioSolanaMark().padding(9)
+        } else if symbol == "USDC" {
+            PortfolioUSDCMark().padding(7)
+        } else if symbol == "ZM" {
+            Text("Z").font(.system(size: 24, weight: .bold, design: .rounded)).foregroundStyle(.white)
+        } else if ["VOOG", "VOO", "VTI"].contains(symbol) {
+            Text("V").font(.system(size: 27, weight: .medium, design: .serif)).foregroundStyle(.white)
+        } else {
+            Text(String(symbol.prefix(1))).font(.system(size: 21, weight: .semibold)).foregroundStyle(.white)
+        }
     }
     var body: some View {
-        Rectangle().fill(color).overlay {
-            if position.symbol == "BTC" { Image(systemName: "bitcoinsign").font(.system(size: 23, weight: .medium)).foregroundStyle(.white) }
-            else if position.symbol == "AAPL" { Image(systemName: "apple.logo").font(.system(size: 24)).foregroundStyle(.white) }
-            else if position.symbol == "ETH" { PortfolioEthereumMark().padding(8) }
-            else if position.symbol == "SOL" { PortfolioSolanaMark().padding(9) }
-            else { Text(String(position.symbol.prefix(1))).font(.system(size: 21, weight: .semibold)).foregroundStyle(.white) }
-        }.clipShape(RoundedRectangle(cornerRadius: square ? 8 : 100)).accessibilityHidden(true)
+        Rectangle().fill(color).overlay { glyph }
+            .clipShape(RoundedRectangle(cornerRadius: square ? 8 : 100))
+            .overlay {
+                if square && symbol == "IVV" { RoundedRectangle(cornerRadius: 8).stroke(.black.opacity(0.04), lineWidth: 1) }
+            }
+            .accessibilityHidden(true)
+    }
+}
+
+private struct PortfolioUSDCMark: View {
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                Circle().trim(from: 0.05, to: 0.45).stroke(.white, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                Circle().trim(from: 0.55, to: 0.95).stroke(.white, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                Text("$").font(.system(size: geometry.size.height * 0.86, weight: .medium)).foregroundStyle(.white)
+            }.frame(width: geometry.size.width, height: geometry.size.height)
+        }
     }
 }
 

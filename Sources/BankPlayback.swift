@@ -12,12 +12,15 @@ struct BankPlayback: View {
     @State private var showCard = false
     @State private var showThemes = false
     @State private var search = ""
+    @State private var hideStarlingBalance = false
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: BankProfile { store.bankProfile(for: sceneID) }
     private var holderName: String { profile.holderName ?? scene?.name ?? profile.accountName }
     private var theme: BankTheme { profile.theme }
     private var palette: BankPalette { BankPalette(theme) }
+    private var fullScreenPayment: Bool { cleanPlayback && tab == .payments && (theme == .chase || theme == .bankOfAmerica) }
+    private var playbackHeaderColor: Color { fullScreenPayment ? (theme == .chase ? Color(bankHex: 0xF4F4FA) : .white) : palette.header }
     private var activity: [SceneEvent] {
         store.events.filter { $0.sceneID == sceneID }.sorted { $0.date > $1.date }
     }
@@ -28,12 +31,12 @@ struct BankPlayback: View {
                 if let scene {
                     VStack(spacing: 0) {
                         if cleanPlayback {
-                            if theme != .hsbc { cleanHeader }
+                            if theme != .hsbc && !fullScreenPayment { cleanHeader }
                         } else { header }
                         if theme == .hsbc { topTabs }
                         switch tab {
                         case .home: home(scene)
-                        case .payments: BankPaymentPage(sceneID: sceneID, theme: theme)
+                        case .payments: BankPaymentPage(sceneID: sceneID, theme: theme, onClose: { tab = .home })
                         case .activity: activityPage(scene)
                         case .cards: BankCardPage(sceneID: sceneID, theme: theme)
                         case .more: morePage(scene)
@@ -42,21 +45,21 @@ struct BankPlayback: View {
                         case .transfers: BankSavingsTransferPage(sceneID: sceneID, theme: theme)
                         case .statement: BankStatementPage(sceneID: sceneID, theme: theme)
                         }
-                        if theme != .hsbc { bottomTabs }
+                        if theme != .hsbc && !fullScreenPayment { bottomTabs }
                     }
                     .background(palette.background)
                 } else {
                     ContentUnavailableView("Account unavailable", systemImage: "building.columns", description: Text("This scene has been removed."))
                 }
             }
-            .background(palette.header.ignoresSafeArea(edges: .top))
+            .background(playbackHeaderColor.ignoresSafeArea(edges: .top))
             .environment(\.colorScheme, theme == .revolut ? .dark : .light)
             .toolbar(.hidden, for: .navigationBar)
-            .toolbarBackground(palette.header, for: .navigationBar)
+            .toolbarBackground(playbackHeaderColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(palette.darkHeader ? .dark : .light, for: .navigationBar)
             .tint(palette.accent)
-            .preferredColorScheme(palette.darkHeader ? .dark : .light)
+            .preferredColorScheme(fullScreenPayment ? .light : (palette.darkHeader ? .dark : .light))
             .sheet(isPresented: $showProfile) { BankProfileEditor(sceneID: sceneID) }
             .sheet(isPresented: $showThemes) {
                 NavigationStack {
@@ -139,12 +142,16 @@ struct BankPlayback: View {
     // The live account references use their own toolbar, rather than a repeated brand masthead.
     // The central region retains the long-press return gesture in clean playback.
     private var cleanHeader: some View {
-        HStack(spacing: 10) {
-            Button { showProfile = true } label: {
-                Image(systemName: theme == .bankOfAmerica ? "line.3.horizontal" : (theme == .lloyds ? "envelope" : "person.crop.circle"))
-                    .font(.system(size: theme == .lloyds ? 18 : 22))
-                    .frame(width: 40, height: 44)
-            }.accessibilityLabel("Account profile")
+        HStack(spacing: theme == .bankOfAmerica ? 6 : 10) {
+            if theme == .starling {
+                cleanHeaderButton(hideStarlingBalance ? "eye.slash" : "eye", title: hideStarlingBalance ? "Show balance" : "Hide balance") { hideStarlingBalance.toggle() }
+            } else if theme == .bankOfAmerica {
+                cleanHeaderButton("line.3.horizontal", title: "Menu", caption: "Menu") { tab = .more }
+            } else if theme == .lloyds {
+                cleanHeaderButton("envelope", title: "Messages") { tab = .activity }
+            } else if theme != .citi && theme != .barclays {
+                cleanHeaderButton("person.crop.circle", title: "Account profile") { showProfile = true }
+            }
             cleanHeaderCenter
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .contentShape(Rectangle())
@@ -154,18 +161,51 @@ struct BankPlayback: View {
                 .accessibilityAddTraits(.isButton)
                 .accessibilityIdentifier("bank-brand-exit")
                 .accessibilityAction(named: "Return to Studio") { dismiss() }
-            Button {
-                if theme == .monzo { tab = .deposits } else { tab = .activity }
-            } label: {
-                Image(systemName: theme == .monzo ? "plus.circle.fill" : (theme == .revolut ? "creditcard" : "bell"))
-                    .font(.system(size: theme == .monzo ? 28 : 19))
-                    .frame(width: 40, height: 44)
-            }.accessibilityLabel(theme == .monzo ? "Add money" : "Activity")
+            switch theme {
+            case .bankOfAmerica:
+                cleanHeaderButton("envelope", title: "Inbox", caption: "Inbox") { tab = .activity }
+                cleanHeaderButton("cart", title: "Products", caption: "Products") { tab = .more }
+                cleanHeaderButton("rectangle.portrait.and.arrow.right", title: "Log out", caption: "Log out") { dismiss() }
+            case .barclays:
+                cleanHeaderButton("bell", title: "Activity") { tab = .activity }
+                cleanHeaderButton("person", title: "Account profile") { showProfile = true }
+            case .citi:
+                cleanHeaderButton("person.crop.circle", title: "Account profile") { showProfile = true }
+            case .lloyds:
+                cleanHeaderButton("questionmark.circle", title: "Help") { tab = .more }
+                cleanHeaderButton("person.2", title: "Account profile") { showProfile = true }
+            case .monzo:
+                cleanHeaderButton("gift", title: "Account options") { tab = .more }
+                cleanHeaderButton("magnifyingglass", title: "Search activity") { tab = .activity }
+                Button { tab = .deposits } label: {
+                    Image(systemName: "plus").font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.white).frame(width: 30, height: 30)
+                        .background(palette.accent, in: Circle()).frame(width: 36, height: 44)
+                }.accessibilityLabel("Add money")
+            case .natWest:
+                cleanHeaderButton("bell.badge", title: "Activity") { tab = .activity }
+                cleanHeaderButton("magnifyingglass", title: "Search activity") { tab = .activity }
+            case .revolut:
+                cleanHeaderButton("creditcard", title: "Cards") { showCard = true }
+            case .starling:
+                cleanHeaderButton("person.crop.circle", title: "Account profile") { showProfile = true }
+            default:
+                cleanHeaderButton("bell", title: "Activity") { tab = .activity }
+            }
         }
         .buttonStyle(.plain)
         .foregroundStyle(palette.headerInk)
         .padding(.horizontal, 12)
         .background(palette.header)
+    }
+
+    private func cleanHeaderButton(_ symbol: String, title: String, caption: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: symbol).font(.system(size: caption == nil ? 19 : 17))
+                if let caption { Text(caption).font(.system(size: 8)) }
+            }.frame(width: caption == nil ? 32 : 38, height: 44)
+        }.accessibilityLabel(title)
     }
 
     @ViewBuilder private var cleanHeaderCenter: some View {
@@ -174,28 +214,24 @@ struct BankPlayback: View {
             Text("Hi \(holderName)").font(.system(size: 15, weight: .semibold))
         case .monzo:
             HStack {
-                Text("Upgrade").font(.system(size: 13, weight: .semibold)).padding(.horizontal, 12).padding(.vertical, 7).background(.white, in: Capsule())
+                Text("Upgrade").font(.system(size: 11, weight: .semibold)).padding(.horizontal, 10).padding(.vertical, 7).background(Color(bankHex: 0xF3F7F6), in: Capsule())
                 Spacer()
-                Image(systemName: "gift").font(.system(size: 19))
-                Image(systemName: "magnifyingglass").font(.system(size: 19)).padding(.leading, 9)
             }
         case .natWest:
             HStack(spacing: 6) {
                 Text("Personal").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).padding(.horizontal, 14).padding(.vertical, 6).background(palette.accent, in: Capsule())
-                Image(systemName: "gift").font(.system(size: 13)).foregroundStyle(.secondary)
+                Image(systemName: "birthday.cake").font(.system(size: 13)).foregroundStyle(palette.accent.opacity(0.55))
                 Spacer()
-                Image(systemName: "magnifyingglass").font(.system(size: 18))
             }
         case .barclays:
-            HStack { Text("Home").font(.system(size: 27, weight: .bold)); Spacer() }
+            HStack { Text("Home").font(.system(size: 24, weight: .bold)); Spacer() }
         case .starling:
-            HStack(spacing: 5) { Image(systemName: "person.fill").font(.system(size: 10)); Text("Personal").font(.system(size: 12, weight: .medium)); Image(systemName: "chevron.down").font(.system(size: 9)) }
-                .padding(.horizontal, 12).padding(.vertical, 6).background(.white.opacity(0.09), in: Capsule())
+            Color.clear
         case .revolut:
             HStack(spacing: 7) { Image(systemName: "magnifyingglass"); Text("Search").font(.system(size: 14)); Spacer() }
                 .foregroundStyle(.white.opacity(0.65)).padding(.horizontal, 14).padding(.vertical, 9).background(.white.opacity(0.08), in: Capsule())
         case .bankOfAmerica:
-            HStack(spacing: 25) { Spacer(); VStack(spacing: 3) { Image(systemName: "envelope"); Text("Inbox").font(.system(size: 8)) }; VStack(spacing: 3) { Image(systemName: "cart"); Text("Products").font(.system(size: 8)) } }.font(.system(size: 16)).foregroundStyle(.secondary)
+            Color.clear
         case .citi:
             HStack { Text("Welcome").font(.system(size: 19, weight: .bold)); Spacer() }
         case .hsbc:
@@ -262,25 +298,41 @@ struct BankPlayback: View {
 
     private func americaHome(_ scene: StudioScene) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Accounts").fontWeight(.semibold).foregroundStyle(palette.accent)
-                Spacer()
-                Button("Dashboard") { tab = .activity }.foregroundStyle(.secondary)
-            }.padding(.horizontal, 42).padding(.vertical, 14).background(.white)
-                .overlay(alignment: .bottom) { Rectangle().fill(palette.accent).frame(height: 2) }
+            HStack(spacing: 0) {
+                Text("Accounts").font(.system(size: 14, weight: .medium)).foregroundStyle(palette.accent)
+                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+                    .overlay(alignment: .bottom) { Rectangle().fill(palette.accent).frame(height: 2) }
+                Button("Dashboard") { tab = .activity }.font(.system(size: 14)).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+            }.background(.white).padding(.horizontal, -16)
             HStack {
                 Image(systemName: "magnifyingglass")
                 Button("How can we help?") { tab = .more }
                 Spacer()
-                Circle().fill(palette.accent).frame(width: 26, height: 26).overlay(Image(systemName: "line.3.horizontal").foregroundStyle(.white).font(.caption))
-            }.font(.system(size: 14)).foregroundStyle(.secondary).padding(12).bankSurface(radius: 3)
+            }.font(.system(size: 13)).foregroundStyle(.secondary).padding(10)
+                .background(Color(bankHex: 0xE7E7E8), in: RoundedRectangle(cornerRadius: 5))
+                .padding(.trailing, 36)
+                .overlay(alignment: .trailing) {
+                    Button { tab = .more } label: {
+                        Circle().fill(palette.accent).frame(width: 25, height: 25)
+                            .overlay(Image(systemName: "line.3.horizontal").rotationEffect(.degrees(-12)).foregroundStyle(.white).font(.system(size: 13, weight: .bold)))
+                    }.accessibilityLabel("Help")
+                }
             VStack(alignment: .leading, spacing: 16) {
                 Button { showProfile = true } label: {
-                    HStack { VStack(alignment: .leading, spacing: 3) { Text("Hello, \(holderName)").fontWeight(.bold); Text("Preferred Rewards").font(.caption).foregroundStyle(.secondary) }; Spacer(); Image(systemName: "chevron.right") }
+                    HStack { VStack(alignment: .leading, spacing: 3) { Text("Hello, \(holderName)").fontWeight(.bold); Text("Preferred Rewards").font(.caption).foregroundStyle(.secondary) }; Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary) }
                 }.buttonStyle(.plain)
-                Divider()
-                HStack { Image(systemName: "location.north.circle"); Text("Bank of America Life Plan").fontWeight(.semibold); Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14))
-                Button("My Rewards") { tab = .more }.font(.system(size: 14, weight: .medium))
+                Button { tab = .more } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "location.north.circle")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Bank of America Life Plan®").font(.system(size: 13, weight: .semibold))
+                            Text("Your next steps are ready. Let's go!").font(.system(size: 10)).foregroundStyle(.secondary)
+                        }
+                        Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                }.buttonStyle(.plain)
+                Button { tab = .more } label: { HStack { Text("My Rewards").font(.system(size: 14)); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary) } }.buttonStyle(.plain)
             }.padding(16).bankSurface(radius: 4)
             VStack(spacing: 0) {
                 bankSectionHeader("Banking", color: palette.accent)
@@ -302,6 +354,7 @@ struct BankPlayback: View {
             actionStrip([("Pay & transfer", "arrow.left.arrow.right"), ("Deposit", "camera"), ("Cards", "creditcard")])
             transactionPanel(scene, title: "Recent transactions", limit: 4)
         }.padding(.horizontal, 20)
+            .background(alignment: .top) { BankWellsHomePattern().fill(Color(bankHex: 0xEAE5DF).opacity(0.45)).frame(height: 280).accessibilityHidden(true) }
     }
 
     private func citiHome(_ scene: StudioScene) -> some View {
@@ -389,20 +442,23 @@ struct BankPlayback: View {
             }.padding(.top, 18)
             Button { tab = .more } label: {
                 HStack { Image(systemName: "magnifyingglass"); Text("Search and quick actions"); Spacer() }.font(.system(size: 14)).foregroundStyle(.secondary).padding(12).bankSurface(radius: 5)
-            }
+            }.buttonStyle(.plain)
             HStack { Text("Your accounts").font(.system(size: 17, weight: .semibold)); Spacer(); Image(systemName: "chevron.right") }
-            NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: false).toolbar(.visible, for: .navigationBar) } label: {
-                HStack(alignment: .top, spacing: 12) {
-                    RoundedRectangle(cornerRadius: 4).fill(Color(bankHex: 0x00AEEF)).frame(width: 36, height: 54).overlay(BankBarclaysSymbol().fill(.white).frame(width: 22, height: 24))
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Barclays Bank Account").font(.system(size: 14, weight: .semibold))
-                        Text(scene.money(scene.balance)).font(.system(size: 25, weight: .bold))
-                        Text("20-00-00  ·  ••••\(profile.accountSuffix)").font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer(); Image(systemName: "ellipsis")
-                }.foregroundStyle(palette.ink).padding(16)
-            }.bankSurface(radius: 8)
-            HStack(spacing: 20) { Button { tab = .payments } label: { Label("Pay", systemImage: "arrow.up.right.circle") }; Button { showCard = true } label: { Label("Card", systemImage: "creditcard") }; Spacer() }.font(.system(size: 15, weight: .medium))
+            VStack(alignment: .leading, spacing: 12) {
+                NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: false).toolbar(.visible, for: .navigationBar) } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        RoundedRectangle(cornerRadius: 4).fill(Color(bankHex: 0x00AEEF)).frame(width: 32, height: 48).overlay(BankBarclaysSymbol().fill(.white).frame(width: 19, height: 22))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Barclays Bank Account").font(.system(size: 13, weight: .semibold))
+                            Text(scene.money(scene.balance)).font(.system(size: 23, weight: .bold))
+                            Text("20-00-00  ·  ••••\(profile.accountSuffix)").font(.system(size: 10)).foregroundStyle(.secondary)
+                        }
+                        Spacer(); Image(systemName: "ellipsis").foregroundStyle(palette.accent)
+                    }.foregroundStyle(palette.ink)
+                }
+                HStack(spacing: 18) { Button { tab = .payments } label: { Label("Pay", systemImage: "arrow.up.right.circle") }; Button { showCard = true } label: { Label("Card", systemImage: "creditcard") }; Spacer() }.font(.system(size: 13, weight: .medium))
+                    .padding(.leading, 44)
+            }.padding(15).bankSurface(radius: 8)
             accountRow(scene, title: "Everyday Saver", balance: profile.savings, suffix: "5604", detail: "Available balance", size: 24, savings: true).bankSurface(radius: 8)
             transactionPanel(scene, title: "Recent activity", limit: 4)
         }.padding(.horizontal, 18)
@@ -494,19 +550,19 @@ struct BankPlayback: View {
             VStack(spacing: 24) {
                 VStack(spacing: 10) {
                     HStack { Text("Personal"); Image(systemName: "chevron.down").font(.caption) }.font(.system(size: 13)).foregroundStyle(.white.opacity(0.85))
-                    Text(scene.money(scene.balance)).font(.system(size: 35, weight: .semibold)).minimumScaleFactor(0.6).lineLimit(1)
+                    Text(hideStarlingBalance ? "••••••" : scene.money(scene.balance)).font(.system(size: 35, weight: .semibold)).minimumScaleFactor(0.6).lineLimit(1)
                 }.padding(.vertical, 18)
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) { Text("In Spaces").font(.caption).foregroundStyle(.white.opacity(0.7)); Text(scene.money(profile.savings)).font(.system(size: 17, weight: .semibold)) }
+                    VStack(alignment: .leading, spacing: 4) { Text("In Spending Spaces").font(.caption).foregroundStyle(.white.opacity(0.7)); Text(hideStarlingBalance ? "••••" : scene.money(profile.savings)).font(.system(size: 17, weight: .semibold)) }
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) { Text("Total balance").font(.caption).foregroundStyle(.white.opacity(0.7)); Text(scene.money(scene.balance + profile.savings)).font(.system(size: 17, weight: .semibold)) }
+                    VStack(alignment: .trailing, spacing: 4) { Text("Total balance").font(.caption).foregroundStyle(.white.opacity(0.7)); Text(hideStarlingBalance ? "••••" : scene.money(scene.balance + profile.savings)).font(.system(size: 17, weight: .semibold)) }
                 }
             }.padding(22).foregroundStyle(.white)
                 .background(LinearGradient(colors: [Color(bankHex: 0x168F88), Color(bankHex: 0x005752)], startPoint: .top, endPoint: .bottom))
             VStack(spacing: 18) {
                 transactionPanel(scene, title: "Transactions", limit: 6)
                 NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: true).toolbar(.visible, for: .navigationBar) } label: {
-                    HStack { Image(systemName: "square.grid.2x2").font(.title2); VStack(alignment: .leading, spacing: 4) { Text("Spaces").fontWeight(.semibold); Text("Portion money into budgets").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(18)
+                HStack { Image(systemName: "square.grid.2x2").font(.title2); VStack(alignment: .leading, spacing: 4) { Text("Spaces").fontWeight(.semibold); Text("Portion money into budgets").font(.caption).foregroundStyle(.secondary) }; Spacer(); Text(hideStarlingBalance ? "••••" : scene.money(profile.savings)).fontWeight(.semibold) }.foregroundStyle(palette.ink).padding(18)
                 }.bankSurface(radius: 12)
             }.padding(16).background(palette.background).clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20)).padding(.top, -10)
         }
@@ -549,8 +605,18 @@ struct BankPlayback: View {
         NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: savings).toolbar(.visible, for: .navigationBar) } label: {
             VStack(alignment: .leading, spacing: 10) {
                 HStack { Text("\(title) · ••••\(suffix)").font(.system(size: 14, weight: .semibold)); Spacer(); Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary) }
-                Text(scene.money(balance)).font(.system(size: size, weight: .medium)).minimumScaleFactor(0.7).lineLimit(1)
-                Text(detail).font(.system(size: 12)).foregroundStyle(.secondary)
+                if theme == .chase {
+                    HStack {
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(scene.money(balance)).font(.system(size: size, weight: .regular)).minimumScaleFactor(0.7).lineLimit(1)
+                            Text(detail).font(.system(size: 12)).foregroundStyle(.secondary)
+                        }
+                    }
+                } else {
+                    Text(scene.money(balance)).font(.system(size: size, weight: .medium)).minimumScaleFactor(0.7).lineLimit(1)
+                    Text(detail).font(.system(size: 12)).foregroundStyle(.secondary)
+                }
             }.foregroundStyle(palette.ink).padding(18)
         }
     }
@@ -561,7 +627,7 @@ struct BankPlayback: View {
                 HStack { BankHSBCSymbol().fill(palette.accent).frame(width: 24, height: 13); Spacer(); Image(systemName: "star"); Image(systemName: "ellipsis").rotationEffect(.degrees(90)) }
                 Text(title).font(.system(size: 14, weight: .regular))
                 Text("00-00-00 | ••••\(suffix)").font(.system(size: 12)).foregroundStyle(.secondary)
-                HStack { Text("Available balance").font(.caption).foregroundStyle(.secondary); Spacer(); Text(scene.money(balance)).font(.system(size: 20, weight: .regular)) }
+                HStack { Spacer(); Text(scene.money(balance)).font(.system(size: 20, weight: .regular)) }
             }.foregroundStyle(.black).padding(13)
         }.bankSurface(radius: 2)
     }
@@ -573,7 +639,12 @@ struct BankPlayback: View {
                 Text(scene.money(balance)).font(.system(size: 35, weight: .light)).minimumScaleFactor(0.6).lineLimit(1)
                 Text("Available balance").font(.system(size: 12))
             }.foregroundStyle(.white).padding(22).frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [color, color.opacity(0.84)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 5))
+                .background {
+                    ZStack {
+                        LinearGradient(colors: [color, color.opacity(0.84)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        BankCapitalAccountPattern().stroke(.white.opacity(0.075), lineWidth: 0.6)
+                    }.clipShape(RoundedRectangle(cornerRadius: 5))
+                }
         }
     }
 
@@ -581,7 +652,11 @@ struct BankPlayback: View {
         HStack { Text(title).font(.system(size: 15, weight: .semibold)); Spacer(); Image(systemName: "chevron.up").font(.caption) }
             .foregroundStyle(theme == .chase ? .white : palette.ink).padding(.horizontal, 16).padding(.vertical, 11)
             .background(theme == .chase ? color : Color.white)
-            .overlay(alignment: .top) { if theme == .bankOfAmerica { Rectangle().fill(LinearGradient(colors: [Color(bankHex: 0xE31837), Color(bankHex: 0xE31837), Color(bankHex: 0x0052A4)], startPoint: .leading, endPoint: .trailing)).frame(height: 4) } }
+            .overlay(alignment: .top) {
+                if theme == .bankOfAmerica {
+                    ZStack { Rectangle().fill(Color(bankHex: 0xE31837)); BankAmericaSectionStripe().fill(Color(bankHex: 0x002B75)) }.frame(height: 4)
+                }
+            }
     }
 
     private func actionStrip(_ actions: [(String, String)]) -> some View {
@@ -607,16 +682,47 @@ struct BankPlayback: View {
 
     private func transactionPanel(_ scene: StudioScene, title: String, limit: Int) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack { Text(title).font(.system(size: 17, weight: .semibold)); Spacer(); Button(theme == .starling ? "Search & filter" : "See all") { tab = .activity }.font(.system(size: 12, weight: .medium)) }.padding(16)
+            HStack {
+                Text(title).font(.system(size: theme == .monzo ? 13 : 17, weight: .semibold))
+                Spacer()
+                if theme == .monzo {
+                    Button { tab = .activity } label: { Image(systemName: "ellipsis").font(.system(size: 17, weight: .bold)) }.accessibilityLabel("All activity")
+                } else {
+                    Button(theme == .starling ? "Search & filter" : "See all") { tab = .activity }.font(.system(size: 12, weight: .medium))
+                }
+            }.padding(16)
             if activity.isEmpty {
-                VStack(alignment: .leading, spacing: 8) { Text("No transactions yet").font(.system(size: 15, weight: .medium)); Text("Add a payment or deposit to this account.").font(.system(size: 13)).foregroundStyle(.secondary); Button("Add transaction") { tab = .payments }.font(.system(size: 14, weight: .semibold)) }.padding(.horizontal, 16).padding(.bottom, 20)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("No transactions yet").font(.system(size: 15, weight: .medium))
+                    if !cleanPlayback {
+                        Text("Add a payment or deposit to this account.").font(.system(size: 13)).foregroundStyle(.secondary)
+                        Button("Add transaction") { tab = .payments }.font(.system(size: 14, weight: .semibold))
+                    }
+                }.padding(.horizontal, 16).padding(.bottom, 20)
             } else {
                 ForEach(Array(activity.prefix(limit))) { event in
-                    NavigationLink { BankTransactionDetail(event: event, scene: scene, theme: theme).toolbar(.visible, for: .navigationBar) } label: { BankTransactionRow(event: event, scene: scene, theme: theme) }
-                    if event.id != activity.prefix(limit).last?.id { Divider().padding(.leading, 66) }
+                    if theme == .starling, startsActivityDay(event) {
+                        Text(activityDay(event.date)).font(.system(size: 11)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 16).padding(.top, 4).padding(.bottom, 6)
+                    }
+                    NavigationLink { BankTransactionDetail(event: event, scene: scene, theme: theme).toolbar(.visible, for: .navigationBar) } label: {
+                        BankTransactionRow(event: event, scene: scene, theme: theme, showDate: theme != .monzo && theme != .starling)
+                    }
+                    if theme != .monzo && event.id != activity.prefix(limit).last?.id { Divider().padding(.leading, 66) }
                 }
             }
         }.background(theme == .revolut ? Color(bankHex: 0x24262A) : .white, in: RoundedRectangle(cornerRadius: theme == .monzo || theme == .revolut ? 15 : 10))
+    }
+
+    private func startsActivityDay(_ event: SceneEvent) -> Bool {
+        guard let index = activity.firstIndex(where: { $0.id == event.id }), index > 0 else { return true }
+        return !Calendar.current.isDate(event.date, inSameDayAs: activity[index - 1].date)
+    }
+
+    private func activityDay(_ date: Date) -> String {
+        if Calendar.current.isDateInToday(date) { return "Today" }
+        if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
+        return date.formatted(.dateTime.weekday(.wide).day().month(.wide))
     }
 
     private func activityPage(_ scene: StudioScene) -> some View {
@@ -780,6 +886,7 @@ private struct BankTransactionRow: View {
     let scene: StudioScene
     let theme: BankTheme
     var savings = false
+    var showDate = true
     private var outflow: Bool { savings && event.savingsTransfer == true ? !event.kind.isOutflow : event.kind.isOutflow }
     private var detail: String { savings && event.savingsTransfer == true ? (event.kind.isOutflow ? "Transfer from checking" : "Transfer to checking") : (event.detail.isEmpty ? event.title : event.detail) }
     var body: some View {
@@ -789,7 +896,8 @@ private struct BankTransactionRow: View {
                 .background(BankPalette(theme).accent.opacity(0.08), in: RoundedRectangle(cornerRadius: theme == .monzo ? 9 : 20))
             VStack(alignment: .leading, spacing: 5) {
                 Text(detail).font(.system(size: 14, weight: .medium)).lineLimit(2)
-                Text(event.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: 11)).foregroundStyle(.secondary)
+                if showDate { Text(event.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: 11)).foregroundStyle(.secondary) }
+                else if theme == .starling { Text(event.date.formatted(date: .omitted, time: .shortened)).font(.system(size: 11)).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
             Text((outflow ? "−" : "+") + scene.money(event.amount)).font(.system(size: 14, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
@@ -828,6 +936,7 @@ private struct BankTransactionDetail: View {
 
 private struct BankPaymentPage: View {
     @EnvironmentObject private var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
     let sceneID: UUID
     let theme: BankTheme
     @State private var recipient = ""
@@ -836,10 +945,14 @@ private struct BankPaymentPage: View {
     @State private var incoming = false
     @State private var confirmation = false
     @State private var completed: SceneEvent?
-    init(sceneID: UUID, theme: BankTheme, initiallyIncoming: Bool = false) {
+    @State private var paymentReview = false
+    @FocusState private var focusedField: BankPaymentField?
+    let onClose: (() -> Void)?
+    init(sceneID: UUID, theme: BankTheme, initiallyIncoming: Bool = false, onClose: (() -> Void)? = nil) {
         self.sceneID = sceneID
         self.theme = theme
         _incoming = State(initialValue: initiallyIncoming)
+        self.onClose = onClose
     }
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var parsedAmount: Double? { Simulation.parseAmount(amount) }
@@ -852,8 +965,8 @@ private struct BankPaymentPage: View {
         Group {
             if let scene {
                 Group {
-                    if theme == .chase && !incoming && completed == nil {
-                        chasePayment(scene)
+                    if (theme == .chase || theme == .bankOfAmerica) && !incoming {
+                        referencedPayment(scene)
                     } else {
                         paymentForm(scene)
                     }
@@ -862,7 +975,161 @@ private struct BankPaymentPage: View {
                     Button(incoming ? "Confirm deposit" : "Confirm payment") { commit() }
                 } message: { Text("\(scene.money(parsedAmount ?? 0)) \(incoming ? "from" : "to") \(recipient.trimmingCharacters(in: .whitespacesAndNewlines))") }
             } else { ContentUnavailableView("Account unavailable", systemImage: "building.columns") }
-        }.tint(BankPalette(theme).accent).navigationTitle(theme == .chase && !incoming ? "Enter Amount" : "Payments").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("bank.payments")
+        }.tint(BankPalette(theme).accent).navigationTitle(paymentTitle).navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("bank.payments")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if (theme == .chase || theme == .bankOfAmerica) && !incoming {
+                        Spacer()
+                        Button("Done") { focusedField = nil }
+                            .accessibilityIdentifier("bank.payment.keyboard.done")
+                    }
+                }
+            }
+    }
+
+    private var paymentTitle: String {
+        if theme == .chase && !incoming { return completed != nil ? "Confirmation" : (paymentReview ? "Review" : "Enter Amount") }
+        if theme == .bankOfAmerica && !incoming { return completed != nil ? "Success" : (paymentReview ? "Review" : "Pay") }
+        return "Payments"
+    }
+
+    private func referencedPayment(_ scene: StudioScene) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                if completed == nil {
+                    Button { if paymentReview { paymentReview = false } else { closePayment() } } label: {
+                        Image(systemName: "chevron.left").font(.system(size: 19)).frame(width: 44, height: 44)
+                    }.accessibilityLabel(paymentReview ? "Edit payment" : "Back")
+                } else { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
+                Spacer()
+                Text(paymentTitle).font(.system(size: 15, weight: .medium))
+                Spacer()
+                if completed == nil { Button(theme == .chase ? "Cancel" : "Close") { closePayment() }.font(.system(size: 13)).frame(minWidth: 44, minHeight: 44) }
+                else { Color.clear.frame(width: 44, height: 44).accessibilityHidden(true) }
+            }.padding(.horizontal, 8).background(theme == .chase ? Color(bankHex: 0xF4F4FA) : .white)
+            if let completed {
+                referencedPaymentSuccess(completed, scene: scene)
+            } else if paymentReview {
+                referencedPaymentReview(scene)
+            } else if theme == .chase {
+                chasePayment(scene)
+            } else {
+                americaPayment(scene)
+            }
+        }.background(.white).toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func recipientMark(_ name: String) -> some View {
+        Text(String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(1)).uppercased())
+            .font(.system(size: 19, weight: .medium)).foregroundStyle(.white)
+            .frame(width: 45, height: 45).background(Color(bankHex: 0x999999), in: Circle())
+    }
+
+    private func reviewValue(_ title: String, value: String) -> some View {
+        HStack(alignment: .top) { Text(title); Spacer(minLength: 12); Text(value).multilineTextAlignment(.trailing) }
+            .font(.system(size: 13)).padding(.vertical, theme == .chase ? 8 : 11)
+    }
+
+    private func referencedPaymentReview(_ scene: StudioScene) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: theme == .chase ? 18 : 0) {
+                    if theme == .chase {
+                        VStack(spacing: 13) {
+                            HStack(spacing: 12) {
+                                recipientMark(recipient)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(recipient).font(.system(size: 14))
+                                    Text("Personal account").font(.system(size: 12)).foregroundStyle(.secondary)
+                                }
+                            }
+                            Text("Amount").font(.system(size: 12)).foregroundStyle(.secondary)
+                            Text(scene.money(parsedAmount ?? 0)).font(.system(size: 33, weight: .regular))
+                        }.frame(maxWidth: .infinity).padding(.vertical, 18)
+                        Rectangle().fill(Color(bankHex: 0xF4F4FA)).frame(height: 12).padding(.horizontal, -20)
+                        VStack(spacing: 0) {
+                            reviewValue("Sending as", value: store.bankProfile(for: sceneID).holderName ?? scene.name)
+                            reviewValue("Pay from", value: "TOTAL CHECKING (...\(store.bankProfile(for: sceneID).accountSuffix))")
+                            reviewValue("Send on", value: Date.now.formatted(date: .abbreviated, time: .omitted))
+                            if !reference.isEmpty { reviewValue("Message to recipient", value: reference) }
+                        }
+                    } else {
+                        Text("Review payment details").font(.system(size: 20, weight: .semibold)).padding(.vertical, 24)
+                        reviewValue("To", value: recipient); Divider()
+                        reviewValue("From", value: store.bankProfile(for: sceneID).accountName); Divider()
+                        reviewValue("Amount", value: scene.money(parsedAmount ?? 0)); Divider()
+                        reviewValue("Date", value: Date.now.formatted(date: .abbreviated, time: .omitted)); Divider()
+                        if !reference.isEmpty { reviewValue("Message", value: reference); Divider() }
+                        Button("EDIT") { paymentReview = false }.font(.system(size: 12, weight: .semibold))
+                            .frame(maxWidth: .infinity).padding(.vertical, 20).accessibilityIdentifier("bank.payment.edit")
+                    }
+                    if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red).padding(.vertical, 10) }
+                }.padding(.horizontal, 20)
+            }
+            VStack(alignment: .leading, spacing: 15) {
+                Text(theme == .chase ? "Only send money to people and businesses you trust. Make sure the recipient and payment details are correct." : "Make sure you're sending to someone you trust, and their information is correct. Once you've sent money, you can't cancel it.")
+                    .font(.system(size: 12)).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                paymentAction(theme == .chase ? "Send it now" : "SEND", identifier: "bank.payment.confirm") { focusedField = nil; commit() }
+            }.padding(20)
+        }
+    }
+
+    private func referencedPaymentSuccess(_ event: SceneEvent, scene: StudioScene) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Image(systemName: theme == .chase ? "checkmark.circle.fill" : "checkmark.circle")
+                        .font(.system(size: theme == .chase ? 48 : 35)).foregroundStyle(Color(bankHex: 0x4B9900)).padding(.top, 30)
+                    if theme == .chase {
+                        Text("We're sending your money now. \(recipient) will get it in a few moments.").font(.system(size: 15)).multilineTextAlignment(.center).accessibilityIdentifier("bank.payment.receipt")
+                        Text(scene.money(event.amount)).font(.system(size: 33))
+                        recipientMark(recipient)
+                        Text(recipient).font(.system(size: 14))
+                    } else {
+                        Text("Your payment is sent").font(.system(size: 22, weight: .semibold)).accessibilityIdentifier("bank.payment.receipt")
+                        VStack(spacing: 0) {
+                            reviewValue("To", value: recipient); Divider()
+                            reviewValue("From", value: store.bankProfile(for: sceneID).accountName); Divider()
+                            reviewValue("Amount", value: scene.money(event.amount)); Divider()
+                            reviewValue("Date", value: event.date.formatted(date: .abbreviated, time: .omitted)); Divider()
+                            reviewValue("Confirmation Number", value: String(event.id.uuidString.prefix(8)))
+                        }.padding(.top, 20)
+                    }
+                }.padding(.horizontal, 20).frame(maxWidth: .infinity)
+            }
+            paymentAction(theme == .chase ? "Done" : "DONE", identifier: "bank.payment.done") { closePayment() }.padding(20)
+        }
+    }
+
+    private func paymentAction(_ title: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { Text(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white).frame(maxWidth: .infinity).padding(.vertical, 12).background(theme == .chase ? BankPalette(theme).accent : Color(bankHex: 0x001E62), in: RoundedRectangle(cornerRadius: theme == .chase ? 3 : 25)) }
+            .disabled(!valid && completed == nil).opacity(valid || completed != nil ? 1 : 0.45).accessibilityIdentifier(identifier)
+    }
+
+    private func closePayment() {
+        focusedField = nil
+        if let onClose { onClose() } else { dismiss() }
+    }
+
+    private func americaPayment(_ scene: StudioScene) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Pay").font(.system(size: 23, weight: .semibold)).padding(.top, 24)
+                    Text("* Response required").font(.system(size: 11)).foregroundStyle(.secondary)
+                    HStack { Text("To*").font(.system(size: 14, weight: .semibold)); Spacer(); TextField("Recipient name", text: $recipient).multilineTextAlignment(.trailing).textContentType(.name).autocorrectionDisabled().focused($focusedField, equals: .recipient).accessibilityIdentifier("bank.payment.recipient") }.font(.system(size: 14))
+                    Divider()
+                    reviewValue("From*", value: "\(store.bankProfile(for: sceneID).accountName)\nAvailable balance \(scene.money(scene.balance))")
+                    Divider()
+                    Text("How much?*").font(.system(size: 16, weight: .semibold))
+                    TextField("Amount (\(scene.currency))", text: $amount).keyboardType(.decimalPad).focused($focusedField, equals: .amount).foregroundStyle(Color(bankHex: 0x0052C2)).accessibilityIdentifier("bank.payment.amount")
+                    Divider()
+                    TextField("Message (optional)", text: $reference).autocorrectionDisabled().focused($focusedField, equals: .reference).accessibilityIdentifier("bank.payment.reference")
+                    if let value = parsedAmount, value > scene.balance { Text("The payment exceeds this account's available balance.").font(.system(size: 13)).foregroundStyle(.red) }
+                }.padding(.horizontal, 20)
+            }.scrollDismissesKeyboard(.interactively)
+            paymentAction("NEXT", identifier: "bank.payment.review") { focusedField = nil; paymentReview = true }.padding(20)
+        }
     }
 
     private func paymentForm(_ scene: StudioScene) -> some View {
@@ -903,24 +1170,28 @@ private struct BankPaymentPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 HStack(spacing: 12) {
-                    Image(systemName: "person.crop.circle.fill").font(.system(size: 40)).foregroundStyle(.gray.opacity(0.45))
+                    recipientMark(recipient)
                     VStack(alignment: .leading, spacing: 5) {
-                        TextField("Recipient name", text: $recipient).textContentType(.name).autocorrectionDisabled()
-                        Text("Send money").font(.system(size: 12)).foregroundStyle(.secondary)
+                        TextField("Recipient name", text: $recipient).textContentType(.name).autocorrectionDisabled().focused($focusedField, equals: .recipient).accessibilityIdentifier("bank.payment.recipient")
+                        Text("Personal account").font(.system(size: 12)).foregroundStyle(.secondary)
                     }
                     Image(systemName: "list.bullet.rectangle").foregroundStyle(BankPalette(theme).accent)
                 }.padding(.top, 8)
                 VStack(spacing: 9) {
                     Text("Amount").font(.system(size: 12)).foregroundStyle(.secondary)
-                    TextField("0.00", text: $amount).keyboardType(.decimalPad)
-                        .font(.system(size: 39, weight: .light)).multilineTextAlignment(.center)
-                        .accessibilityIdentifier("bank.payment.amount")
+                    HStack(spacing: 0) {
+                        Text(currencySymbol(scene.currency)).accessibilityHidden(true)
+                        TextField("0.00", text: $amount).keyboardType(.decimalPad).focused($focusedField, equals: .amount)
+                            .multilineTextAlignment(.leading).frame(width: min(250, max(110, CGFloat(amount.count) * 24)))
+                            .accessibilityIdentifier("bank.payment.amount")
+                    }.font(.system(size: 39, weight: .light)).frame(maxWidth: .infinity)
                     Divider()
                 }
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("Memo (optional)").font(.system(size: 12)).foregroundStyle(.secondary)
-                    TextField("Add a memo", text: $reference).font(.system(size: 17)).autocorrectionDisabled()
+                    Text("Message to recipient (optional)").font(.system(size: 12)).foregroundStyle(.secondary)
+                    TextField("What's this for?", text: $reference).font(.system(size: 17)).autocorrectionDisabled().focused($focusedField, equals: .reference).accessibilityIdentifier("bank.payment.reference")
                     Divider()
+                    Text("\(max(0, 100 - reference.count)) of 100 characters remaining.").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 7) {
                     Text("Pay from").font(.system(size: 12)).foregroundStyle(.secondary)
@@ -942,7 +1213,7 @@ private struct BankPaymentPage: View {
                     Text("The payment exceeds this account's available balance.").font(.system(size: 13)).foregroundStyle(.red)
                 }
                 if let error = store.error { Text(error).font(.footnote).foregroundStyle(.red) }
-                Button("Review & send") { confirmation = true }
+                Button("Review & send") { focusedField = nil; paymentReview = true }
                     .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 12)
                     .background(BankPalette(theme).accent, in: RoundedRectangle(cornerRadius: 3))
@@ -950,15 +1221,24 @@ private struct BankPaymentPage: View {
                     .accessibilityIdentifier("bank.payment.review")
                     .padding(.top, 32)
             }.padding(22)
-        }.background(.white)
+        }.background(.white).scrollDismissesKeyboard(.interactively)
+    }
+    private func currencySymbol(_ code: String) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = code
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.currencySymbol ?? code
     }
     private func commit() {
-        guard valid, let value = parsedAmount else { return }
+        guard completed == nil, valid, let value = parsedAmount else { return }
         let name = recipient.trimmingCharacters(in: .whitespacesAndNewlines)
         let note = reference.trimmingCharacters(in: .whitespacesAndNewlines)
         completed = store.emit(kind: incoming ? .deposit : .payment, amount: value, detail: note.isEmpty ? name : "\(name) · \(note)", sceneID: sceneID)
     }
 }
+
+private enum BankPaymentField: Hashable { case recipient, amount, reference }
 
 private struct BankSavingsTransferPage: View {
     @EnvironmentObject private var store: StudioStore
@@ -1321,6 +1601,53 @@ private struct BankAmericaSymbol: Shape {
 private struct BankCitiArc: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path(); p.move(to: .init(x: rect.minX, y: rect.maxY)); p.addQuadCurve(to: .init(x: rect.maxX, y: rect.maxY), control: .init(x: rect.midX, y: rect.minY - rect.height)); return p
+    }
+}
+
+// These simple patterns are drawn from the public account-card compositions;
+// they are independent vectors rather than extracted promotional photographs.
+private struct BankCapitalAccountPattern: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.width * 0.8, y: rect.height * 1.1)
+        for ring in 0..<22 {
+            let radius = CGFloat(ring + 1) * rect.width / 24
+            path.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius * 0.7, width: radius * 2, height: radius * 1.4))
+        }
+        return path
+    }
+}
+
+private struct BankWellsHomePattern: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let side: CGFloat = 54
+        let columns = Int(rect.width / side) + 2
+        let rows = Int(rect.height / side) + 2
+        for row in 0..<rows {
+            for column in 0..<columns where (row + column).isMultiple(of: 2) {
+                let x = CGFloat(column) * side
+                let y = CGFloat(row) * side
+                path.move(to: CGPoint(x: x, y: y - side / 2))
+                path.addLine(to: CGPoint(x: x + side / 2, y: y))
+                path.addLine(to: CGPoint(x: x, y: y + side / 2))
+                path.addLine(to: CGPoint(x: x - side / 2, y: y))
+                path.closeSubpath()
+            }
+        }
+        return path
+    }
+}
+
+private struct BankAmericaSectionStripe: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * 0.63, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.width * 0.61, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
 

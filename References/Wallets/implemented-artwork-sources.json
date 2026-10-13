@@ -1,0 +1,58 @@
+{
+  "retrieved_utc": "2026-10-13",
+  "source": "Trust Wallet public assets repository, pinned immutable Git revision. Files are original downloaded PNG bytes. Token and project trademarks remain their respective owners' property. No claim of first-party app-state parity is made.",
+  "artwork": [
+    {
+      "asset": "Bitcoin",
+      "url": "https://raw.githubusercontent.com/trustwallet/assets/d541ca5c51609e24966712403e10a4b438c47982/blockchains/bitcoin/info/logo.png",
+      "repository_revision": "d541ca5c51609e24966712403e10a4b438c47982",
+      "byte_count": 4918,
+      "sha256": "5119d67e7902df5ef9d0e40e309b5f2da85dd8a736eae870072dbe647ed6bcc4",
+      "asset_catalog_name": "WalletFidelity-Bitcoin",
+      "asset_file": "Sources/Assets.xcassets/WalletFidelity-Bitcoin.imageset/Artwork.png",
+      "dimensions": [
+        128,
+        128
+      ]
+    },
+    {
+      "asset": "Ethereum",
+      "url": "https://raw.githubusercontent.com/trustwallet/assets/d541ca5c51609e24966712403e10a4b438c47982/blockchains/ethereum/info/logo.png",
+      "repository_revision": "d541ca5c51609e24966712403e10a4b438c47982",
+      "byte_count": 2984,
+      "sha256": "c253d7c5d4203783e31bde1d33e143f6a9ce1defac24ab5e06948847696b80a1",
+      "asset_catalog_name": "WalletFidelity-Ethereum",
+      "asset_file": "Sources/Assets.xcassets/WalletFidelity-Ethereum.imageset/Artwork.png",
+      "dimensions": [
+        192,
+        192
+      ]
+    },
+    {
+      "asset": "Solana",
+      "url": "https://raw.githubusercontent.com/trustwallet/assets/d541ca5c51609e24966712403e10a4b438c47982/blockchains/solana/info/logo.png",
+      "repository_revision": "d541ca5c51609e24966712403e10a4b438c47982",
+      "byte_count": 54309,
+      "sha256": "b0fb83e48d1b455333436ae158cd9e547b7493ef4f5b2d5de3d678e93a994d4c",
+      "asset_catalog_name": "WalletFidelity-Solana",
+      "asset_file": "Sources/Assets.xcassets/WalletFidelity-Solana.imageset/Artwork.png",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "asset": "USDcoin",
+      "url": "https://raw.githubusercontent.com/trustwallet/assets/d541ca5c51609e24966712403e10a4b438c47982/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+      "repository_revision": "d541ca5c51609e24966712403e10a4b438c47982",
+      "byte_count": 9276,
+      "sha256": "6d14601d0b1109046e366592b8c0f256ffb075f69180b65dddd97ae665d49f9e",
+      "asset_catalog_name": "WalletFidelity-USDcoin",
+      "asset_file": "Sources/Assets.xcassets/WalletFidelity-USDcoin.imageset/Artwork.png",
+      "dimensions": [
+        181,
+        181
+      ]
+    }
+  ]
+}
