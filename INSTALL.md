@@ -13,7 +13,7 @@ Download and extract `Reverie-ios-build` from a successful run in [GitHub Action
 | `brand-artifacts/Reverie-<bank>-unsigned.ipa` | Bank variant, for example `chase`, `monzo`, or `revolut`, with its own display name and icon. |
 | `Reverie-simulator.zip` | Mac iOS Simulator build. Use source if its architecture/runtime does not match your Mac. |
 
-The variants use distinct `com.reverie.brand.*` bundle identifiers, listed in [variants.json](References/Branding/variants.json). They remain fictional roleplay apps. They do not replace or connect to the official apps. iOS uses the installed variant's display name and icon for its own local notifications; choosing another bank inside the app does not rename that installed app.
+The variants use distinct `com.reverie.brand.*` bundle identifiers, listed in [variants.json](References/Branding/variants.json). They remain fictional roleplay apps. They do not replace or connect to the official apps. iOS uses the installed variant's display name and icon for its own local notifications; choosing another bank inside the app does not rename that installed app. A bank variant restores its configured bank appearance on relaunch while preserving account data.
 
 ## Sideloadly: Windows or Mac
 

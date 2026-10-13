@@ -56,6 +56,19 @@ struct AppPlaybackConfiguration {
                 if startupStore.activeID == scene.id, startupStore.preparePlayback(for: scene.id) { defaults.set(true, forKey: "brandConfigured") }
             }
         }
+        if let bank = AppPlaybackConfiguration.current?.bank,
+           var scene = startupStore.scenes.first(where: { $0.id == startupStore.activeID && $0.kind == .banking }) ?? startupStore.scenes.first(where: { $0.kind == .banking }) {
+            let hasProfile = startupStore.bankProfiles.contains(where: { $0.sceneID == scene.id })
+            if !hasProfile {
+                scene.currency = bank.country == "United States" ? "USD" : "GBP"
+                _ = startupStore.update(scene)
+            }
+            var profile = startupStore.bankProfile(for: scene.id)
+            if !hasProfile || profile.theme != bank {
+                profile.theme = bank
+                _ = startupStore.updateBankProfile(profile)
+            }
+        }
         preferences = defaults
         _welcomed = AppStorage(wrappedValue: false, "welcomed", store: defaults)
         _store = StateObject(wrappedValue: startupStore)

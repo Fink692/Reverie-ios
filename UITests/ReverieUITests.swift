@@ -136,7 +136,12 @@ final class ReverieUITests: XCTestCase {
         app.tabBars.buttons["Settings"].tap()
         let cleanPlayback = app.switches["clean-playback"]
         scrollTo(cleanPlayback, in: app)
-        cleanPlayback.tap()
+        cleanPlayback.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let enabled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "1"), object: cleanPlayback
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
+        XCTAssertEqual(cleanPlayback.value as? String, "1")
         app.tabBars.buttons["Dashboard"].tap()
         let openScene = app.buttons["open-scene"]
         scrollTo(openScene, in: app)
@@ -166,6 +171,62 @@ final class ReverieUITests: XCTestCase {
         closeCleanBankScene(in: app)
         XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Northstar"].waitForExistence(timeout: 3))
+    }
+
+    func testHSBCBrandResetRestoresItsBankThemeAndCurrencyOnRelaunch() {
+        let app = makeApp(brand: "hsbc")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let brand = app.buttons["bank-brand-exit"]
+        waitForHittable(brand)
+        XCTAssertTrue(brand.label.localizedCaseInsensitiveContains("HSBC"))
+        closeCleanBankScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["New scene"].tap()
+        XCTAssertTrue(app.navigationBars["Edit scene"].waitForExistence(timeout: 3))
+        replaceText(in: app.textFields["Scene name"], with: "Reset sentinel")
+        app.navigationBars["Edit scene"].buttons["Save"].tap()
+        let sentinel = app.buttons["Reset sentinel"]
+        waitForHittable(sentinel)
+        let reset = app.buttons["Reset all scenes"]
+        scrollTo(reset, in: app)
+        reset.tap()
+        let confirm = app.buttons["Reset everything"]
+        waitForHittable(confirm)
+        confirm.tap()
+        let resetFinished = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                guard let reset = object as? XCUIElement else { return false }
+                return reset.exists && reset.isEnabled
+            }, object: reset
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [resetFinished], timeout: 10), .completed)
+        scrollTo(app.buttons["Studio Supply"], in: app, upwards: false)
+        app.swipeDown()
+        waitForHittable(app.buttons["New scene"])
+        XCTAssertTrue(app.buttons["Northstar"].isHittable)
+        let sentinelRemoved = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: sentinel
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [sentinelRemoved], timeout: 5), .completed)
+        XCTAssertTrue(reset.isEnabled)
+        app.terminate()
+        app.launch()
+        waitForHittable(brand)
+        XCTAssertTrue(brand.label.localizedCaseInsensitiveContains("HSBC"))
+        XCTAssertFalse(welcome.exists)
+        let balance = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label CONTAINS %@", "£84,250.75")
+        )
+        XCTAssertTrue(balance.allElementsBoundByIndex.contains { $0.isHittable }, "HSBC must reopen the reset account in GBP")
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "HSBC brand after reset and relaunch"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        closeCleanBankScene(in: app)
     }
 
     func testNewSceneValidationAndPersistence() {
@@ -299,6 +360,16 @@ final class ReverieUITests: XCTestCase {
         chaseScreenshot.name = "Bank playback Chase"
         chaseScreenshot.lifetime = .keepAlways
         add(chaseScreenshot)
+
+        let checking = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "TOTAL CHECKING")).firstMatch
+        scrollTo(checking, in: app)
+        checking.tap()
+        let accountNavigation = app.navigationBars["Account details"]
+        XCTAssertTrue(accountNavigation.waitForExistence(timeout: 5))
+        let back = accountNavigation.buttons.element(boundBy: 0)
+        waitForHittable(back)
+        back.tap()
+        waitForHittable(bankPicker)
 
         let bankNames = [
             "Bank of America", "Wells Fargo", "Citi", "Capital One", "HSBC", "Barclays",
