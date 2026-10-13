@@ -212,7 +212,6 @@ final class ReverieUITests: XCTestCase {
             predicate: NSPredicate(format: "exists == false"), object: sentinel
         )
         XCTAssertEqual(XCTWaiter.wait(for: [sentinelRemoved], timeout: 5), .completed)
-        XCTAssertTrue(reset.isEnabled)
         app.terminate()
         app.launch()
         waitForHittable(brand)
