@@ -1,0 +1,43 @@
+name: Recheck installed playback captures
+on:
+  push:
+    branches: [verification/startup-readiness]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the verified native simulator executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 38411196377 --repo "$GITHUB_REPOSITORY" --name Reverie-ios-build --dir native-evidence
+          mkdir -p precompiled
+          ditto -x -k native-evidence/Reverie-simulator.zip precompiled
+          test -d precompiled/Reverie.app
+      - name: Select and boot an iPhone simulator
+        run: |
+          SIMULATOR_ID="$(./scripts/verify-macos.sh --select-simulator)"
+          printf 'SIMULATOR_ID=%s\n' "$SIMULATOR_ID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Capture all 20 installed variants after visible content appears
+        env:
+          STARTUP_BASE_APP: precompiled/Reverie.app
+        run: |
+          set -o pipefail
+          ./scripts/verify-brand-startup.sh 2>&1 | tee capture.log
+      - name: Upload startup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reverie-playback-captures
+          path: |
+            capture.log
+            brand-artifacts
+          if-no-files-found: error
