@@ -1,0 +1,55 @@
+name: iOS build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Select an available iPhone simulator
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, os
+          data = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))
+          devices = [d for runtime, items in data['devices'].items() if 'iOS' in runtime for d in items if d['name'].startswith('iPhone') and d.get('isAvailable')]
+          if not devices:
+              raise SystemExit('No iPhone simulator installed')
+          device = devices[0]
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('SIMULATOR_ID=' + device['udid'] + '\n')
+          print(device['name'], device['udid'])
+          PY
+      - name: Build and run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild -project Reverie.xcodeproj -scheme Reverie -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO test | tee build.log
+      - name: Launch app and capture simulator screenshot
+        run: |
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          xcrun simctl install "$SIMULATOR_ID" build/Build/Products/Debug-iphonesimulator/Reverie.app
+          xcrun simctl launch "$SIMULATOR_ID" com.reverie.simulator
+          sleep 3
+          xcrun simctl io "$SIMULATOR_ID" screenshot simulator.png
+          ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/Reverie.app Reverie-simulator.zip
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reverie-ios-build
+          path: |
+            build.log
+            TestResults.xcresult
+            simulator.png
+            Reverie-simulator.zip
+          if-no-files-found: warn
