@@ -2,6 +2,12 @@ name: iOS build and test
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - INSTALL.md
+      - Verification/**
+      - References/**/*.md
+      - References/**/*.jpg
   pull_request:
   workflow_dispatch:
 permissions:
@@ -16,7 +22,7 @@ jobs:
         run: swift test
   ios:
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Install project generator
@@ -62,11 +68,11 @@ jobs:
           sleep 3
           xcrun simctl io "$SIMULATOR_ID" screenshot simulator.png
           ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/Reverie.app Reverie-simulator.zip
-      - name: Build unsigned Shopify and bank variants
+      - name: Build all unsigned brand variants
         run: |
           set -o pipefail
           ./scripts/build-brand-variants.sh 2>&1 | tee variants-build.log
-      - name: Capture installed Shopify and Chase startup
+      - name: Capture installed startup for all five scene styles
         run: |
           set -o pipefail
           ./scripts/verify-brand-startup.sh 2>&1 | tee brand-startup.log
@@ -82,8 +88,19 @@ jobs:
             test-attachments
             simulator.png
             Reverie-simulator.zip
-            Reverie-unsigned.ipa
             variants-build.log
             brand-startup.log
             brand-artifacts
+            !brand-artifacts/*.ipa
+          if-no-files-found: warn
+      - name: Upload unsigned physical-device packages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reverie-unsigned-apps
+          path: |
+            Reverie-unsigned.ipa
+            brand-artifacts/*.ipa
+            brand-artifacts/manifest.json
+          compression-level: 0
           if-no-files-found: warn

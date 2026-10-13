@@ -70,6 +70,42 @@ final class ReverieUITests: XCTestCase {
         brand.press(forDuration: 2.2)
     }
 
+    private func openStudioScene(named name: String, in app: XCUIApplication) {
+        app.tabBars.buttons["Settings"].tap()
+        let scene = app.buttons[name]
+        scrollTo(scene, in: app, upwards: false)
+        scene.tap()
+        app.tabBars.buttons["Dashboard"].tap()
+        let open = app.buttons["open-scene"]
+        scrollTo(open, in: app)
+        open.tap()
+    }
+
+    private func closePortfolioScene(in app: XCUIApplication) {
+        let menu = app.buttons["portfolio-menu"]
+        waitForHittable(menu)
+        menu.tap()
+        let close = app.buttons["close-scene"]
+        waitForHittable(close)
+        close.tap()
+    }
+
+    private func closeWalletScene(in app: XCUIApplication) {
+        let menu = app.buttons["wallet-profile-menu"]
+        waitForHittable(menu)
+        menu.tap()
+        let close = app.buttons["Close scene"]
+        waitForHittable(close)
+        close.tap()
+    }
+
+    private func captureScreen(_ name: String, in app: XCUIApplication) {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = name
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testOnboardingStaysDismissedAfterRelaunch() {
         let app = makeApp()
         app.launch()
@@ -405,6 +441,200 @@ final class ReverieUITests: XCTestCase {
 }
 
 extension ReverieUITests {
+    func testInvestingWalletAndPredictionThemesRenderSevenHomeScreens() {
+        let app = makeApp()
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        if welcome.waitForExistence(timeout: 3) { welcome.tap() }
+        openStudioScene(named: "My investments", in: app)
+        let portfolioHome = app.buttons["portfolio-tab-home"]
+        waitForHittable(portfolioHome)
+        captureScreen("Investing playback Robinhood", in: app)
+        for name in ["Wealthsimple", "Coinbase"] {
+            app.buttons["portfolio-menu"].tap()
+            let picker = app.buttons["portfolio-theme-picker"]
+            waitForHittable(picker)
+            picker.tap()
+            let platform = app.buttons[name]
+            waitForHittable(platform)
+            platform.tap()
+            waitForHittable(portfolioHome)
+            app.buttons["portfolio-menu"].tap()
+            let platformNavigation = app.navigationBars[name]
+            XCTAssertTrue(platformNavigation.waitForExistence(timeout: 3))
+            platformNavigation.buttons["Done"].tap()
+            waitForHittable(portfolioHome)
+            let balance = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "$"))
+            XCTAssertTrue(balance.allElementsBoundByIndex.contains { $0.isHittable }, "\(name) must show a monetary balance")
+            captureScreen("Investing playback \(name)", in: app)
+        }
+        closePortfolioScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+
+        openStudioScene(named: "Wallet 1", in: app)
+        let assets = app.buttons["wallet-tab-assets"]
+        waitForHittable(assets)
+        XCTAssertTrue(app.staticTexts["wallet-total"].isHittable)
+        captureScreen("Wallet playback MetaMask", in: app)
+        for name in ["Phantom", "Trust Wallet"] {
+            app.buttons["wallet-profile-menu"].tap()
+            let edit = app.buttons["Edit wallet"]
+            waitForHittable(edit)
+            edit.tap()
+            let picker = app.descendants(matching: .any).matching(identifier: "wallet-theme-picker").firstMatch
+            waitForHittable(picker)
+            picker.tap()
+            let theme = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", name)).firstMatch
+            waitForHittable(theme)
+            theme.tap()
+            let save = app.navigationBars["Wallet settings"].buttons["Save"]
+            waitForHittable(save)
+            save.tap()
+            waitForHittable(assets)
+            app.buttons["wallet-tab-settings"].tap()
+            XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 3))
+            assets.tap()
+            XCTAssertTrue(app.staticTexts["wallet-total"].isHittable)
+            captureScreen("Wallet playback \(name)", in: app)
+        }
+        closeWalletScene(in: app)
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+
+        openStudioScene(named: "My predictions", in: app)
+        waitForHittable(app.buttons["prediction-tab-home"])
+        let market = app.buttons["market-5A110000-0000-4000-8000-000000000021"]
+        XCTAssertTrue(market.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["prediction-cash"].label.contains("$2,500.00"))
+        captureScreen("Prediction playback Polymarket", in: app)
+        app.buttons["prediction-profile-menu"].tap()
+        app.buttons["Close scene"].tap()
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+    }
+
+    func testRobinhoodPurchaseUpdatesCashAndActivityAfterRelaunch() {
+        let app = makeApp(brand: "robinhood")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let assets = app.buttons["portfolio-tab-assets"]
+        waitForHittable(assets)
+        assets.tap()
+        let apple = app.buttons["portfolio-asset-AAPL"]
+        waitForHittable(apple)
+        apple.tap()
+        let buy = app.buttons["portfolio-buy"]
+        waitForHittable(buy)
+        buy.tap()
+        XCTAssertTrue(app.textFields["portfolio-trade-amount"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.textFields["portfolio-trade-amount"].value as? String, "100")
+        let review = app.buttons["portfolio-trade-review"]
+        waitForHittable(review)
+        XCTAssertTrue(review.isEnabled)
+        review.tap()
+        let confirm = app.buttons["portfolio-trade-confirm"]
+        waitForHittable(confirm)
+        confirm.tap()
+        let done = app.buttons["portfolio-trade-done"]
+        waitForHittable(done)
+        captureScreen("Robinhood purchase receipt", in: app)
+        done.tap()
+        let back = app.navigationBars["AAPL"].buttons.element(boundBy: 0)
+        waitForHittable(back)
+        back.tap()
+        app.buttons["portfolio-tab-home"].tap()
+        let cash = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "$12,400.00"))
+        XCTAssertTrue(cash.allElementsBoundByIndex.contains { $0.isHittable })
+        app.buttons["portfolio-tab-activity"].tap()
+        XCTAssertTrue(app.staticTexts["AAPL buy"].waitForExistence(timeout: 3))
+        app.terminate()
+        app.launch()
+        waitForHittable(app.buttons["portfolio-tab-activity"])
+        app.buttons["portfolio-tab-activity"].tap()
+        XCTAssertTrue(app.staticTexts["AAPL buy"].waitForExistence(timeout: 3))
+        XCTAssertFalse(welcome.exists)
+        closePortfolioScene(in: app)
+    }
+
+    func testMetaMaskSendUpdatesTokenQuantityAndPersistsTransferHistory() {
+        let app = makeApp(brand: "metamask")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let send = app.buttons["wallet-send"]
+        waitForHittable(send)
+        send.tap()
+        replaceText(in: app.textFields["wallet-recipient"], with: "0x0000000000000000000000000000000000000011")
+        replaceText(in: app.textFields["wallet-transfer-amount"], with: "0.25")
+        let keyboardDone = app.toolbars.buttons["Done"].firstMatch
+        if keyboardDone.exists { keyboardDone.tap() }
+        let review = app.buttons["wallet-review-transfer"]
+        scrollTo(review, in: app)
+        XCTAssertTrue(review.isEnabled)
+        review.tap()
+        let confirm = app.buttons["wallet-confirm-transfer"]
+        waitForHittable(confirm)
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["wallet-transfer-complete"].waitForExistence(timeout: 5))
+        captureScreen("MetaMask send receipt", in: app)
+        app.navigationBars["Complete"].buttons["Done"].tap()
+        let eth = app.buttons["wallet-asset-eth"]
+        scrollTo(eth, in: app)
+        XCTAssertTrue(eth.label.contains("4 ETH"))
+        app.buttons["wallet-tab-activity"].tap()
+        XCTAssertTrue(app.staticTexts["Sent ETH"].waitForExistence(timeout: 3))
+        app.terminate()
+        app.launch()
+        waitForHittable(app.buttons["wallet-tab-assets"])
+        scrollTo(eth, in: app)
+        XCTAssertTrue(eth.label.contains("4 ETH"))
+        app.buttons["wallet-tab-activity"].tap()
+        XCTAssertTrue(app.staticTexts["Sent ETH"].waitForExistence(timeout: 3))
+        XCTAssertFalse(welcome.exists)
+        closeWalletScene(in: app)
+    }
+
+    func testPolymarketNoPurchasePersistsNewOutcomeAndTradeHistory() {
+        let app = makeApp(brand: "polymarket")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let buyNo = app.buttons["prediction-no-5A110000-0000-4000-8000-000000000021"]
+        waitForHittable(buyNo)
+        buyNo.tap()
+        XCTAssertTrue(app.textFields["prediction-shares"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.textFields["prediction-shares"].value as? String, "100")
+        let review = app.buttons["prediction-review"]
+        scrollTo(review, in: app)
+        XCTAssertTrue(review.isEnabled)
+        review.tap()
+        XCTAssertTrue(app.staticTexts["$2,464.00"].waitForExistence(timeout: 3))
+        let confirm = app.buttons["prediction-confirm"]
+        waitForHittable(confirm)
+        confirm.tap()
+        let done = app.buttons["prediction-trade-done"]
+        waitForHittable(done)
+        captureScreen("Polymarket No purchase receipt", in: app)
+        done.tap()
+        app.buttons["prediction-tab-portfolio"].tap()
+        XCTAssertTrue(app.staticTexts["No · 100 shares"].waitForExistence(timeout: 3))
+        app.buttons["prediction-tab-activity"].tap()
+        let trade = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "Bought 100 No shares")).firstMatch
+        XCTAssertTrue(trade.waitForExistence(timeout: 3))
+        app.terminate()
+        app.launch()
+        waitForHittable(app.buttons["prediction-tab-portfolio"])
+        app.buttons["prediction-tab-portfolio"].tap()
+        XCTAssertTrue(app.staticTexts["No · 100 shares"].waitForExistence(timeout: 3))
+        app.buttons["prediction-tab-activity"].tap()
+        XCTAssertTrue(trade.waitForExistence(timeout: 3))
+        XCTAssertFalse(welcome.exists)
+        app.buttons["prediction-profile-menu"].tap()
+        app.buttons["Close scene"].tap()
+    }
+
     func testNotificationSessionCanBeQueuedAndCancelled() {
         let app = makeApp()
         app.launch()

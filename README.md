@@ -1,13 +1,13 @@
 # Reverie
 
-Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, saved cue presets, alert queue with individual cancellation, JSON import/export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles. The Studio build uses Reverie’s name and icon; optional commerce/bank variants use their own configured display names and official reference icons. Simulation context is explained in onboarding and Settings.
+Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, investing, crypto wallet, prediction, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, saved cue presets, alert queue with individual cancellation, JSON import/export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles. The Studio build uses Reverie’s name and icon; optional brand variants use their own configured display names and official reference icons. Simulation context is explained in onboarding and Settings.
 
 ## Open and run
 
 On a Mac with Xcode 16 or later:
 
 ```sh
-cd SceneKitDemo
+cd Reverie-ios
 open Reverie.xcodeproj
 ```
 
@@ -29,9 +29,7 @@ Notification permission is requested only when cueing alerts. Focus modes, notif
 
 ## Validation status
 
-The baseline hosted build (`f989f89`) passed on GitHub Actions: unsigned physical-device compilation, 34 native XCTest cases, and 6 iPhone UI tests, using Xcode 16.4 and an iPhone 17 Pro Max simulator running iOS 26.2. The baseline run is https://github.com/Fink692/Reverie-ios/actions/runs/38337929358.
-
-The immersive build (`28c276b`) passed device compilation and all 42 native unit tests; 7 of 8 UI tests passed. The remaining bank test found a selector before it became tappable. Its wait and touch target have been corrected, and the next hosted build verifies all 12 bank themes plus branded startup. The latest shared Swift suite has 33 passing tests. See `Verification/STATUS.md` for current evidence. No App Store certification or signed-device release is claimed.
+The expanded shared Swift suite passes 41 tests with Swift 6.0.3. The latest native baseline and expanded Apple SDK results, screenshots, package checks, and limitations are recorded in [Verification/STATUS.md](Verification/STATUS.md). Physical-device installation and distribution signing still require an Apple account and a device; the hosted packages are unsigned.
 
 ## Design references
 
@@ -54,7 +52,7 @@ The user-provided repository is https://github.com/Fink692/Reverie-ios. It is pu
 
 Supported events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
 
-Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard in Studio; a matching commerce/bank variant opens its immersive scene. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
+Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard in Studio; a matching branded variant opens its immersive scene. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
 
 ## Restoring a session
 
@@ -64,7 +62,7 @@ Saved cues store event type, amount, details, start delay, and alert count. Load
 
 ## Immersive scenes
 
-Dashboard → Open scene hides Studio navigation and opens commerce or bank playback. Commerce layouts reference Shopify's current official iPhone screenshots: black metric/chart header, blue plots, white rounded panels, floating navigation, order rows, filters and status chips. Home, Orders, Products, and Menu are interactive. Products, orders, metrics, current/prior chart curves, payouts and fulfillment state can be edited locally. Shopify-style order wording uses item quantity and the selected store name.
+Dashboard → Open scene hides Studio navigation and opens the selected store, bank, portfolio, wallet, or prediction scene. Commerce layouts reference Shopify's current official iPhone screenshots: black metric/chart header, blue plots, white rounded panels, floating navigation, order rows, filters and status chips. Home, Orders, Products, and Menu are interactive. Products, orders, metrics, current/prior chart curves, payouts and fulfillment state can be edited locally. Shopify-style order wording uses item quantity and the selected store name.
 
 Bank playback offers Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC UK, Barclays UK, Lloyds, NatWest, Monzo, Revolut and Starling. These are 12 named references, not an exhaustive list of every major bank worldwide. Each has a distinct reference-based overview, account/activity pages, editable balances, simulated payments/deposits, and persisted card controls. Change the scene currency in Studio for the desired region.
 
@@ -72,10 +70,20 @@ Reference provenance and known differences are in `References/Shopify/README.md`
 
 The workflow also produces `Reverie-unsigned.ipa`. This is a physical-device build package, **not directly installable until signed** using an Apple account/developer team or an authorized sideloading tool. The simulator archive runs on a Mac's iOS Simulator. Neither artifact grants access to real bank or Shopify services.
 
-## Separate commerce and bank packages
+## Investing, wallets, and predictions
 
-After the base device build, run `./scripts/build-brand-variants.sh` on a Mac. It produces 13 unsigned packages and a verified SHA-256 manifest in `brand-artifacts`: Shopify-style commerce plus Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC, Barclays, Lloyds Bank, NatWest, Monzo, Revolut and Starling Bank. Use `--only chase` (or another ID from `References/Branding/variants.json`) to build one package. GitHub Actions builds and uploads all 13 automatically.
+Investing offers Robinhood, Wealthsimple, and Coinbase appearances with editable assets, price charts, cash, average cost, buy/sell review and confirmation, and saved transaction history. Coinbase Send and Receive change token units independently from cash. Wealthsimple starts in CAD in its branded build; other investing variants start in USD.
 
-Each variant launches its matching immersive scene after the roleplay onboarding and on subsequent launches. Bank variants restore their configured bank appearance on relaunch while preserving existing account data. Reset clears the session and restores starter account data. Clean playback is enabled by default in variants. Return to Studio from the commerce profile/menu → Close scene, or hold the bank name for two seconds. Studio → Settings can show the extra playback controls again. All variants remain local fictional simulators with separate storage; their identities do not replace the genuine apps. See `INSTALL.md` for signing and installation options.
+Wallets offer MetaMask, Phantom, and Trust Wallet appearances, token balances, asset details, public-address receive cards and QR codes, send/receive review and confirmation, and local swaps at the scene's editable token prices. The app does not request recovery phrases or private keys and never broadcasts a transaction.
 
-Clean playback hides the additional close buttons and bank selector. Enable it in Settings when preparing a capture. It preserves the normal local controls and saved session.
+Prediction playback offers a Polymarket appearance with searchable categories, editable markets and probabilities, Yes/No positions, charts, cash, share-based buy/sell review and confirmation, and saved history. These generic event-market flows reference the visible public iOS interface; the current US listing is sports-first. Complete authenticated screen fidelity is unverified.
+
+Each transaction saves its balances, holdings, and record together. Invalid values, insufficient balances, stale quotes, overflow, and failed disk writes leave the previous session intact. Imports include all profiles and transaction histories; older archives without the new profiles still load. Reference evidence is in [Markets](References/Markets/README.md), [Wallets](References/Wallets/README.md), and [Prediction](References/Prediction/README.md).
+
+## Separate branded packages
+
+After the base device build, run `./scripts/build-brand-variants.sh` on a Mac. It produces 20 unsigned packages and a verified SHA-256 manifest in `brand-artifacts` (uploaded as `Reverie-unsigned-apps`): Shopify-style commerce plus Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC, Barclays, Lloyds Bank, NatWest, Monzo, Revolut and Starling Bank, plus Robinhood, Wealthsimple, Coinbase, MetaMask, Phantom, Trust Wallet, and Polymarket. Use `--only chase` (or another ID from `References/Branding/variants.json`) to build one package. GitHub Actions builds and uploads all 20 automatically.
+
+Each variant launches its matching immersive scene after the roleplay onboarding and on subsequent launches. Branded variants restore their configured appearance on relaunch while preserving existing scene data. Reset clears the session and restores starter account data. Clean playback is enabled by default in variants. Return to Studio from a profile/menu → Close scene, or hold the bank name for two seconds in banking. Studio → Settings can show the extra playback controls again. All variants remain local fictional simulators with separate storage; their identities do not replace the genuine apps. See `INSTALL.md` for signing and installation options.
+
+Clean playback hides additional close buttons and appearance selectors. Enable it in Settings when preparing a capture. It preserves the normal local controls and saved session.

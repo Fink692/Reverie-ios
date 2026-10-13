@@ -1,13 +1,27 @@
 import Foundation
 
 enum SceneKind: String, Codable, CaseIterable, Identifiable {
-    case commerce, banking, creator
+    case commerce, banking, creator, portfolio, wallet, prediction
     var id: String { rawValue }
     var title: String {
-        switch self { case .commerce: return "Store"; case .banking: return "Banking"; case .creator: return "Creator" }
+        switch self {
+        case .commerce: return "Store"
+        case .banking: return "Banking"
+        case .creator: return "Creator"
+        case .portfolio: return "Investing"
+        case .wallet: return "Crypto wallet"
+        case .prediction: return "Prediction markets"
+        }
     }
     var symbol: String {
-        switch self { case .commerce: return "bag.fill"; case .banking: return "building.columns.fill"; case .creator: return "sparkles" }
+        switch self {
+        case .commerce: return "bag.fill"
+        case .banking: return "building.columns.fill"
+        case .creator: return "sparkles"
+        case .portfolio: return "chart.line.uptrend.xyaxis"
+        case .wallet: return "bitcoinsign.circle.fill"
+        case .prediction: return "chart.bar.xaxis"
+        }
     }
 }
 
@@ -24,7 +38,10 @@ struct StudioScene: Codable, Identifiable, Equatable {
     static let examples: [StudioScene] = [
         StudioScene(name: "Studio Supply", kind: .commerce, balance: 24850, sales: 3842, orders: 28, audience: 1248),
         StudioScene(name: "Northstar", kind: .banking, balance: 84250.75, sales: 6420, orders: 16, audience: 0),
-        StudioScene(name: "The daily edit", kind: .creator, balance: 18240, sales: 1250, orders: 42, audience: 128400)
+        StudioScene(name: "The daily edit", kind: .creator, balance: 18240, sales: 1250, orders: 42, audience: 128400),
+        StudioScene(name: "My investments", kind: .portfolio, balance: 12500, sales: 0, orders: 0, audience: 0),
+        StudioScene(name: "Wallet 1", kind: .wallet, balance: 0, sales: 0, orders: 0, audience: 0),
+        StudioScene(name: "My predictions", kind: .prediction, balance: 2500, sales: 0, orders: 0, audience: 0)
     ]
     var isValid: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && name.count <= 80 &&
@@ -106,11 +123,15 @@ struct Archive: Codable {
     var presets: [NotificationPreset]
     var commerceProfiles: [CommerceProfile]
     var bankProfiles: [BankProfile]
-    init(scenes: [StudioScene], events: [SceneEvent], activeID: UUID, presets: [NotificationPreset] = [], commerceProfiles: [CommerceProfile] = [], bankProfiles: [BankProfile] = []) {
+    var portfolioProfiles: [PortfolioProfile]
+    var walletProfiles: [WalletProfile]
+    var predictionProfiles: [PredictionProfile]
+    init(scenes: [StudioScene], events: [SceneEvent], activeID: UUID, presets: [NotificationPreset] = [], commerceProfiles: [CommerceProfile] = [], bankProfiles: [BankProfile] = [], portfolioProfiles: [PortfolioProfile] = [], walletProfiles: [WalletProfile] = [], predictionProfiles: [PredictionProfile] = []) {
         self.commerceProfiles = commerceProfiles; self.bankProfiles = bankProfiles
+        self.portfolioProfiles = portfolioProfiles; self.walletProfiles = walletProfiles; self.predictionProfiles = predictionProfiles
         self.scenes = scenes; self.events = events; self.activeID = activeID; self.presets = presets
     }
-    private enum CodingKeys: String, CodingKey { case scenes, events, activeID, presets, commerceProfiles, bankProfiles }
+    private enum CodingKeys: String, CodingKey { case scenes, events, activeID, presets, commerceProfiles, bankProfiles, portfolioProfiles, walletProfiles, predictionProfiles }
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         scenes = try container.decode([StudioScene].self, forKey: .scenes)
@@ -119,6 +140,9 @@ struct Archive: Codable {
         presets = try container.decodeIfPresent([NotificationPreset].self, forKey: .presets) ?? []
         commerceProfiles = try container.decodeIfPresent([CommerceProfile].self, forKey: .commerceProfiles) ?? []
         bankProfiles = try container.decodeIfPresent([BankProfile].self, forKey: .bankProfiles) ?? []
+        portfolioProfiles = try container.decodeIfPresent([PortfolioProfile].self, forKey: .portfolioProfiles) ?? []
+        walletProfiles = try container.decodeIfPresent([WalletProfile].self, forKey: .walletProfiles) ?? []
+        predictionProfiles = try container.decodeIfPresent([PredictionProfile].self, forKey: .predictionProfiles) ?? []
     }
     var isValid: Bool {
         let sceneIDs = Set(scenes.map(\.id))
@@ -129,7 +153,13 @@ struct Archive: Codable {
         commerceProfiles.count <= 100 && Set(commerceProfiles.map(\.sceneID)).count == commerceProfiles.count &&
         commerceProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
         bankProfiles.count <= 100 && Set(bankProfiles.map(\.sceneID)).count == bankProfiles.count &&
-        bankProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) }
+        bankProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
+        portfolioProfiles.count <= 100 && Set(portfolioProfiles.map(\.sceneID)).count == portfolioProfiles.count &&
+        portfolioProfiles.allSatisfy { profile in profile.isValid && scenes.contains(where: { $0.id == profile.sceneID && $0.kind == .portfolio && MarketValidation.nonnegative(profile.total(cash: $0.balance)) }) } &&
+        walletProfiles.count <= 100 && Set(walletProfiles.map(\.sceneID)).count == walletProfiles.count &&
+        walletProfiles.allSatisfy { profile in profile.isValid && scenes.contains(where: { $0.id == profile.sceneID && $0.kind == .wallet }) } &&
+        predictionProfiles.count <= 100 && Set(predictionProfiles.map(\.sceneID)).count == predictionProfiles.count &&
+        predictionProfiles.allSatisfy { profile in profile.isValid && scenes.contains(where: { $0.id == profile.sceneID && $0.kind == .prediction && MarketValidation.nonnegative(profile.total(cash: $0.balance)) }) }
     }
     func encoded(prettyPrinted: Bool = false) throws -> Data {
         guard isValid else { throw ArchiveError.invalidSession }

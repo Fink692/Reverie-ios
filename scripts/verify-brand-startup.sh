@@ -24,16 +24,29 @@ if base.get('CFBundleIdentifier') != 'com.reverie.simulator':
     raise SystemExit('Simulator output must be the base Reverie app before startup checks.')
 raw = json.loads(Path('References/Branding/variants.json').read_text())
 variants = raw['variants'] if isinstance(raw, dict) else raw
-selected = [next(entry for entry in variants if entry['id'] == name) for name in ('commerce', 'chase')]
+representatives = ('commerce', 'chase', 'robinhood', 'phantom', 'polymarket')
+selected = []
+for name in representatives:
+    matches = [entry for entry in variants if entry['id'] == name]
+    if len(matches) != 1:
+        raise SystemExit(f'Expected exactly one startup representative: {name}.')
+    selected.append(matches[0])
+theme_keys = {
+    'bankTheme': 'ReverieBankTheme',
+    'portfolioTheme': 'ReveriePortfolioTheme',
+    'walletTheme': 'ReverieWalletTheme',
+    'predictionTheme': 'ReveriePredictionTheme',
+}
 for entry in selected:
     info = dict(base)
-    for key in ('CFBundleIcons', 'CFBundleIcons~ipad', 'CFBundleIconFiles', 'CFBundleIconName', 'ReveriePlaybackKind', 'ReverieBankTheme'):
+    for key in ('CFBundleIcons', 'CFBundleIcons~ipad', 'CFBundleIconFiles', 'CFBundleIconName', 'ReveriePlaybackKind', *theme_keys.values()):
         info.pop(key, None)
     info['CFBundleIdentifier'] = entry['bundleIdentifier']
     info['CFBundleDisplayName'] = entry['displayName']
     info['ReveriePlaybackKind'] = entry['playbackKind']
-    if entry.get('bankTheme'):
-        info['ReverieBankTheme'] = entry['bankTheme']
+    for field, key in theme_keys.items():
+        if field in entry:
+            info[key] = entry[field]
     (work / f"{entry['id']}.plist").write_bytes(plistlib.dumps(info))
 (work / 'variants.json').write_text(json.dumps(selected, indent=2) + '\n')
 with (work / 'variants.tsv').open('w') as rows:
@@ -65,13 +78,28 @@ info = plistlib.loads((app / 'Info.plist').read_bytes())
 for key, expected in [('CFBundleIdentifier', entry['bundleIdentifier']), ('CFBundleDisplayName', entry['displayName']), ('ReveriePlaybackKind', entry['playbackKind'])]:
     if info.get(key) != expected:
         raise SystemExit(f"Installed {entry['id']} has unexpected {key}.")
-if info.get('ReverieBankTheme') != entry.get('bankTheme'):
-    raise SystemExit(f"Installed {entry['id']} has unexpected bank theme.")
+theme_keys = {
+    'bankTheme': 'ReverieBankTheme',
+    'portfolioTheme': 'ReveriePortfolioTheme',
+    'walletTheme': 'ReverieWalletTheme',
+    'predictionTheme': 'ReveriePredictionTheme',
+}
+for field, key in theme_keys.items():
+    if info.get(key) != entry.get(field):
+        raise SystemExit(f"Installed {entry['id']} has unexpected {key}.")
+primary = info.get('CFBundleIcons', {}).get('CFBundlePrimaryIcon', {})
+if primary.get('CFBundleIconName') != entry['appIcon']:
+    raise SystemExit(f"Installed {entry['id']} has unexpected primary app icon.")
 if info.get('CFBundleSupportedPlatforms') != ['iPhoneSimulator']:
     raise SystemExit(f"Installed {entry['id']} is not a simulator build.")
 if not (app / 'Order.caf').is_file():
     raise SystemExit(f"Installed {entry['id']} is missing its order notification sound.")
 print(f"Verified installed {entry['displayName']} simulator app metadata and bundled sound.")
+Path('brand-artifacts', f"{entry['id']}-installed-info.json").write_text(json.dumps({
+    **entry,
+    'installedInfo': {key: info[key] for key in ('CFBundleIdentifier', 'CFBundleDisplayName', 'ReveriePlaybackKind', 'CFBundleSupportedPlatforms', *theme_keys.values()) if key in info},
+    'installedIcon': primary,
+}, indent=2) + '\n')
 PY
     # Set the existing onboarding preference for these isolated simulator checks.
     # No UI-test brand override is supplied: startup reads the installed Info.plist.
@@ -82,4 +110,4 @@ PY
     xcrun simctl terminate "$SIMULATOR_ID" "$startup_bundle"
 done < "$startup_work/variants.tsv"
 
-echo 'Captured production Info.plist startup screenshots for the Shopify and Chase simulator variants.'
+echo 'Captured production Info.plist startup screenshots for Shopify, Chase, Robinhood, Phantom, and Polymarket simulator variants.'

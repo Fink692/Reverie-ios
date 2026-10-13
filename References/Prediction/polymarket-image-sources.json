@@ -1,0 +1,90 @@
+[
+  {
+    "id": "polymarket",
+    "part": "1",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b9/e1/73/b9e173fb-0b7e-cf97-f331-61a8074fd2d8/1.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-1.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "03ba996b7d4776089c47a97e3959964aabd37a75d855eaa9e95d367b9e95e051"
+  },
+  {
+    "id": "polymarket",
+    "part": "2",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/49/5a/b0/495ab0dc-c85f-e84c-81c1-af3a659c2b04/2.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-2.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "07405ecc8a096eaac33b7907cbc9eb5473adf5cf3f85b9a87a01963bb9b5ad36"
+  },
+  {
+    "id": "polymarket",
+    "part": "3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/bc/d9/dc/bcd9dcf2-6a11-05f7-bab8-bf8ce9e53b8d/3.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-3.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "587e876bb26ab8fde213cc806fb95b59e622ca40739b9c29f8441815e9596da4"
+  },
+  {
+    "id": "polymarket",
+    "part": "4",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/85/48/d2/8548d2a4-6071-6451-9aa7-7ebb7b8dbb48/4.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-4.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "ca04d2fed40a54731ec115a532508762a2bcd903053fdb68c5b7e1b2f003dafc"
+  },
+  {
+    "id": "polymarket",
+    "part": "5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b0/3d/3f/b03d3f3a-22f7-21b1-de1e-ee074787e11b/5.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-5.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "d025a3a648ddcb95fd34e791c300602986cdfb18461e538311ae6ae1d77924e2"
+  },
+  {
+    "id": "polymarket",
+    "part": "6",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a5/9f/33/a59f3317-6888-315f-8af1-08fff109d682/6.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-6.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "00980d85685f5d88b6a8b0746f2c38ca9b9c1f82a179f4ffbe2966a1258708d3"
+  },
+  {
+    "id": "polymarket",
+    "part": "7",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3a/7c/21/3a7c21ee-92f1-dcc4-fab4-6bf6c6082e4e/7.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-7.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "94c2b78d00162e2520962a4d5ef4dabf16a7287e8253f2da4635dacefe8082a9"
+  },
+  {
+    "id": "polymarket",
+    "part": "8",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/24/fd/75/24fd75d2-2751-8168-94a8-5b846b55dd38/8.jpg/1242x2688bb.jpg",
+    "file": "References/Prediction/polymarket-8.jpg",
+    "dimensions": [
+      1242,
+      2688
+    ],
+    "sha256": "6d51328b52da3c17b12b251eef46981816bc424f39a93c7ef391e69813a39a63"
+  }
+]

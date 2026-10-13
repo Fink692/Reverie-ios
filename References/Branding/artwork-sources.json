@@ -284,5 +284,159 @@
       1024,
       1024
     ]
+  },
+  {
+    "id": "robinhood",
+    "displayName": "Robinhood",
+    "installedDisplayNameVerified": false,
+    "listingName": "Robinhood: Trading & Investing",
+    "sellerName": "Robinhood Markets Inc",
+    "trackID": 938003185,
+    "trackViewURL": "https://apps.apple.com/us/app/robinhood-trading-investing/id938003185?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/20/63/7c/20637c27-1803-1bd8-4a74-939dce068cc7/AppIcon-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/20/63/7c/20637c27-1803-1bd8-4a74-939dce068cc7/AppIcon-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/robinhood-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-robinhood.appiconset/AppIcon.png",
+    "downloadSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5",
+    "assetSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "wealthsimple",
+    "displayName": "Wealthsimple",
+    "installedDisplayNameVerified": false,
+    "listingName": "Wealthsimple",
+    "sellerName": "Wealthsimple Financial Inc.",
+    "trackID": 1403491709,
+    "trackViewURL": "https://apps.apple.com/ca/app/wealthsimple/id1403491709?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/82/76/4a/82764afa-87d2-27c9-be23-5e5d59522b58/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/82/76/4a/82764afa-87d2-27c9-be23-5e5d59522b58/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/wealthsimple-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-wealthsimple.appiconset/AppIcon.png",
+    "downloadSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4",
+    "assetSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "coinbase",
+    "displayName": "Coinbase",
+    "installedDisplayNameVerified": false,
+    "listingName": "Coinbase: Buy Crypto & Stocks",
+    "sellerName": "Coinbase, Inc.",
+    "trackID": 886427730,
+    "trackViewURL": "https://apps.apple.com/us/app/coinbase-buy-crypto-stocks/id886427730?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bb/7b/31/bb7b3124-301f-c94d-41c3-b3d6bc09ac17/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bb/7b/31/bb7b3124-301f-c94d-41c3-b3d6bc09ac17/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/coinbase-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-coinbase.appiconset/AppIcon.png",
+    "downloadSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a",
+    "assetSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "polymarket",
+    "displayName": "Polymarket",
+    "installedDisplayNameVerified": false,
+    "listingName": "Polymarket: Trade Live Sports",
+    "sellerName": "Blockratize Inc",
+    "trackID": 6648798962,
+    "trackViewURL": "https://apps.apple.com/us/app/polymarket-trade-live-sports/id6648798962?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/04/f6/f1/04f6f10e-6cad-24d7-19fa-803a8327ff76/AppIcon2-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/04/f6/f1/04f6f10e-6cad-24d7-19fa-803a8327ff76/AppIcon2-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/polymarket-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-polymarket.appiconset/AppIcon.png",
+    "downloadSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b",
+    "assetSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "metamask",
+    "displayName": "MetaMask",
+    "installedDisplayNameVerified": false,
+    "listingName": "MetaMask: Trade Crypto",
+    "sellerName": "ConsenSys AG",
+    "trackID": 1438144202,
+    "trackViewURL": "https://apps.apple.com/us/app/metamask-trade-crypto/id1438144202?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6e/db/0d/6edb0d6c-b2a4-e574-c884-b0aac467ba2b/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6e/db/0d/6edb0d6c-b2a4-e574-c884-b0aac467ba2b/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/metamask-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-metamask.appiconset/AppIcon.png",
+    "downloadSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8",
+    "assetSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "phantom",
+    "displayName": "Phantom",
+    "installedDisplayNameVerified": false,
+    "listingName": "Phantom: Trading Wallet",
+    "sellerName": "Phantom Technologies Incorporated",
+    "trackID": 1598432977,
+    "trackViewURL": "https://apps.apple.com/us/app/phantom-trading-wallet/id1598432977?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/cd/76/6c/cd766cb9-e4a6-d4f5-09fe-2386916650cc/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/cd/76/6c/cd766cb9-e4a6-d4f5-09fe-2386916650cc/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/phantom-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-phantom.appiconset/AppIcon.png",
+    "downloadSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e",
+    "assetSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "id": "trustWallet",
+    "displayName": "Trust Wallet",
+    "installedDisplayNameVerified": false,
+    "listingName": "Trust: Crypto & Bitcoin Wallet",
+    "sellerName": "DApps Platform Software Services Ltd.",
+    "trackID": 1288339409,
+    "trackViewURL": "https://apps.apple.com/us/app/trust-crypto-bitcoin-wallet/id1288339409?uo=4",
+    "listingArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/27/87/d4/2787d458-a643-955c-8e89-306cd424543e/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg",
+    "downloadedArtworkURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/27/87/d4/2787d458-a643-955c-8e89-306cd424543e/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/1024x1024bb.png",
+    "retrieved": "2026-10-13",
+    "referenceFile": "References/Branding/trustWallet-official-artwork.png",
+    "assetFile": "Sources/Assets.xcassets/Brand-trustWallet.appiconset/AppIcon.png",
+    "downloadSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785",
+    "assetSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785",
+    "downloadMode": "RGB",
+    "assetMode": "RGB",
+    "dimensions": [
+      1024,
+      1024
+    ]
   }
 ]

@@ -47,7 +47,15 @@ if not isinstance(variants, list) or not variants:
 ids = set()
 bundles = set()
 icons = set()
+theme_fields = {
+    'banking': 'bankTheme',
+    'portfolio': 'portfolioTheme',
+    'wallet': 'walletTheme',
+    'prediction': 'predictionTheme',
+}
 for entry in variants:
+    if not isinstance(entry, dict):
+        raise SystemExit('Each variant must be an object.')
     for field in ('id', 'displayName', 'bundleIdentifier', 'appIcon', 'playbackKind'):
         value = entry.get(field)
         if not isinstance(value, str) or not value or any(char in value for char in '\t\r\n'):
@@ -66,15 +74,17 @@ for entry in variants:
     ids.add(variant_id)
     bundles.add(bundle)
     icons.add(icon)
-    if entry['playbackKind'] not in ('commerce', 'banking'):
+    kind = entry['playbackKind']
+    if kind not in ('commerce', *theme_fields):
         raise SystemExit(f'Invalid playback kind for {variant_id}.')
-    theme = entry.get('bankTheme', '')
-    if not isinstance(theme, str) or any(char in theme for char in '\t\r\n'):
-        raise SystemExit(f'Invalid bankTheme for {variant_id}.')
-    if entry['playbackKind'] == 'banking' and not re.fullmatch(r'[A-Za-z][A-Za-z0-9]*', theme):
-        raise SystemExit(f'Banking variant {variant_id} requires a bankTheme.')
-    if entry['playbackKind'] == 'commerce' and theme:
-        raise SystemExit(f'Commerce variant {variant_id} must not have a bankTheme.')
+    required_theme = theme_fields.get(kind)
+    for field in theme_fields.values():
+        if field == required_theme:
+            theme = entry.get(field)
+            if not isinstance(theme, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9]*', theme):
+                raise SystemExit(f'{kind.capitalize()} variant {variant_id} requires a valid {field}.')
+        elif field in entry:
+            raise SystemExit(f'{kind.capitalize()} variant {variant_id} must not have a {field}.')
     icon_set = Path('Sources/Assets.xcassets') / f'{icon}.appiconset'
     contents = icon_set / 'Contents.json'
     if not contents.is_file():
@@ -105,13 +115,20 @@ import sys
 work = Path(sys.argv[1])
 entry = next(item for item in json.loads((work / 'variants.json').read_text()) if item['id'] == sys.argv[2])
 info = plistlib.loads((work / 'BaseInfo.plist').read_bytes())
-for key in ('CFBundleIcons', 'CFBundleIcons~ipad', 'CFBundleIconFiles', 'CFBundleIconName', 'ReveriePlaybackKind', 'ReverieBankTheme'):
+theme_keys = {
+    'bankTheme': 'ReverieBankTheme',
+    'portfolioTheme': 'ReveriePortfolioTheme',
+    'walletTheme': 'ReverieWalletTheme',
+    'predictionTheme': 'ReveriePredictionTheme',
+}
+for key in ('CFBundleIcons', 'CFBundleIcons~ipad', 'CFBundleIconFiles', 'CFBundleIconName', 'ReveriePlaybackKind', *theme_keys.values()):
     info.pop(key, None)
 info['CFBundleIdentifier'] = entry['bundleIdentifier']
 info['CFBundleDisplayName'] = entry['displayName']
 info['ReveriePlaybackKind'] = entry['playbackKind']
-if entry.get('bankTheme'):
-    info['ReverieBankTheme'] = entry['bankTheme']
+for field, key in theme_keys.items():
+    if field in entry:
+        info[key] = entry[field]
 destination = work / entry['id'] / 'Info.plist'
 destination.parent.mkdir()
 destination.write_bytes(plistlib.dumps(info))
@@ -147,6 +164,12 @@ import zipfile
 
 work = Path(sys.argv[1])
 records = []
+theme_keys = {
+    'bankTheme': 'ReverieBankTheme',
+    'portfolioTheme': 'ReveriePortfolioTheme',
+    'walletTheme': 'ReverieWalletTheme',
+    'predictionTheme': 'ReveriePredictionTheme',
+}
 for entry in json.loads((work / 'variants.json').read_text()):
     archive = Path('brand-artifacts') / f"Reverie-{entry['id']}-unsigned.ipa"
     with zipfile.ZipFile(archive) as payload:
@@ -157,8 +180,11 @@ for entry in json.loads((work / 'variants.json').read_text()):
             'CFBundleDisplayName': entry['displayName'],
             'ReveriePlaybackKind': entry['playbackKind'],
         }
-        if entry.get('bankTheme'):
-            required['ReverieBankTheme'] = entry['bankTheme']
+        for field, key in theme_keys.items():
+            if field in entry:
+                required[key] = entry[field]
+            elif key in info:
+                raise SystemExit(f"{entry['id']}: packaged unexpected {key}.")
         for key, value in required.items():
             if info.get(key) != value:
                 raise SystemExit(f"{entry['id']}: packaged {key} is {info.get(key)!r}; expected {value!r}.")

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "trustWallet",
+    "part": "1",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ce/ad/84/cead8414-09f5-0578-280b-6b128cc930e0/5.5.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-1.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "63188928c909ab49ea8d4e52ca5dc37a50afc07d55535f0dffdbe804fd3f3408"
+  },
+  {
+    "id": "trustWallet",
+    "part": "2",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/c7/0b/11/c70b11a8-c9f6-5746-0c38-826ebbaab655/1_APP_IPHONE_55_1.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-2.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "80c267b301b0f15c20b0ccaad9e3aaf7960acfd019febd1cfd9160cb71acde06"
+  },
+  {
+    "id": "trustWallet",
+    "part": "3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/84/f0/db/84f0db08-a99c-d2ba-d3f9-f359576583d0/2_APP_IPHONE_55_2.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-3.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "7e4bc3aba782bd14937f011db3f203f834cfbf728ee890751d29d75ed3002ee2"
+  },
+  {
+    "id": "trustWallet",
+    "part": "4",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/08/21/cd/0821cd36-41dc-a3c3-4dbb-246ede9a9e73/3_APP_IPHONE_55_3.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-4.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "0a4b930ffd393cb84b9a5b8632d67d3a5511a5d37716ed5e2caa248247bef03b"
+  },
+  {
+    "id": "trustWallet",
+    "part": "5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/af/5f/56/af5f56a6-517d-f9f3-6071-742f81658915/4_APP_IPHONE_55_4.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-5.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "59148ae7da0df3a9b800e2df68d2a63ca17ec2d5a414769ca185da318ca28d62"
+  },
+  {
+    "id": "trustWallet",
+    "part": "6",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cc/ee/38/ccee3823-f0de-9a4c-dc4a-f4fe0eb49250/5_APP_IPHONE_55_5.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-6.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "62be66ec3d1cf63e458f327e6b8f23a3768463471d40ba60b71fd58c2b4d11e8"
+  },
+  {
+    "id": "trustWallet",
+    "part": "7",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b6/8c/86/b68c86fa-b8b4-cd30-c04b-40fb7946fdf3/6_APP_IPHONE_55_6.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-7.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "187bab0a4905a30cdc60e6d195954013e2d59742b8fd965df811f029f0dcbad3"
+  },
+  {
+    "id": "trustWallet",
+    "part": "8",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/81/ee/09/81ee09b6-3e0c-9f37-eb46-0a9d23230689/7_APP_IPHONE_55_7.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/trustWallet-8.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "958b178694105cd4673e0bbd139456d63c1f02a1cc0874d46646aa6b0ad4f64f"
+  }
+]

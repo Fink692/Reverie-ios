@@ -59,6 +59,9 @@ struct RootView: View {
             switch scene.kind {
             case .commerce: CommercePlayback(sceneID: scene.id).environmentObject(store)
             case .banking: BankPlayback(sceneID: scene.id).environmentObject(store)
+            case .portfolio: PortfolioPlayback(sceneID: scene.id).environmentObject(store)
+            case .wallet: WalletPlayback(sceneID: scene.id).environmentObject(store)
+            case .prediction: PredictionPlayback(sceneID: scene.id).environmentObject(store)
             case .creator: EmptyView()
             }
         }
@@ -114,11 +117,11 @@ struct WelcomeView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 VStack(alignment: .leading, spacing: 22) {
-                    WelcomeFeature(symbol: "square.grid.2x2", title: "A world of your own", detail: "Create stores, banking dashboards, and creator scenes.")
+                    WelcomeFeature(symbol: "square.grid.2x2", title: "A world of your own", detail: "Create stores, banking dashboards, portfolios, wallets, predictions, and creator scenes.")
                     WelcomeFeature(symbol: "bell.badge", title: "Make the moment", detail: "Compose events and schedule alerts for the perfect cue.")
                     WelcomeFeature(symbol: "lock", title: "Private by design", detail: "Stored locally; you can export your sessions. No account needed.")
                 }
-                Text("Reverie is a roleplay simulator. All figures and notifications are fictional. It is not connected to a bank or Shopify.")
+                Text("Reverie is a roleplay simulator. All figures, trades, transfers, and notifications are fictional. It is not connected to a financial service, blockchain, or store.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -215,7 +218,9 @@ struct DashboardView: View {
                         .accessibilityLabel("Switch scene")
                         .accessibilityValue(store.active.name)
                     }
-                    if store.active.kind == .banking { bankCard } else { revenueCard }
+                    if store.active.kind == .banking { bankCard }
+                    else if [.portfolio, .wallet, .prediction].contains(store.active.kind) { marketCard }
+                    else { revenueCard }
                     if store.active.kind != .creator {
                         Button {
                             let scene = store.active
@@ -279,6 +284,9 @@ struct DashboardView: View {
                 switch scene.kind {
                 case .commerce: CommercePlayback(sceneID: scene.id).environmentObject(store)
                 case .banking: BankPlayback(sceneID: scene.id).environmentObject(store)
+                case .portfolio: PortfolioPlayback(sceneID: scene.id).environmentObject(store)
+                case .wallet: WalletPlayback(sceneID: scene.id).environmentObject(store)
+                case .prediction: PredictionPlayback(sceneID: scene.id).environmentObject(store)
                 case .creator: EmptyView()
                 }
             }
@@ -348,6 +356,28 @@ struct DashboardView: View {
         )
     }
 
+    private var marketTotal: Double {
+        switch store.active.kind {
+        case .portfolio: return store.portfolioProfile(for: store.active.id).total(cash: store.active.balance)
+        case .wallet: return store.walletProfile(for: store.active.id).fiatValue
+        case .prediction: return store.predictionProfile(for: store.active.id).total(cash: store.active.balance)
+        default: return store.active.balance
+        }
+    }
+
+    private var marketCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Label(store.active.kind == .wallet ? "Wallet value" : "Portfolio value", systemImage: store.active.kind.symbol)
+                .font(.subheadline.weight(.medium))
+            Text(store.active.money(marketTotal))
+                .font(.system(.largeTitle, design: .rounded).bold())
+                .monospacedDigit().minimumScaleFactor(0.65).lineLimit(1)
+            Text(store.active.name).font(.caption).opacity(0.9)
+        }
+        .padding(24).foregroundStyle(.white).frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [Color(red: 0.1, green: 0.15, blue: 0.22), accent], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 26))
+    }
+
     @ViewBuilder private var metrics: some View {
         if typeSize.isAccessibilitySize {
             VStack(spacing: 12) { firstMetric; secondMetric }
@@ -356,20 +386,33 @@ struct DashboardView: View {
         }
     }
 
-    private var firstMetric: some View {
-        MetricCard(
+    @ViewBuilder private var firstMetric: some View {
+        if [.portfolio, .wallet, .prediction].contains(store.active.kind) {
+            MetricCard(title: store.active.kind == .wallet ? "Tokens" : "Positions", value: marketPositionCount.formatted(), symbol: store.active.kind.symbol)
+        } else { MetricCard(
             title: store.active.kind == .banking ? "Income" : store.active.kind == .creator ? "Audience" : "Orders",
             value: store.active.kind == .banking ? store.active.money(store.active.sales) : (store.active.kind == .creator ? store.active.audience : store.active.orders).formatted(),
             symbol: store.active.kind == .banking ? "arrow.down.left" : store.active.kind == .creator ? "person.2" : "bag"
-        )
+        ) }
     }
 
-    private var secondMetric: some View {
-        MetricCard(
+    private var marketPositionCount: Int {
+        switch store.active.kind {
+        case .portfolio: return store.portfolioProfile(for: store.active.id).positions.filter { $0.units > 0 }.count
+        case .wallet: return store.walletProfile(for: store.active.id).holdings.filter { $0.quantity > 0 }.count
+        case .prediction: return store.predictionProfile(for: store.active.id).positions.filter { $0.shares > 0 }.count
+        default: return 0
+        }
+    }
+
+    @ViewBuilder private var secondMetric: some View {
+        if store.active.kind == .wallet {
+            MetricCard(title: "Transfers", value: store.walletProfile(for: store.active.id).transactions.count.formatted(), symbol: "arrow.left.arrow.right")
+        } else { MetricCard(
             title: store.active.kind == .banking ? "Activity" : "Available",
             value: store.active.kind == .banking ? store.activity.count.formatted() : store.active.money(store.active.balance),
             symbol: store.active.kind == .banking ? "clock" : "banknote"
-        )
+        ) }
     }
 
     private var trend: some View {
@@ -564,7 +607,7 @@ struct ComposerView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Section {
+                if store.active.kind != .wallet { Section {
                     Button {
                         focusedInput = nil
                         if store.emit(kind: kind, amount: eventAmount, detail: detail) != nil {
@@ -576,6 +619,8 @@ struct ComposerView: View {
                     .disabled(!valid || working)
                 } footer: {
                     Text("Scheduled alerts are a separate performance cue and do not change dashboard totals.")
+                } } else {
+                    Section { Text("Send and receive tokens inside the wallet. Studio alerts do not change token balances.").font(.footnote).foregroundStyle(.secondary) }
                 }
                 notificationSession
                 savedCueSection
@@ -719,6 +764,18 @@ struct ComposerView: View {
             kind = .subscriber
             amount = localizedEntry(25)
             detail = "Someone new joined your world"
+        case .portfolio:
+            kind = .deposit
+            amount = localizedEntry(1000)
+            detail = "Funds added to investing account"
+        case .wallet:
+            kind = .deposit
+            amount = localizedEntry(250)
+            detail = "Wallet activity cue"
+        case .prediction:
+            kind = .deposit
+            amount = localizedEntry(500)
+            detail = "Funds added to prediction account"
         }
     }
 
@@ -831,10 +888,17 @@ struct SceneEditor: View {
                     if scene.name.count > 80 { Text("Keep your scene name to 80 characters or fewer.") }
                 }
                 Section {
-                    numericField(title: "Available balance", placeholder: "Balance", text: $balance, currency: true, field: .balance)
-                    numericField(title: scene.kind == .banking ? "Income" : "Sales / earnings", placeholder: "Sales / income", text: $sales, currency: true, field: .sales)
-                    numericField(title: "Orders", placeholder: "Orders", text: $orders, currency: false, field: .orders)
-                    numericField(title: "Audience", placeholder: "Audience", text: $audience, currency: false, field: .audience)
+                    if scene.kind != .wallet {
+                        numericField(title: [.portfolio, .prediction].contains(scene.kind) ? "Available cash" : "Available balance", placeholder: "Balance", text: $balance, currency: true, field: .balance)
+                    }
+                    if [.commerce, .banking, .creator].contains(scene.kind) {
+                        numericField(title: scene.kind == .banking ? "Income" : "Sales / earnings", placeholder: "Sales / income", text: $sales, currency: true, field: .sales)
+                        numericField(title: "Orders", placeholder: "Orders", text: $orders, currency: false, field: .orders)
+                        numericField(title: "Audience", placeholder: "Audience", text: $audience, currency: false, field: .audience)
+                    }
+                    if [.portfolio, .wallet, .prediction].contains(scene.kind) {
+                        Text("Open this scene to edit its holdings, token balances, or market prices.").font(.footnote).foregroundStyle(.secondary)
+                    }
                 } header: {
                     Text("Dashboard totals")
                 } footer: {
@@ -919,7 +983,7 @@ struct SettingsView: View {
                 Section("About Reverie") {
                     StudioLabel()
                     Text("A private stage for fictional milestones. No accounts, real money, analytics tracking, or connections to financial services.")
-                    Text("Not affiliated with Shopify or any bank. Notifications use the name and icon of this installed app. Charts are illustrative.")
+                    Text("Not affiliated with the services shown. Trades, transfers, and notifications are fictional and stay on this device. Notifications use this installed app’s name and icon. Charts are illustrative.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Stored locally. Exported files and device backups may be stored by your chosen services.")
@@ -1031,7 +1095,7 @@ struct SettingsView: View {
         } header: {
             Text("Experience")
         } footer: {
-            Text("Clean playback hides extra close and theme controls. Exit a store from its profile or menu using Close scene. In banking, hold the bank name for 2 seconds to exit.")
+            Text("Clean playback hides extra close and theme controls. Use Close scene in a profile or menu to return to Studio. In banking, hold the bank name for 2 seconds to exit.")
         }
     }
 

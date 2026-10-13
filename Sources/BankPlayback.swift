@@ -48,12 +48,13 @@ struct BankPlayback: View {
                 }
             }
             .background(palette.header.ignoresSafeArea(edges: .top))
+            .environment(\.colorScheme, .light)
             .toolbar(.hidden, for: .navigationBar)
             .toolbarBackground(palette.header, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(palette.darkHeader ? .dark : .light, for: .navigationBar)
             .tint(palette.accent)
-            .preferredColorScheme(.light)
+            .preferredColorScheme(palette.darkHeader ? .dark : .light)
             .sheet(isPresented: $showProfile) { BankProfileEditor(sceneID: sceneID) }
             .sheet(isPresented: $showThemes) {
                 NavigationStack {

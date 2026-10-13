@@ -4,16 +4,17 @@ The app requires **iOS 17 or later**. An unsigned IPA must be signed for your de
 
 ## Choose a build
 
-Download and extract `Reverie-ios-build` from a successful run in [GitHub Actions](https://github.com/Fink692/Reverie-ios/actions). Check that the selected run includes successful device, test, and variant-build steps.
+Download and extract `Reverie-unsigned-apps` for iPhone IPAs, or `Reverie-ios-build` for simulator and test evidence from a successful run in [GitHub Actions](https://github.com/Fink692/Reverie-ios/actions). Check that the selected run includes successful device, test, and variant-build steps.
 
 | File | Use |
 |---|---|
 | `Reverie-unsigned.ipa` | Base Reverie app with all scene appearances. |
 | `brand-artifacts/Reverie-commerce-unsigned.ipa` | Commerce variant with its own Shopify display name and icon. |
 | `brand-artifacts/Reverie-<bank>-unsigned.ipa` | Bank variant, for example `chase`, `monzo`, or `revolut`, with its own display name and icon. |
+| `brand-artifacts/Reverie-<brand>-unsigned.ipa` | Investing, wallet, or prediction variant, e.g. `coinbase`, `phantom`, or `polymarket`. |
 | `Reverie-simulator.zip` | Mac iOS Simulator build. Use source if its architecture/runtime does not match your Mac. |
 
-The variants use distinct `com.reverie.brand.*` bundle identifiers, listed in [variants.json](References/Branding/variants.json). They remain fictional roleplay apps. They do not replace or connect to the official apps. iOS uses the installed variant's display name and icon for its own local notifications; choosing another bank inside the app does not rename that installed app. A bank variant restores its configured bank appearance on relaunch while preserving account data.
+The variants use distinct `com.reverie.brand.*` bundle identifiers, listed in [variants.json](References/Branding/variants.json). They remain fictional roleplay apps. They do not replace or connect to the official apps. iOS uses the installed variant's display name and icon for its own local notifications; choosing another bank inside the app does not rename that installed app. A branded variant restores its configured appearance on relaunch while preserving scene data.
 
 ## Sideloadly: Windows or Mac
 
@@ -35,7 +36,7 @@ For updates, keep the same Apple Account and resulting bundle identifier. Export
 
 [Apple's Personal Team rules](https://developer.apple.com/help/account/basics/about-your-developer-account) allow up to **3 installed development apps per device**, **10 App IDs**, and **3 registered devices**. App IDs/device registrations and provisioning expire after **7 days**. Refresh or rebuild before the app expires. Each variant has a different App ID. Removing an app does not immediately free an unexpired App ID.
 
-AltStore Classic itself occupies one app slot, normally leaving two for these variants. Sideloadly requires no companion iPhone app. You cannot keep all thirteen variants installed simultaneously with a free account. [AltStore's App IDs guide](https://faq.altstore.io/altstore-classic/app-ids) explains the separate ID quota.
+AltStore Classic itself occupies one app slot, normally leaving two for these variants. Sideloadly requires no companion iPhone app. You cannot keep all twenty variants installed simultaneously with a free account. [AltStore's App IDs guide](https://faq.altstore.io/altstore-classic/app-ids) explains the separate ID quota.
 
 ## Xcode: install from source on a Mac
 
@@ -52,6 +53,6 @@ xcrun simctl launch booted com.reverie.simulator
 
 ## First launch
 
-Complete the onboarding explaining that figures and notifications are fictional. Edit your scene, totals, account holder, and currency in Studio. Use **Open scene** for playback; variants open their configured scene after onboarding. Enable notification permission when scheduling alerts. Sessions stay local and can be exported from Settings. Real bank/Shopify passwords, payment credentials, and account linking are unnecessary.
+Complete the onboarding explaining that figures and notifications are fictional. Edit your scene, totals, account holder, and currency in Studio. Use **Open scene** for playback; variants open their configured scene after onboarding. Enable notification permission when scheduling alerts. Sessions stay local and can be exported from Settings. No real service login, wallet recovery phrase, or private key is needed.
 
-Variants start with **Clean playback** enabled: return to Studio through the commerce profile/menu → **Close scene**, or hold the bank name for **two seconds**. Settings → Clean playback can restore visible close and bank-selection controls.
+Variants start with **Clean playback** enabled: return to Studio through a profile/menu → **Close scene**, or hold the bank name for **two seconds**. Settings → Clean playback can restore visible close and bank-selection controls.

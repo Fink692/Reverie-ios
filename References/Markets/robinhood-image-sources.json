@@ -1,0 +1,101 @@
+[
+  {
+    "id": "robinhood",
+    "part": "1",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a0/c5/1d/a0c51d9e-b177-b885-550d-58a72d791845/ios-1242x2208__U00283_U0029.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-1.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "50e9fc1d43922b16f73874c781621a4ec6c65393c8b505f049af11a0047dbf8e"
+  },
+  {
+    "id": "robinhood",
+    "part": "2",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/33/e3/1e/33e31ef3-1c5a-c747-ecfc-bc07fb688eb4/ios-1242x2208__U002836_U0029.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-2.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "fb97ada177a888bc30f2db0c34acb188f3a27a27c0b4a9b3238da2144a85de5b"
+  },
+  {
+    "id": "robinhood",
+    "part": "3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b7/6e/33/b76e3361-d5ff-7b76-853a-249a0d527710/ios-1242x2208__U00289_U0029.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-3.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "f0c0c440ee764ba2dd85520edee074edf19788d8fa379b7449f708b4db38a5db"
+  },
+  {
+    "id": "robinhood",
+    "part": "4",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/a5/7b/8b/a57b8bb6-dc14-118e-4dac-b0c3ea500c1c/ios-1242x2208_ALT.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-4.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "3a1ee71578e5fc13e149a52709de5b771aa70327f25f77031105f674ec8d83a8"
+  },
+  {
+    "id": "robinhood",
+    "part": "5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/98/9b/52/989b5223-c522-34f3-d8f9-06fc025eb2fc/ios-1242x2208__U002823_U0029.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-5.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "e01c18aad6ad04fedd4e0bbc58f3ba8b54689d5ccd8e60cbb542abdf44c31944"
+  },
+  {
+    "id": "robinhood",
+    "part": "6",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d6/5a/47/d65a47df-e4ad-4970-5d49-29b62a5927f1/ios-1242x2208.png/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-6.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "e6bfb23e43bc1b07d29bfec41265fdb90b3350d2a95c93cf4436a41c9f4badb3"
+  },
+  {
+    "id": "robinhood",
+    "part": "7",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a5/57/5f/a5575f68-9b14-6f82-775b-9a1e58817959/ios-1242x2208-1.png/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-7.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "701a2c51354de10ec2d87de1c1992c2fe7cc1a26ae08f1b0bbbc4b1d5ad3b9f6"
+  },
+  {
+    "id": "robinhood",
+    "part": "8",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/60/dc/7a/60dc7aa2-054d-2712-fcc9-e23dbe3b0e9d/ios-1242x2208__U002822_U0029.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-8.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "cd49c0d4d418f70b8b2d2f574313e5803f8ff90e7bb3f1b2da95bc47b42a8612"
+  },
+  {
+    "id": "robinhood",
+    "part": "9",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/70/26/51/70265173-3940-48e8-de5b-75d2f01a3060/ios-1242x2208-2.jpg/1242x2688bb.jpg",
+    "file": "References/Markets/robinhood-9.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "d674b8e64e0f84d1f34b49e67eaba40319ce0bbcf46fb2c19cf96cf62f37942d"
+  }
+]

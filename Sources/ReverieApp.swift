@@ -4,6 +4,13 @@ import UserNotifications
 struct AppPlaybackConfiguration {
     let kind: SceneKind
     let bank: BankTheme?
+    let portfolio: PortfolioTheme?
+    let wallet: WalletTheme?
+    let prediction: PredictionTheme?
+
+    init(kind: SceneKind, bank: BankTheme? = nil, portfolio: PortfolioTheme? = nil, wallet: WalletTheme? = nil, prediction: PredictionTheme? = nil) {
+        self.kind = kind; self.bank = bank; self.portfolio = portfolio; self.wallet = wallet; self.prediction = prediction
+    }
 
     static var current: AppPlaybackConfiguration? {
         let arguments = ProcessInfo.processInfo.arguments
@@ -11,13 +18,20 @@ struct AppPlaybackConfiguration {
             let value = arguments[index + 1]
             if value == "commerce" { return AppPlaybackConfiguration(kind: .commerce, bank: nil) }
             if let bank = BankTheme(rawValue: value) { return AppPlaybackConfiguration(kind: .banking, bank: bank) }
+            if let theme = PortfolioTheme(rawValue: value) { return AppPlaybackConfiguration(kind: .portfolio, portfolio: theme) }
+            if let theme = WalletTheme(rawValue: value) { return AppPlaybackConfiguration(kind: .wallet, wallet: theme) }
+            if let theme = PredictionTheme(rawValue: value) { return AppPlaybackConfiguration(kind: .prediction, prediction: theme) }
             return nil
         }
         guard let rawKind = Bundle.main.object(forInfoDictionaryKey: "ReveriePlaybackKind") as? String,
               let kind = SceneKind(rawValue: rawKind), kind != .creator else { return nil }
         let bank = (Bundle.main.object(forInfoDictionaryKey: "ReverieBankTheme") as? String).flatMap(BankTheme.init(rawValue:))
-        guard kind != .banking || bank != nil else { return nil }
-        return AppPlaybackConfiguration(kind: kind, bank: bank)
+        let portfolio = (Bundle.main.object(forInfoDictionaryKey: "ReveriePortfolioTheme") as? String).flatMap(PortfolioTheme.init(rawValue:))
+        let wallet = (Bundle.main.object(forInfoDictionaryKey: "ReverieWalletTheme") as? String).flatMap(WalletTheme.init(rawValue:))
+        let prediction = (Bundle.main.object(forInfoDictionaryKey: "ReveriePredictionTheme") as? String).flatMap(PredictionTheme.init(rawValue:))
+        guard (kind != .banking || bank != nil), (kind != .portfolio || portfolio != nil),
+              (kind != .wallet || wallet != nil), (kind != .prediction || prediction != nil) else { return nil }
+        return AppPlaybackConfiguration(kind: kind, bank: bank, portfolio: portfolio, wallet: wallet, prediction: prediction)
     }
 }
 
@@ -42,31 +56,57 @@ struct AppPlaybackConfiguration {
         if AppPlaybackConfiguration.current != nil, defaults.object(forKey: "cleanPlayback") == nil {
             defaults.set(true, forKey: "cleanPlayback")
         }
-        if let configuration = AppPlaybackConfiguration.current, !defaults.bool(forKey: "brandConfigured"),
-           var scene = startupStore.scenes.first(where: { $0.kind == configuration.kind }) {
-            if let bank = configuration.bank {
-                scene.currency = bank.country == "United States" ? "USD" : "GBP"
-                if startupStore.update(scene) {
-                    var profile = BankProfile.starter(for: scene.id)
-                    profile.theme = bank
-                    if startupStore.updateBankProfile(profile) { defaults.set(true, forKey: "brandConfigured") }
+        if let configuration = AppPlaybackConfiguration.current {
+            var scene = startupStore.scenes.first(where: { $0.id == startupStore.activeID && $0.kind == configuration.kind })
+                ?? startupStore.scenes.first(where: { $0.kind == configuration.kind })
+            if scene == nil, var starter = StudioScene.examples.first(where: { $0.kind == configuration.kind }) {
+                starter.id = UUID()
+                if startupStore.update(starter) { scene = starter }
+            }
+            if var scene {
+                var configured = false
+                switch configuration.kind {
+                case .commerce:
+                    configured = startupStore.preparePlayback(for: scene.id)
+                case .banking:
+                    if let theme = configuration.bank {
+                        let hasProfile = startupStore.bankProfiles.contains(where: { $0.sceneID == scene.id })
+                        if !hasProfile { scene.currency = theme.country == "United States" ? "USD" : "GBP" }
+                        if hasProfile || startupStore.update(scene) {
+                            var profile = startupStore.bankProfile(for: scene.id)
+                            profile.theme = theme
+                            configured = startupStore.updateBankProfile(profile)
+                        }
+                    }
+                case .portfolio:
+                    if let theme = configuration.portfolio {
+                        let hasProfile = startupStore.portfolioProfiles.contains(where: { $0.sceneID == scene.id })
+                        if !hasProfile { scene.currency = theme == .wealthsimple ? "CAD" : "USD" }
+                        if hasProfile || startupStore.update(scene) {
+                            var profile = hasProfile ? startupStore.portfolioProfile(for: scene.id) : .starter(for: scene.id, theme: theme)
+                            profile.theme = theme
+                            configured = startupStore.updatePortfolioProfile(profile)
+                        }
+                    }
+                case .wallet:
+                    if let theme = configuration.wallet {
+                        let hasProfile = startupStore.walletProfiles.contains(where: { $0.sceneID == scene.id })
+                        var profile = hasProfile ? startupStore.walletProfile(for: scene.id) : .starter(for: scene.id, theme: theme)
+                        profile.theme = theme
+                        configured = startupStore.updateWalletProfile(profile)
+                    }
+                case .prediction:
+                    if let theme = configuration.prediction {
+                        var profile = startupStore.predictionProfile(for: scene.id)
+                        profile.theme = theme
+                        configured = startupStore.updatePredictionProfile(profile)
+                    }
+                case .creator: break
                 }
-            } else {
-                startupStore.select(scene)
-                if startupStore.activeID == scene.id, startupStore.preparePlayback(for: scene.id) { defaults.set(true, forKey: "brandConfigured") }
-            }
-        }
-        if let bank = AppPlaybackConfiguration.current?.bank,
-           var scene = startupStore.scenes.first(where: { $0.id == startupStore.activeID && $0.kind == .banking }) ?? startupStore.scenes.first(where: { $0.kind == .banking }) {
-            let hasProfile = startupStore.bankProfiles.contains(where: { $0.sceneID == scene.id })
-            if !hasProfile {
-                scene.currency = bank.country == "United States" ? "USD" : "GBP"
-                _ = startupStore.update(scene)
-            }
-            var profile = startupStore.bankProfile(for: scene.id)
-            if !hasProfile || profile.theme != bank {
-                profile.theme = bank
-                _ = startupStore.updateBankProfile(profile)
+                if configured {
+                    startupStore.select(scene)
+                    defaults.set(true, forKey: "brandConfigured")
+                }
             }
         }
         preferences = defaults

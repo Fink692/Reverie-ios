@@ -101,5 +101,61 @@
     "appIcon": "Brand-starling",
     "playbackKind": "banking",
     "bankTheme": "starling"
+  },
+  {
+    "id": "robinhood",
+    "displayName": "Robinhood",
+    "bundleIdentifier": "com.reverie.brand.robinhood",
+    "appIcon": "Brand-robinhood",
+    "playbackKind": "portfolio",
+    "portfolioTheme": "robinhood"
+  },
+  {
+    "id": "wealthsimple",
+    "displayName": "Wealthsimple",
+    "bundleIdentifier": "com.reverie.brand.wealthsimple",
+    "appIcon": "Brand-wealthsimple",
+    "playbackKind": "portfolio",
+    "portfolioTheme": "wealthsimple"
+  },
+  {
+    "id": "coinbase",
+    "displayName": "Coinbase",
+    "bundleIdentifier": "com.reverie.brand.coinbase",
+    "appIcon": "Brand-coinbase",
+    "playbackKind": "portfolio",
+    "portfolioTheme": "coinbase"
+  },
+  {
+    "id": "polymarket",
+    "displayName": "Polymarket",
+    "bundleIdentifier": "com.reverie.brand.polymarket",
+    "appIcon": "Brand-polymarket",
+    "playbackKind": "prediction",
+    "predictionTheme": "polymarket"
+  },
+  {
+    "id": "metamask",
+    "displayName": "MetaMask",
+    "bundleIdentifier": "com.reverie.brand.metamask",
+    "appIcon": "Brand-metamask",
+    "playbackKind": "wallet",
+    "walletTheme": "metamask"
+  },
+  {
+    "id": "phantom",
+    "displayName": "Phantom",
+    "bundleIdentifier": "com.reverie.brand.phantom",
+    "appIcon": "Brand-phantom",
+    "playbackKind": "wallet",
+    "walletTheme": "phantom"
+  },
+  {
+    "id": "trustWallet",
+    "displayName": "Trust Wallet",
+    "bundleIdentifier": "com.reverie.brand.trustwallet",
+    "appIcon": "Brand-trustWallet",
+    "playbackKind": "wallet",
+    "walletTheme": "trustWallet"
   }
 ]

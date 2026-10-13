@@ -1,0 +1,101 @@
+[
+  {
+    "id": "metamask",
+    "part": "1",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/db/e1/bb/dbe1bb32-2f52-87ed-eb8f-fb22b68aa086/iOS__U2013_6.9__U2013_1290x2796__U2013_Intro.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-1.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "fbd1e658ec7f6544941ce21e5a056268ae8267d592d2a0a5e3bdd730116dfbeb"
+  },
+  {
+    "id": "metamask",
+    "part": "2",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3e/b6/bc/3eb6bcb7-2eef-816e-5db3-3e03b1911c3c/iOS__U2013_6.9__U2013_1290x2796__U2013_Homescreen.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-2.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "49ecca47e2898e94c8f97aa7b234da1015e9e6e7aedb4634392ca47630b0922b"
+  },
+  {
+    "id": "metamask",
+    "part": "3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/93/1f/e1/931fe17f-c2e3-88e6-9df6-f4ee2cb9893a/iOS__U2013_6.9__U2013_1290x2796__U2013_Money_Account.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-3.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "e34939d17d008654c403168dc75141065d44b3902a4fcc382468a12094454aca"
+  },
+  {
+    "id": "metamask",
+    "part": "4",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/10/57/f3/1057f3ab-911b-3fe1-5144-589cf77fe6a1/iOS__U2013_6.9__U2013_1290x2796__U2013_Perps.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-4.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "1f6b4c120bd90c69ed4093b883b7423f071381e062f3c934cb63f095c2a0ecd6"
+  },
+  {
+    "id": "metamask",
+    "part": "5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/0c/05/55/0c0555e0-eced-f0a4-4808-7ac2134de3e4/iOS__U2013_6.9__U2013_1290x2796__U2013_Predict.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-5.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "69714f22ff19bea8c678b818fb6b5ad5397537b2f456386c3ec4c2eb1468d7fa"
+  },
+  {
+    "id": "metamask",
+    "part": "6",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/17/04/39/17043933-87d0-b02a-24f4-5dd1a3dbfd37/iOS__U2013_6.9__U2013_1290x2796__U2013_Swap.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-6.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "554dda70de04d36bf4fec8ac353477252649bffdb8527cb59283f51b629b4096"
+  },
+  {
+    "id": "metamask",
+    "part": "7",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ed/0a/3d/ed0a3dd3-16e0-48ef-bede-0553ef94be83/iOS__U2013_6.9__U2013_1290x2796__U2013_Security.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-7.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "bd600bb9aab77aa22a673dce556afb1206319f944abf479924d7f22601798b20"
+  },
+  {
+    "id": "metamask",
+    "part": "8",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/35/74/ff/3574ffac-3abb-8fc9-5c2a-621d3a975720/iOS__U2013_6.9__U2013_1290x2796__U2013_RWAs.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-8.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "8c3038bab5811516b75607b741604aec860599f0846800a2d45b70ce1aa3794f"
+  },
+  {
+    "id": "metamask",
+    "part": "9",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e7/66/6d/e7666d8b-f7ba-6940-f86c-36165062fdc7/iOS__U2013_6.9__U2013_1290x2796__U2013_Card.jpg/1242x2688bb.jpg",
+    "file": "References/Wallets/metamask-9.jpg",
+    "dimensions": [
+      1240,
+      2688
+    ],
+    "sha256": "340b2b2cc8972eb1fb10efdebd0438872caf0bac797450d4f9a33d4da351f50e"
+  }
+]

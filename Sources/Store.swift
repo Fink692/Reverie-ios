@@ -8,6 +8,9 @@ import UserNotifications
     @Published private(set) var queuedAlerts: [QueuedAlert] = []
     @Published private(set) var commerceProfiles: [CommerceProfile] = []
     @Published private(set) var bankProfiles: [BankProfile] = []
+    @Published private(set) var portfolioProfiles: [PortfolioProfile] = []
+    @Published private(set) var walletProfiles: [WalletProfile] = []
+    @Published private(set) var predictionProfiles: [PredictionProfile] = []
     @Published private(set) var activeID = StudioScene.examples[0].id
     @Published var error: String?
     @Published private(set) var notificationStatus = "Not requested"
@@ -24,21 +27,31 @@ import UserNotifications
         do {
             if let saved = try storage.load() {
                 scenes = saved.scenes; events = saved.events; activeID = saved.activeID; presets = saved.presets; commerceProfiles = saved.commerceProfiles; bankProfiles = saved.bankProfiles
+                portfolioProfiles = saved.portfolioProfiles; walletProfiles = saved.walletProfiles; predictionProfiles = saved.predictionProfiles
             }
         } catch {
             self.error = "Your saved session could not be loaded. Starter scenes are available. The original file will be preserved in a recovery backup before new changes are saved."
         }
+    }
+    private func snapshot(scenes: [StudioScene]? = nil, events: [SceneEvent]? = nil, activeID: UUID? = nil,
+                          presets: [NotificationPreset]? = nil, commerceProfiles: [CommerceProfile]? = nil,
+                          bankProfiles: [BankProfile]? = nil, portfolioProfiles: [PortfolioProfile]? = nil,
+                          walletProfiles: [WalletProfile]? = nil, predictionProfiles: [PredictionProfile]? = nil) -> Archive {
+        Archive(scenes: scenes ?? self.scenes, events: events ?? self.events, activeID: activeID ?? self.activeID,
+                presets: presets ?? self.presets, commerceProfiles: commerceProfiles ?? self.commerceProfiles,
+                bankProfiles: bankProfiles ?? self.bankProfiles, portfolioProfiles: portfolioProfiles ?? self.portfolioProfiles,
+                walletProfiles: walletProfiles ?? self.walletProfiles, predictionProfiles: predictionProfiles ?? self.predictionProfiles)
     }
     private func persist(_ archive: Archive) -> Bool {
         do { try storage.save(archive); return true }
         catch { self.error = "Could not save your changes: \(error.localizedDescription)"; return false }
     }
     func save() {
-        _ = persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
+        _ = persist(snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
     }
     func select(_ scene: StudioScene) {
         guard scenes.contains(where: { $0.id == scene.id }),
-              persist(Archive(scenes: scenes, events: events, activeID: scene.id, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return }
+              persist(snapshot(scenes: scenes, events: events, activeID: scene.id, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return }
         activeID = scene.id
     }
     @discardableResult func update(_ scene: StudioScene) -> Bool {
@@ -49,8 +62,13 @@ import UserNotifications
             guard updated.count < 100 else { error = "You can save up to 100 scenes."; return false }
             updated.append(scene)
         }
-        guard persist(Archive(scenes: updated, events: events, activeID: scene.id, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return false }
+        let portfolios = portfolioProfiles.filter { $0.sceneID != scene.id || scene.kind == .portfolio }
+        let wallets = walletProfiles.filter { $0.sceneID != scene.id || scene.kind == .wallet }
+        let predictions = predictionProfiles.filter { $0.sceneID != scene.id || scene.kind == .prediction }
+        guard persist(snapshot(scenes: updated, events: events, activeID: scene.id, presets: presets,
+            portfolioProfiles: portfolios, walletProfiles: wallets, predictionProfiles: predictions)) else { return false }
         scenes = updated; activeID = scene.id
+        portfolioProfiles = portfolios; walletProfiles = wallets; predictionProfiles = predictions
         return true
     }
     func delete(_ scene: StudioScene) {
@@ -58,10 +76,15 @@ import UserNotifications
         let remaining = scenes.filter { $0.id != scene.id }
         let remainingEvents = events.filter { $0.sceneID != scene.id }
         let selection = activeID == scene.id ? remaining[0].id : activeID
-        guard persist(Archive(scenes: remaining, events: remainingEvents, activeID: selection, presets: presets, commerceProfiles: commerceProfiles.filter { $0.sceneID != scene.id }, bankProfiles: bankProfiles.filter { $0.sceneID != scene.id })) else { return }
+        guard persist(snapshot(scenes: remaining, events: remainingEvents, activeID: selection, presets: presets,
+            commerceProfiles: commerceProfiles.filter { $0.sceneID != scene.id }, bankProfiles: bankProfiles.filter { $0.sceneID != scene.id },
+            portfolioProfiles: portfolioProfiles.filter { $0.sceneID != scene.id }, walletProfiles: walletProfiles.filter { $0.sceneID != scene.id },
+            predictionProfiles: predictionProfiles.filter { $0.sceneID != scene.id })) else { return }
         notificationGeneration += 1
         scenes = remaining; events = remainingEvents; activeID = selection
         commerceProfiles.removeAll { $0.sceneID == scene.id }; bankProfiles.removeAll { $0.sceneID == scene.id }
+        portfolioProfiles.removeAll { $0.sceneID == scene.id }; walletProfiles.removeAll { $0.sceneID == scene.id }
+        predictionProfiles.removeAll { $0.sceneID == scene.id }
         Task {
             let center = UNUserNotificationCenter.current()
             let pending = await center.pendingNotificationRequests()
@@ -89,7 +112,7 @@ import UserNotifications
         var updatedScenes = scenes
         updatedScenes[index] = updated
         let updatedEvents = Array(([event] + events).prefix(1000))
-        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return nil }
+        guard persist(snapshot(scenes: updatedScenes, events: updatedEvents, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return nil }
         scenes = updatedScenes; events = updatedEvents
         return event
     }
@@ -176,7 +199,7 @@ import UserNotifications
         center.removeAllDeliveredNotifications()
         let starter = Archive(scenes: StudioScene.examples, events: [], activeID: StudioScene.examples[0].id)
         if persist(starter) {
-            scenes = starter.scenes; activeID = starter.activeID; events = []; presets = []; commerceProfiles = []; bankProfiles = []
+            scenes = starter.scenes; activeID = starter.activeID; events = []; presets = []; commerceProfiles = []; bankProfiles = []; portfolioProfiles = []; walletProfiles = []; predictionProfiles = []
             NotificationRouter.shared.request = nil
         }
         await refreshNotifications()
@@ -198,14 +221,14 @@ import UserNotifications
             updated.append(clean)
         }
         do {
-            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
+            try storage.save(snapshot(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
             presets = updated; return true
         } catch { self.error = "Could not save your cue: \(error.localizedDescription)"; return false }
     }
     func deletePreset(_ preset: NotificationPreset) {
         let updated = presets.filter { $0.id != preset.id }
         do {
-            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
+            try storage.save(snapshot(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
             presets = updated
         } catch { self.error = "Could not delete your cue: \(error.localizedDescription)" }
     }
@@ -219,6 +242,7 @@ import UserNotifications
             defer { isResetting = false }
             notificationGeneration += 1
             scenes = archive.scenes; events = archive.events; activeID = archive.activeID; presets = archive.presets; commerceProfiles = archive.commerceProfiles; bankProfiles = archive.bankProfiles
+            portfolioProfiles = archive.portfolioProfiles; walletProfiles = archive.walletProfiles; predictionProfiles = archive.predictionProfiles
             let center = UNUserNotificationCenter.current()
             center.removeAllPendingNotificationRequests(); center.removeAllDeliveredNotifications()
             NotificationRouter.shared.request = nil
@@ -232,6 +256,15 @@ import UserNotifications
     func bankProfile(for sceneID: UUID) -> BankProfile {
         bankProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
     }
+    func portfolioProfile(for sceneID: UUID) -> PortfolioProfile {
+        portfolioProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
+    }
+    func walletProfile(for sceneID: UUID) -> WalletProfile {
+        walletProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
+    }
+    func predictionProfile(for sceneID: UUID) -> PredictionProfile {
+        predictionProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
+    }
     @discardableResult func preparePlayback(for sceneID: UUID) -> Bool {
         guard let scene = scenes.first(where: { $0.id == sceneID }) else { return false }
         if scene.kind == .commerce && !commerceProfiles.contains(where: { $0.sceneID == sceneID }) {
@@ -240,14 +273,220 @@ import UserNotifications
         if scene.kind == .banking && !bankProfiles.contains(where: { $0.sceneID == sceneID }) {
             return updateBankProfile(.starter(for: sceneID))
         }
+        if scene.kind == .portfolio && !portfolioProfiles.contains(where: { $0.sceneID == sceneID }) {
+            return updatePortfolioProfile(.starter(for: sceneID))
+        }
+        if scene.kind == .wallet && !walletProfiles.contains(where: { $0.sceneID == sceneID }) {
+            return updateWalletProfile(.starter(for: sceneID))
+        }
+        if scene.kind == .prediction && !predictionProfiles.contains(where: { $0.sceneID == sceneID }) {
+            return updatePredictionProfile(.starter(for: sceneID))
+        }
         return true
+    }
+    @discardableResult func updatePortfolioProfile(_ profile: PortfolioProfile, cashBalance: Double? = nil) -> Bool {
+        guard profile.isValid, let sceneIndex = scenes.firstIndex(where: { $0.id == profile.sceneID && $0.kind == .portfolio }) else {
+            error = "Check the portfolio assets, prices, charts, and activity."; return false
+        }
+        var updatedScenes = scenes
+        if let cashBalance { updatedScenes[sceneIndex].balance = cashBalance }
+        guard updatedScenes[sceneIndex].isValid, MarketValidation.nonnegative(profile.total(cash: updatedScenes[sceneIndex].balance)) else {
+            error = "Cash and total portfolio value must be between zero and 1 billion."; return false
+        }
+        var updatedProfiles = portfolioProfiles
+        if let index = updatedProfiles.firstIndex(where: { $0.sceneID == profile.sceneID }) { updatedProfiles[index] = profile }
+        else { updatedProfiles.append(profile) }
+        guard persist(snapshot(scenes: updatedScenes, portfolioProfiles: updatedProfiles)) else { return false }
+        scenes = updatedScenes; portfolioProfiles = updatedProfiles
+        return true
+    }
+    @discardableResult func updateWalletProfile(_ profile: WalletProfile) -> Bool {
+        guard profile.isValid, scenes.contains(where: { $0.id == profile.sceneID && $0.kind == .wallet }) else {
+            error = "Check the wallet address, tokens, quantities, prices, and activity."; return false
+        }
+        var updated = walletProfiles
+        if let index = updated.firstIndex(where: { $0.sceneID == profile.sceneID }) { updated[index] = profile }
+        else { updated.append(profile) }
+        guard persist(snapshot(walletProfiles: updated)) else { return false }
+        walletProfiles = updated
+        return true
+    }
+    @discardableResult func updatePredictionProfile(_ profile: PredictionProfile, cashBalance: Double? = nil) -> Bool {
+        guard profile.isValid, let sceneIndex = scenes.firstIndex(where: { $0.id == profile.sceneID && $0.kind == .prediction }) else {
+            error = "Check the markets, probabilities, positions, and activity."; return false
+        }
+        var updatedScenes = scenes
+        if let cashBalance { updatedScenes[sceneIndex].balance = cashBalance }
+        guard updatedScenes[sceneIndex].isValid, MarketValidation.nonnegative(profile.total(cash: updatedScenes[sceneIndex].balance)) else {
+            error = "Cash and total prediction account value must be between zero and 1 billion."; return false
+        }
+        var updatedProfiles = predictionProfiles
+        if let index = updatedProfiles.firstIndex(where: { $0.sceneID == profile.sceneID }) { updatedProfiles[index] = profile }
+        else { updatedProfiles.append(profile) }
+        guard persist(snapshot(scenes: updatedScenes, predictionProfiles: updatedProfiles)) else { return false }
+        scenes = updatedScenes; predictionProfiles = updatedProfiles
+        return true
+    }
+    @discardableResult func executeMarketTrade(sceneID: UUID, assetID: UUID, side: MarketTradeSide, units: Double) -> MarketTransaction? {
+        guard MarketValidation.quantity(units, allowZero: false),
+              let scene = scenes.first(where: { $0.id == sceneID && $0.kind == .portfolio }) else {
+            error = "Choose an investing scene and a positive number of units."; return nil
+        }
+        var profile = portfolioProfile(for: sceneID)
+        guard profile.isValid, let index = profile.positions.firstIndex(where: { $0.id == assetID }) else {
+            error = "This asset is unavailable in the selected portfolio."; return nil
+        }
+        let asset = profile.positions[index]
+        let trade = MarketTransaction(assetID: assetID, symbol: asset.symbol, side: side, units: units, price: asset.price)
+        guard trade.isValid else { error = "The trade value must be positive and no greater than 1 billion."; return nil }
+        var cash = scene.balance
+        if side == .buy {
+            guard trade.total <= cash else { error = "There is not enough available cash to buy these units."; return nil }
+            let quantity = asset.units + units
+            profile.positions[index].averageCost = (asset.costBasis + trade.total) / quantity
+            profile.positions[index].units = quantity
+            cash -= trade.total
+            guard quantity > asset.units, cash < scene.balance else { error = "The trade is too small for this account's balance or quantity."; return nil }
+        } else {
+            guard units <= asset.units else { error = "There are not enough owned units to sell."; return nil }
+            profile.positions[index].units -= units
+            if profile.positions[index].units == 0 { profile.positions[index].averageCost = 0 }
+            cash += trade.total
+            guard profile.positions[index].units < asset.units, cash > scene.balance else { error = "The trade is too small for this account's balance or quantity."; return nil }
+        }
+        profile.transactions = Array(([trade] + profile.transactions).prefix(1000))
+        guard updatePortfolioProfile(profile, cashBalance: cash) else { return nil }
+        return trade
+    }
+    @discardableResult func walletTransfer(sceneID: UUID, assetID: UUID, kind: WalletTransferKind, quantity: Double, address: String) -> WalletTransaction? {
+        let address = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard MarketValidation.quantity(quantity, allowZero: false), MarketValidation.address(address),
+              scenes.contains(where: { $0.id == sceneID && $0.kind == .wallet }) else {
+            error = "Choose a wallet, a positive token quantity, and a public address with 16 to 120 letters or digits."; return nil
+        }
+        var profile = walletProfile(for: sceneID)
+        guard profile.isValid, let index = profile.holdings.firstIndex(where: { $0.id == assetID }) else {
+            error = "This token is unavailable in the selected wallet."; return nil
+        }
+        let holding = profile.holdings[index]
+        let transfer = WalletTransaction(assetID: assetID, symbol: holding.symbol, network: holding.network,
+            address: address, kind: kind, quantity: quantity, price: holding.price)
+        guard transfer.isValid else { error = "The transfer value must be positive and no greater than 1 billion."; return nil }
+        if kind == .send {
+            guard quantity <= holding.quantity else { error = "There are not enough available tokens to send."; return nil }
+            profile.holdings[index].quantity -= quantity
+            guard profile.holdings[index].quantity < holding.quantity else { error = "The transfer is too small for this token quantity."; return nil }
+        } else {
+            profile.holdings[index].quantity += quantity
+            guard profile.holdings[index].quantity > holding.quantity else { error = "The transfer is too small for this token quantity."; return nil }
+        }
+        profile.transactions = Array(([transfer] + profile.transactions).prefix(1000))
+        guard updateWalletProfile(profile) else { return nil }
+        return transfer
+    }
+    @discardableResult func executePortfolioTransfer(sceneID: UUID, assetID: UUID, kind: WalletTransferKind, quantity: Double, address: String) -> WalletTransaction? {
+        let address = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard MarketValidation.quantity(quantity, allowZero: false), MarketValidation.address(address),
+              scenes.contains(where: { $0.id == sceneID && $0.kind == .portfolio }) else {
+            error = "Choose a crypto asset, a positive quantity, and a public address with 16 to 120 letters or digits."; return nil
+        }
+        var profile = portfolioProfile(for: sceneID)
+        guard profile.isValid, let index = profile.positions.firstIndex(where: { $0.id == assetID && $0.kind == .crypto }) else {
+            error = "This crypto asset is unavailable in the selected portfolio."; return nil
+        }
+        let asset = profile.positions[index]
+        let transfer = WalletTransaction(assetID: assetID, symbol: asset.symbol, network: asset.transferNetwork,
+            address: address, kind: kind, quantity: quantity, price: asset.price)
+        guard transfer.isValid else { error = "The transfer value must be positive and no greater than 1 billion."; return nil }
+        if kind == .send {
+            guard quantity <= asset.units else { error = "There are not enough available crypto units to send."; return nil }
+            profile.positions[index].units -= quantity
+            if profile.positions[index].units == 0 { profile.positions[index].averageCost = 0 }
+            guard profile.positions[index].units < asset.units else { error = "The transfer is too small for this crypto quantity."; return nil }
+        } else {
+            let receivedUnits = asset.units + quantity
+            profile.positions[index].averageCost = (asset.costBasis + transfer.total) / receivedUnits
+            profile.positions[index].units = receivedUnits
+            guard receivedUnits > asset.units else { error = "The transfer is too small for this crypto quantity."; return nil }
+        }
+        profile.transfers = Array(([transfer] + profile.transfers).prefix(1000))
+        guard updatePortfolioProfile(profile) else { return nil }
+        return transfer
+    }
+    @discardableResult func tradePrediction(sceneID: UUID, marketID: UUID, outcome: PredictionOutcome, side: MarketTradeSide, shares: Double) -> PredictionTrade? {
+        guard MarketValidation.quantity(shares, allowZero: false),
+              let scene = scenes.first(where: { $0.id == sceneID && $0.kind == .prediction }) else {
+            error = "Choose a prediction scene and a positive number of shares."; return nil
+        }
+        var profile = predictionProfile(for: sceneID)
+        guard profile.isValid, let market = profile.market(for: marketID) else {
+            error = "This market is unavailable in the selected account."; return nil
+        }
+        guard market.isOpen else { error = "This market is closed for trading. Edit its close date or probability to reopen the fictional market."; return nil }
+        let trade = PredictionTrade(marketID: marketID, question: market.question, outcome: outcome, side: side,
+            shares: shares, price: market.price(for: outcome))
+        guard trade.isValid, trade.total > 0 else { error = "The trade value must be positive and no greater than 1 billion."; return nil }
+        let index = profile.positions.firstIndex(where: { $0.marketID == marketID && $0.outcome == outcome })
+        var cash = scene.balance
+        if side == .buy {
+            guard trade.total <= cash else { error = "There is not enough available cash to buy these shares."; return nil }
+            if let index {
+                let position = profile.positions[index]
+                let quantity = position.shares + shares
+                profile.positions[index].averagePrice = (position.costBasis + trade.total) / quantity
+                profile.positions[index].shares = quantity
+                guard quantity > position.shares else { error = "The trade is too small for this position."; return nil }
+            } else {
+                profile.positions.append(PredictionPosition(marketID: marketID, outcome: outcome, shares: shares, averagePrice: trade.price))
+            }
+            cash -= trade.total
+            guard cash < scene.balance else { error = "The trade is too small for this account's cash balance."; return nil }
+        } else {
+            guard let index, shares <= profile.positions[index].shares else { error = "There are not enough owned shares of this outcome to sell."; return nil }
+            let owned = profile.positions[index].shares
+            profile.positions[index].shares -= shares
+            if profile.positions[index].shares == 0 { profile.positions[index].averagePrice = 0 }
+            cash += trade.total
+            guard profile.positions[index].shares < owned, cash > scene.balance else { error = "The trade is too small for this position or cash balance."; return nil }
+        }
+        profile.transactions = Array(([trade] + profile.transactions).prefix(1000))
+        guard updatePredictionProfile(profile, cashBalance: cash) else { return nil }
+        return trade
+    }
+    @discardableResult func swapWallet(sceneID: UUID, fromAssetID: UUID, toAssetID: UUID, quantity: Double) -> Bool {
+        guard fromAssetID != toAssetID, MarketValidation.quantity(quantity, allowZero: false),
+              scenes.contains(where: { $0.id == sceneID && $0.kind == .wallet }) else {
+            error = "Choose two different tokens and a positive swap quantity."; return false
+        }
+        var profile = walletProfile(for: sceneID)
+        guard profile.isValid,
+              let fromIndex = profile.holdings.firstIndex(where: { $0.id == fromAssetID }),
+              let toIndex = profile.holdings.firstIndex(where: { $0.id == toAssetID }) else {
+            error = "Both tokens must be available in the selected wallet."; return false
+        }
+        let from = profile.holdings[fromIndex]
+        let to = profile.holdings[toIndex]
+        guard quantity <= from.quantity else { error = "There are not enough available tokens to swap."; return false }
+        let received = quantity * from.price / to.price
+        let sentRecord = WalletTransaction(assetID: from.id, symbol: from.symbol, network: from.network,
+            address: from.address ?? profile.address, kind: .send, quantity: quantity, price: from.price)
+        let receivedRecord = WalletTransaction(assetID: to.id, symbol: to.symbol, network: to.network,
+            address: to.address ?? profile.address, kind: .receive, quantity: received, price: to.price)
+        guard sentRecord.isValid, receivedRecord.isValid else { error = "The swap quantities or value exceed this wallet's limits."; return false }
+        profile.holdings[fromIndex].quantity -= quantity
+        profile.holdings[toIndex].quantity += received
+        guard profile.holdings[fromIndex].quantity < from.quantity, profile.holdings[toIndex].quantity > to.quantity else {
+            error = "The swap is too small for these token quantities."; return false
+        }
+        profile.transactions = Array(([receivedRecord, sentRecord] + profile.transactions).prefix(1000))
+        return updateWalletProfile(profile)
     }
     @discardableResult func updateCommerceProfile(_ profile: CommerceProfile) -> Bool {
         guard profile.isValid, scenes.contains(where: { $0.id == profile.sceneID }) else { error = "Check the store metrics, products, and orders."; return false }
         var updated = commerceProfiles
         if let index = updated.firstIndex(where: { $0.sceneID == profile.sceneID }) { updated[index] = profile }
         else { updated.append(profile) }
-        guard persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: updated, bankProfiles: bankProfiles)) else { return false }
+        guard persist(snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: updated, bankProfiles: bankProfiles)) else { return false }
         commerceProfiles = updated; return true
     }
     @discardableResult func updateBankProfile(_ profile: BankProfile) -> Bool {
@@ -255,7 +494,7 @@ import UserNotifications
         var updated = bankProfiles
         if let index = updated.firstIndex(where: { $0.sceneID == profile.sceneID }) { updated[index] = profile }
         else { updated.append(profile) }
-        guard persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updated)) else { return false }
+        guard persist(snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updated)) else { return false }
         bankProfiles = updated; return true
     }
     @discardableResult func transferSavings(sceneID: UUID, amount: Double, toSavings: Bool) -> Bool {
@@ -290,7 +529,7 @@ import UserNotifications
         if let profileIndex = updatedProfiles.firstIndex(where: { $0.sceneID == sceneID }) { updatedProfiles[profileIndex] = profile }
         else { updatedProfiles.append(profile) }
         let updatedEvents = Array(([event] + events).prefix(1000))
-        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID,
+        guard persist(snapshot(scenes: updatedScenes, events: updatedEvents, activeID: activeID,
             presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updatedProfiles)) else { return false }
         scenes = updatedScenes
         bankProfiles = updatedProfiles
@@ -338,7 +577,7 @@ import UserNotifications
             customerName: customer.trimmingCharacters(in: .whitespacesAndNewlines), itemCount: itemCount)
     }
     func exportData() -> Data? {
-        do { return try Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles).encoded(prettyPrinted: true) }
+        do { return try snapshot(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles).encoded(prettyPrinted: true) }
         catch { self.error = "Could not export this session: \(error.localizedDescription)"; return nil }
     }
     func export() -> String {

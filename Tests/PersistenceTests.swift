@@ -231,3 +231,262 @@ import XCTest
     }
 
 }
+
+extension PersistenceTests {
+    func testCoinbaseTransfersChangeCryptoUnitsAndBasisWithoutChangingCash() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let profile = PortfolioProfile.starter(for: scene.id, theme: .coinbase)
+        XCTAssertTrue(store.updatePortfolioProfile(profile))
+        let asset = profile.positions[0]
+        let address = "1111111111111111111114oLvT2"
+        let received = try XCTUnwrap(store.executePortfolioTransfer(sceneID: scene.id, assetID: asset.id,
+            kind: .receive, quantity: 0.02, address: address))
+        let afterReceive = store.portfolioProfile(for: scene.id).positions[0]
+        XCTAssertEqual(afterReceive.units, asset.units + 0.02, accuracy: 0.000001)
+        XCTAssertEqual(afterReceive.averageCost, (asset.costBasis + received.total) / afterReceive.units, accuracy: 0.000001)
+        let sent = try XCTUnwrap(store.executePortfolioTransfer(sceneID: scene.id, assetID: asset.id,
+            kind: .send, quantity: 0.01, address: address))
+        let updated = store.portfolioProfile(for: scene.id)
+        XCTAssertEqual(updated.positions[0].units, asset.units + 0.01, accuracy: 0.000001)
+        XCTAssertEqual(updated.positions[0].averageCost, afterReceive.averageCost)
+        XCTAssertEqual(updated.transfers.map(\.id), [sent.id, received.id])
+        XCTAssertTrue(updated.transactions.isEmpty)
+        XCTAssertTrue(store.events.isEmpty)
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }, scene)
+        XCTAssertEqual(store.activeID, StudioScene.examples[0].id)
+        let before = store.exportData()
+        XCTAssertNil(store.executePortfolioTransfer(sceneID: scene.id, assetID: asset.id, kind: .send,
+            quantity: asset.units + 1, address: address))
+        XCTAssertNil(store.executePortfolioTransfer(sceneID: scene.id, assetID: asset.id, kind: .receive,
+            quantity: 0.1, address: "bad address"))
+        XCTAssertEqual(store.exportData(), before)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.portfolioProfile(for: scene.id), updated)
+        XCTAssertEqual(restored.scenes.first { $0.id == scene.id }, scene)
+    }
+
+    func testPortfolioBuySellConservesValueAndPersistsCapturedSceneAccounting() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let activeBefore = store.activeID
+        let original = store.portfolioProfile(for: scene.id)
+        let asset = original.positions[0]
+        let buy = try XCTUnwrap(store.executeMarketTrade(sceneID: scene.id, assetID: asset.id, side: .buy, units: 2))
+        XCTAssertEqual(buy.price, asset.price)
+        XCTAssertEqual(store.portfolioProfile(for: scene.id).positions[0].averageCost,
+            (asset.costBasis + buy.total) / (asset.units + 2), accuracy: 0.000001)
+        let sell = try XCTUnwrap(store.executeMarketTrade(sceneID: scene.id, assetID: asset.id, side: .sell, units: 3))
+        let profile = store.portfolioProfile(for: scene.id)
+        let updatedScene = try XCTUnwrap(store.scenes.first { $0.id == scene.id })
+        XCTAssertEqual(profile.positions[0].units, asset.units - 1)
+        XCTAssertEqual(updatedScene.balance, scene.balance - buy.total + sell.total, accuracy: 0.000001)
+        XCTAssertEqual(profile.total(cash: updatedScene.balance), original.total(cash: scene.balance), accuracy: 0.000001)
+        XCTAssertEqual(updatedScene.sales, scene.sales)
+        XCTAssertEqual(updatedScene.orders, scene.orders)
+        XCTAssertEqual(updatedScene.audience, scene.audience)
+        XCTAssertEqual(store.activeID, activeBefore)
+        XCTAssertTrue(store.events.isEmpty)
+        XCTAssertEqual(profile.transactions.map(\.id), [sell.id, buy.id])
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.portfolioProfile(for: scene.id), profile)
+        XCTAssertEqual(restored.scenes.first { $0.id == scene.id }, updatedScene)
+        XCTAssertEqual(restored.activeID, activeBefore)
+    }
+
+    func testWalletTransfersAndSwapPersistTokenHistoryWithoutChangingSceneCash() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .wallet })
+        let activeBefore = store.activeID
+        let original = store.walletProfile(for: scene.id)
+        let token = original.holdings[0]
+        let destination = original.holdings[1]
+        let address = "0x0000000000000000000000000000000000000011"
+        let sent = try XCTUnwrap(store.walletTransfer(sceneID: scene.id, assetID: token.id, kind: .send, quantity: 0.25, address: address))
+        let received = try XCTUnwrap(store.walletTransfer(sceneID: scene.id, assetID: token.id, kind: .receive,
+            quantity: 0.1, address: token.address ?? original.address))
+        let beforeSwap = store.walletProfile(for: scene.id).fiatValue
+        XCTAssertTrue(store.swapWallet(sceneID: scene.id, fromAssetID: token.id, toAssetID: destination.id, quantity: 0.5))
+        let profile = store.walletProfile(for: scene.id)
+        XCTAssertEqual(profile.holdings[0].quantity, token.quantity - 0.25 + 0.1 - 0.5, accuracy: 0.000001)
+        XCTAssertEqual(profile.holdings[1].quantity, destination.quantity + 0.5 * token.price / destination.price, accuracy: 0.000001)
+        XCTAssertEqual(profile.fiatValue, beforeSwap, accuracy: 0.000001)
+        XCTAssertEqual(profile.transactions.count, 4)
+        XCTAssertEqual(profile.transactions[2].id, received.id)
+        XCTAssertEqual(profile.transactions[3].id, sent.id)
+        XCTAssertEqual(sent.address, address)
+        XCTAssertEqual(store.scenes.first { $0.id == scene.id }, scene)
+        XCTAssertEqual(store.activeID, activeBefore)
+        XCTAssertTrue(store.events.isEmpty)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertNil(restored.error)
+        XCTAssertEqual(restored.walletProfile(for: scene.id), profile)
+    }
+
+    func testPredictionOutcomeBuySellPreservesCashValueAndWeightedBasisOnReload() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        let original = store.predictionProfile(for: scene.id)
+        let market = original.markets[0]
+        let activeBefore = store.activeID
+        let yesBuy = try XCTUnwrap(store.tradePrediction(sceneID: scene.id, marketID: market.id, outcome: .yes, side: .buy, shares: 50))
+        let noBuy = try XCTUnwrap(store.tradePrediction(sceneID: scene.id, marketID: market.id, outcome: .no, side: .buy, shares: 20))
+        let noSell = try XCTUnwrap(store.tradePrediction(sceneID: scene.id, marketID: market.id, outcome: .no, side: .sell, shares: 5))
+        let profile = store.predictionProfile(for: scene.id)
+        let yes = try XCTUnwrap(profile.positions.first { $0.marketID == market.id && $0.outcome == .yes })
+        let no = try XCTUnwrap(profile.positions.first { $0.marketID == market.id && $0.outcome == .no })
+        XCTAssertEqual(yes.shares, 300)
+        XCTAssertEqual(yes.averagePrice, (250 * 0.58 + yesBuy.total) / 300, accuracy: 0.000001)
+        XCTAssertEqual(no.shares, 15)
+        XCTAssertEqual(no.averagePrice, market.noPrice)
+        let cash = try XCTUnwrap(store.scenes.first { $0.id == scene.id }).balance
+        XCTAssertEqual(cash, scene.balance - yesBuy.total - noBuy.total + noSell.total, accuracy: 0.000001)
+        XCTAssertEqual(profile.total(cash: cash), original.total(cash: scene.balance), accuracy: 0.000001)
+        XCTAssertEqual(store.activeID, activeBefore)
+        XCTAssertTrue(store.events.isEmpty)
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.predictionProfile(for: scene.id), profile)
+        XCTAssertEqual(restored.scenes.first { $0.id == scene.id }?.balance, cash)
+    }
+
+    func testRejectedMarketOperationsLeaveMemoryAndSavedBytesUnchanged() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let portfolio = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let wallet = try XCTUnwrap(store.scenes.first { $0.kind == .wallet })
+        let prediction = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        for scene in [portfolio, wallet, prediction] { XCTAssertTrue(store.preparePlayback(for: scene.id)) }
+        let asset = store.portfolioProfile(for: portfolio.id).positions[0]
+        let token = store.walletProfile(for: wallet.id).holdings[0]
+        let market = store.predictionProfile(for: prediction.id).markets[0]
+        let address = store.walletProfile(for: wallet.id).address
+        let memory = try XCTUnwrap(store.exportData())
+        let disk = try Data(contentsOf: file)
+        for quantity in [0, -1, Double.nan, Double.infinity, 1_000_000_001] {
+            XCTAssertNil(store.executeMarketTrade(sceneID: portfolio.id, assetID: asset.id, side: .buy, units: quantity))
+            XCTAssertNil(store.walletTransfer(sceneID: wallet.id, assetID: token.id, kind: .receive, quantity: quantity, address: address))
+            XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .yes, side: .buy, shares: quantity))
+        }
+        XCTAssertNil(store.executeMarketTrade(sceneID: portfolio.id, assetID: asset.id, side: .buy, units: 1_000_000))
+        XCTAssertNil(store.executeMarketTrade(sceneID: portfolio.id, assetID: asset.id, side: .sell, units: asset.units + 1))
+        XCTAssertNil(store.executeMarketTrade(sceneID: wallet.id, assetID: asset.id, side: .buy, units: 1))
+        XCTAssertNil(store.executeMarketTrade(sceneID: portfolio.id, assetID: UUID(), side: .buy, units: 1))
+        XCTAssertNil(store.walletTransfer(sceneID: wallet.id, assetID: token.id, kind: .send, quantity: token.quantity + 1, address: address))
+        XCTAssertNil(store.walletTransfer(sceneID: wallet.id, assetID: token.id, kind: .receive, quantity: 1_000_000_000, address: address))
+        XCTAssertNil(store.walletTransfer(sceneID: wallet.id, assetID: token.id, kind: .send, quantity: 1, address: "bad address"))
+        XCTAssertFalse(store.swapWallet(sceneID: wallet.id, fromAssetID: token.id, toAssetID: token.id, quantity: 1))
+        XCTAssertFalse(store.swapWallet(sceneID: wallet.id, fromAssetID: token.id, toAssetID: UUID(), quantity: 1))
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .no, side: .sell, shares: 1))
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .yes, side: .buy, shares: 1_000_000))
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: UUID(), outcome: .yes, side: .buy, shares: 1))
+        XCTAssertEqual(store.exportData(), memory)
+        XCTAssertEqual(try Data(contentsOf: file), disk)
+        var closed = store.predictionProfile(for: prediction.id)
+        closed.markets[0].closeDate = .distantPast
+        XCTAssertTrue(store.updatePredictionProfile(closed))
+        let closedMemory = store.exportData()
+        let closedDisk = try Data(contentsOf: file)
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .yes, side: .buy, shares: 1))
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .yes, side: .sell, shares: 1))
+        XCTAssertEqual(store.exportData(), closedMemory)
+        XCTAssertEqual(try Data(contentsOf: file), closedDisk)
+    }
+
+    func testFailedMarketSaveDoesNotPublishCashHoldingsOrHistory() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let portfolio = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let wallet = try XCTUnwrap(store.scenes.first { $0.kind == .wallet })
+        let prediction = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        for scene in [portfolio, wallet, prediction] { XCTAssertTrue(store.preparePlayback(for: scene.id)) }
+        let asset = store.portfolioProfile(for: portfolio.id).positions[0]
+        let tokens = store.walletProfile(for: wallet.id).holdings
+        let market = store.predictionProfile(for: prediction.id).markets[0]
+        let before = store.exportData()
+        try FileManager.default.removeItem(at: file)
+        try FileManager.default.createDirectory(at: file, withIntermediateDirectories: false)
+        XCTAssertNil(store.executeMarketTrade(sceneID: portfolio.id, assetID: asset.id, side: .buy, units: 1))
+        XCTAssertNil(store.walletTransfer(sceneID: wallet.id, assetID: tokens[0].id, kind: .send, quantity: 0.1,
+            address: store.walletProfile(for: wallet.id).address))
+        XCTAssertFalse(store.swapWallet(sceneID: wallet.id, fromAssetID: tokens[0].id, toAssetID: tokens[1].id, quantity: 0.1))
+        XCTAssertNil(store.tradePrediction(sceneID: prediction.id, marketID: market.id, outcome: .yes, side: .buy, shares: 1))
+        var edited = store.portfolioProfile(for: portfolio.id)
+        edited.dailyChange = 5
+        XCTAssertFalse(store.updatePortfolioProfile(edited, cashBalance: 500))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertNotNil(store.error)
+    }
+
+    func testNewProfilesSurviveUnrelatedSavesAndArePrunedOnKindChangeDeleteAndReset() async throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let portfolio = try XCTUnwrap(store.scenes.first { $0.kind == .portfolio })
+        let wallet = try XCTUnwrap(store.scenes.first { $0.kind == .wallet })
+        let prediction = try XCTUnwrap(store.scenes.first { $0.kind == .prediction })
+        for scene in [portfolio, wallet, prediction] { XCTAssertTrue(store.preparePlayback(for: scene.id)) }
+        let originalProfiles = (store.portfolioProfiles, store.walletProfiles, store.predictionProfiles)
+        let cue = NotificationPreset(name: "Market cue", kind: .deposit, amount: 25, detail: "Milestone", delay: 5, count: 1)
+        XCTAssertTrue(store.savePreset(cue))
+        store.select(store.scenes[1])
+        XCTAssertNotNil(store.emit(kind: .deposit, amount: 10, detail: "Unrelated income"))
+        store.deletePreset(cue)
+        store.save()
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.portfolioProfiles, originalProfiles.0)
+        XCTAssertEqual(restored.walletProfiles, originalProfiles.1)
+        XCTAssertEqual(restored.predictionProfiles, originalProfiles.2)
+        var changed = portfolio
+        changed.kind = .creator
+        XCTAssertTrue(store.update(changed))
+        XCTAssertTrue(store.portfolioProfiles.isEmpty)
+        store.delete(wallet)
+        XCTAssertTrue(store.walletProfiles.isEmpty)
+        XCTAssertEqual(StudioStore(fileURL: file).predictionProfiles, originalProfiles.2)
+        await store.reset()
+        XCTAssertTrue(store.portfolioProfiles.isEmpty)
+        XCTAssertTrue(store.walletProfiles.isEmpty)
+        XCTAssertTrue(store.predictionProfiles.isEmpty)
+        let afterReset = StudioStore(fileURL: file)
+        XCTAssertTrue(afterReset.predictionProfiles.isEmpty)
+        XCTAssertEqual(afterReset.scenes, StudioScene.examples)
+    }
+
+    func testImportedMarketActivityAndAtomicCashEditorSurviveReload() async throws {
+        let sourceFile = temporaryFile()
+        let targetFile = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: sourceFile); try? FileManager.default.removeItem(at: targetFile) }
+        let source = StudioStore(fileURL: sourceFile)
+        let scene = try XCTUnwrap(source.scenes.first { $0.kind == .portfolio })
+        var profile = source.portfolioProfile(for: scene.id)
+        profile.theme = .wealthsimple
+        profile.positions[0].price = 100
+        XCTAssertTrue(source.updatePortfolioProfile(profile, cashBalance: 1500))
+        XCTAssertNotNil(source.executeMarketTrade(sceneID: scene.id, assetID: profile.positions[0].id, side: .buy, units: 2))
+        let data = try XCTUnwrap(source.exportData())
+        let target = StudioStore(fileURL: targetFile)
+        let imported = await target.importSession(data)
+        XCTAssertTrue(imported)
+        let restored = StudioStore(fileURL: targetFile)
+        XCTAssertEqual(restored.portfolioProfiles, source.portfolioProfiles)
+        XCTAssertEqual(restored.scenes, source.scenes)
+        let before = restored.exportData()
+        profile = restored.portfolioProfile(for: scene.id)
+        profile.dailyChange = 3
+        XCTAssertFalse(restored.updatePortfolioProfile(profile, cashBalance: .nan))
+        XCTAssertFalse(restored.updatePortfolioProfile(profile, cashBalance: 1_000_000_000))
+        XCTAssertEqual(restored.exportData(), before)
+    }
+}

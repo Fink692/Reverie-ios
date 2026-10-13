@@ -1,0 +1,79 @@
+[
+  {
+    "id": "coinbase",
+    "part": "1",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/5a/fa/41/5afa4116-b4a8-2692-8870-3b0b9c492f02/5cbddf4e-d6fb-45fe-84d6-1fec258d1e83_ASO-5.5_-SCREEN1.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-1.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "f0fcc0144e8cfc7ab6f2f879b9b19f28a8098f1f33deea19282b13e9e41cef4c"
+  },
+  {
+    "id": "coinbase",
+    "part": "2",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b0/54/bf/b054bfcf-f700-7192-ee01-f862c89e8957/da4bf06c-f8e4-40ee-9537-14146a8fe328_ASO-5.5_-SCREEN2.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-2.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "0f9a1f004a33ca58e37166d06928db2e3cb1c131d4edc645ef608689373aa13b"
+  },
+  {
+    "id": "coinbase",
+    "part": "3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b2/f4/1e/b2f41ef4-f3c6-d35b-d46d-30df1fdc3ee7/b67f1c60-0052-4fec-b8bf-d8ebb996dfc0_ASO-5.5_-SCREEN3_-_Varaint_1.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-3.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "a1cbe5b152641f80bcc495b90c5588717a809e5c1861a82323a2d1cf3722b240"
+  },
+  {
+    "id": "coinbase",
+    "part": "4",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/bf/09/24/bf092481-2182-256c-dcbe-3df32e174e15/0d351845-7fb0-4990-b8d9-4f20415db513_ASO-5.5_-SCREEN4.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-4.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "2ff551a38a76c470f135823abd324bf9e64a0376c5be89d69197744f688aaa0f"
+  },
+  {
+    "id": "coinbase",
+    "part": "5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/ef/9a/5a/ef9a5a98-3ba6-25bb-b928-87653cfe1af8/effbb44b-d3f2-482c-b62a-a7d83058904e_ASO-5.5_-SCREEN5.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-5.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "87180eb3852b03aa607a282c0bdc72ee0017c6275db156e52f49bd483556b906"
+  },
+  {
+    "id": "coinbase",
+    "part": "6",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/72/f9/72/72f972f4-3009-4706-0043-fcc35acf193c/b990aef8-4b99-4dec-8220-45068ec3fa24_ASO-5.5_-SCREEN6.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-6.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "88a49d410a518e5880cd320539367015c5871c936f35cb5ac13abcbf174e1de7"
+  },
+  {
+    "id": "coinbase",
+    "part": "7",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/10/68/d9/1068d9b0-6c9c-d656-f159-b8fb82aff439/9d02b389-ee32-41c1-adc5-088c36a1ec40_ASO-5.5_-SCREEN8.png/1242x2688bb.jpg",
+    "file": "References/Markets/coinbase-7.jpg",
+    "dimensions": [
+      1242,
+      2208
+    ],
+    "sha256": "2776cbde77ff34eb21897aa2b4b63038e81ee81d15bb0c3664dd0816902034f6"
+  }
+]
