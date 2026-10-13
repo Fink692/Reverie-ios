@@ -236,7 +236,7 @@ struct PredictionPlayback: View {
                 Text("Your market groups").font(.headline).foregroundStyle(.secondary)
                 ForEach(Array(Set(games.map(\.league))).sorted(), id: \.self) { value in
                     let fixtures = games.filter { $0.league == value }
-                    Button { league = value; tab = .live } label: {
+                    Button { league = value; tab = .home } label: {
                         HStack(spacing: 14) {
                             Text(predictionLeagueGlyph(value)).font(.largeTitle).frame(width: 60, height: 60).background(PredictionColors.fill, in: RoundedRectangle(cornerRadius: 16))
                             VStack(alignment: .leading, spacing: 7) {

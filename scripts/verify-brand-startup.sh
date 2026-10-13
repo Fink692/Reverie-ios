@@ -68,6 +68,8 @@ while IFS=$'\t' read -r startup_id startup_name startup_bundle; do
     sleep 5
     xcrun simctl io "$SIMULATOR_ID" screenshot "brand-artifacts/$startup_id-startup-simulator.png"
     xcrun simctl terminate "$SIMULATOR_ID" "$startup_bundle"
+    sleep 2
+    xcrun simctl io "$SIMULATOR_ID" screenshot "brand-artifacts/$startup_id-springboard-simulator.png"
 done < "$startup_work/variants.tsv"
 
 echo 'Captured production Info.plist startup screenshots for Shopify, Chase, Robinhood, Phantom, and Polymarket simulator variants.'

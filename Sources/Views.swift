@@ -955,6 +955,15 @@ private struct InstalledNotificationIcon: View {
         let primary = icons?["CFBundlePrimaryIcon"] as? [String: Any]
         if let names = primary?["CFBundleIconFiles"] as? [String],
            let image = names.reversed().compactMap({ UIImage(named: $0) }).first { return image }
+        if let catalogName = primary?["CFBundleIconName"] as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleIconName") as? String {
+            if let image = UIImage(named: catalogName) { return image }
+            if catalogName.hasPrefix("Brand-") {
+                let suffix = String(catalogName.dropFirst("Brand-".count))
+                if ["metamask", "phantom", "trustWallet"].contains(suffix),
+                   let image = UIImage(named: "WalletBrand-" + suffix) { return image }
+            }
+        }
         if let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleIconFile") as? String,
            let image = UIImage(named: name) { return image }
         return Bundle.main.urls(forResourcesWithExtension: "png", subdirectory: nil)?

@@ -492,20 +492,24 @@ extension ReverieUITests {
         if keyboardDone.exists { keyboardDone.tap() }
         let items = app.steppers["item-count"]
         scrollTo(items, in: app)
-        items.buttons["Increment"].tap()
+        items.buttons["item-count-Increment"].tap()
         XCTAssertTrue(items.label.contains("3 items"))
         let number = app.textFields["order-number"]
         scrollTo(number, in: app)
         replaceText(in: number, with: "2088")
         if keyboardDone.exists { keyboardDone.tap() }
+        let notificationCount = app.steppers["notification-count"]
+        scrollTo(notificationCount, in: app)
+        XCTAssertTrue(notificationCount.label.contains("1 notification"))
         let delay = app.buttons["notification-delay"]
         scrollTo(delay, in: app)
         delay.tap()
         app.buttons["5 minutes"].tap()
         let interval = app.buttons["repeat-interval"]
+        scrollTo(interval, in: app)
+        waitForHittable(interval)
         interval.tap()
         app.buttons["30 seconds"].tap()
-        XCTAssertTrue(app.steppers["notification-count"].label.contains("1 notification"))
         let saveCurrent = app.buttons["save-current-cue"]
         scrollTo(saveCurrent, in: app)
         saveCurrent.tap()
@@ -527,7 +531,9 @@ extension ReverieUITests {
         XCTAssertEqual(title.value as? String, "Checkout completed")
         scrollTo(customer, in: app)
         XCTAssertEqual(customer.value as? String, "Morgan Hale")
+        scrollTo(items, in: app)
         XCTAssertTrue(items.label.contains("3 items"))
+        scrollTo(number, in: app)
         XCTAssertEqual(number.value as? String, "2088")
         scrollTo(delay, in: app)
         XCTAssertTrue(delay.label.contains("5 minutes"))

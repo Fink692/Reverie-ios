@@ -104,7 +104,6 @@ struct WalletPlayback: View {
             }.frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Wallet profile and close scene").accessibilityIdentifier("wallet-profile-menu")
     }
 

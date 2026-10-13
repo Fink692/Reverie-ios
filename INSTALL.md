@@ -56,3 +56,14 @@ xcrun simctl launch booted com.reverie.simulator
 Complete the onboarding explaining that figures and notifications are fictional. Edit your scene, totals, account holder, and currency in Studio. Use **Open scene** for playback; variants open their configured scene after onboarding. Enable notification permission when scheduling alerts. Sessions stay local and can be exported from Settings. No real service login, wallet recovery phrase, or private key is needed.
 
 Variants start with **Clean playback** enabled: return to Studio through a profile/menu → **Close scene**, or hold the bank name for **two seconds**. Settings → Clean playback can restore visible close and bank-selection controls.
+
+## Quick notification setup
+
+1. Install the matching brand IPA from **Choose a build** above; that installed app supplies the notification name and icon.
+2. Return from playback through profile/menu → **Close scene** or the bank-name hold described above, then open **Studio**.
+3. Tap **Browse notification templates**, or choose **Notification style → Custom notification**. Edit the title, message, and any shown amount, customer, item quantity, and order number.
+4. Set the notification count, **Start after**, and **Repeat interval**. Optionally use **Save current cue** to keep the setup for later.
+5. Tap **Cue notifications**, choose **Allow** if iOS asks, and wait for the queued confirmation. You can then lock your phone.
+6. Open **View queued alerts** to review or cancel individual alerts, or use the session’s cancel button to clear the queue.
+
+Queued alerts leave dashboard balances unchanged.
