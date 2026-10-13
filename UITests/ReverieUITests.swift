@@ -117,8 +117,9 @@ final class ReverieUITests: XCTestCase {
         let menu = app.buttons["wallet-profile-menu"]
         waitForHittable(menu)
         menu.tap()
-        let actionLabel = identifier == "wallet-tab-settings" ? "Settings" : "Activity"
-        let action = page.isHittable ? page : app.buttons[actionLabel]
+        let actions = app.sheets.firstMatch
+        XCTAssertTrue(actions.waitForExistence(timeout: 5))
+        let action = actions.buttons.matching(identifier: identifier).firstMatch
         waitForHittable(action)
         action.tap()
     }
