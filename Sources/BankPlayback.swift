@@ -975,7 +975,7 @@ private struct BankPaymentPage: View {
                     Button(incoming ? "Confirm deposit" : "Confirm payment") { commit() }
                 } message: { Text("\(scene.money(parsedAmount ?? 0)) \(incoming ? "from" : "to") \(recipient.trimmingCharacters(in: .whitespacesAndNewlines))") }
             } else { ContentUnavailableView("Account unavailable", systemImage: "building.columns") }
-        }.tint(BankPalette(theme).accent).navigationTitle(paymentTitle).navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("bank.payments")
+        }.tint(BankPalette(theme).accent).navigationTitle(paymentTitle).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     if (theme == .chase || theme == .bankOfAmerica) && !incoming {
