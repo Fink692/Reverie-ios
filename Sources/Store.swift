@@ -4,6 +4,8 @@ import UserNotifications
 @MainActor final class StudioStore: ObservableObject {
     @Published private(set) var scenes: [StudioScene] = StudioScene.examples
     @Published private(set) var events: [SceneEvent] = []
+    @Published private(set) var presets: [NotificationPreset] = []
+    @Published private(set) var queuedAlerts: [QueuedAlert] = []
     @Published private(set) var activeID = StudioScene.examples[0].id
     @Published var error: String?
     @Published private(set) var notificationStatus = "Not requested"
@@ -19,32 +21,44 @@ import UserNotifications
         storage = SessionStorage(file: fileURL)
         do {
             if let saved = try storage.load() {
-                scenes = saved.scenes; events = saved.events; activeID = saved.activeID
+                scenes = saved.scenes; events = saved.events; activeID = saved.activeID; presets = saved.presets
             }
         } catch {
             self.error = "Your saved session could not be loaded. Starter scenes are available. The original file will be preserved in a recovery backup before new changes are saved."
         }
     }
+    private func persist(_ archive: Archive) -> Bool {
+        do { try storage.save(archive); return true }
+        catch { self.error = "Could not save your changes: \(error.localizedDescription)"; return false }
+    }
     func save() {
-        do { try storage.save(Archive(scenes: scenes, events: events, activeID: activeID)) }
-        catch { self.error = "Could not save your changes: \(error.localizedDescription)" }
+        _ = persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets))
     }
     func select(_ scene: StudioScene) {
-        guard scenes.contains(where: { $0.id == scene.id }) else { return }
-        activeID = scene.id; save()
+        guard scenes.contains(where: { $0.id == scene.id }),
+              persist(Archive(scenes: scenes, events: events, activeID: scene.id, presets: presets)) else { return }
+        activeID = scene.id
     }
-    func update(_ scene: StudioScene) {
-        guard scene.isValid else { error = "Check the scene name, currency, and dashboard totals."; return }
-        if let index = scenes.firstIndex(where: { $0.id == scene.id }) { scenes[index] = scene }
-        else { scenes.append(scene) }
-        activeID = scene.id; save()
+    @discardableResult func update(_ scene: StudioScene) -> Bool {
+        guard scene.isValid else { error = "Check the scene name, currency, and dashboard totals."; return false }
+        var updated = scenes
+        if let index = updated.firstIndex(where: { $0.id == scene.id }) { updated[index] = scene }
+        else {
+            guard updated.count < 100 else { error = "You can save up to 100 scenes."; return false }
+            updated.append(scene)
+        }
+        guard persist(Archive(scenes: updated, events: events, activeID: scene.id, presets: presets)) else { return false }
+        scenes = updated; activeID = scene.id
+        return true
     }
     func delete(_ scene: StudioScene) {
         guard scenes.count > 1, scenes.contains(where: { $0.id == scene.id }) else { return }
+        let remaining = scenes.filter { $0.id != scene.id }
+        let remainingEvents = events.filter { $0.sceneID != scene.id }
+        let selection = activeID == scene.id ? remaining[0].id : activeID
+        guard persist(Archive(scenes: remaining, events: remainingEvents, activeID: selection, presets: presets)) else { return }
         notificationGeneration += 1
-        scenes.removeAll { $0.id == scene.id }; events.removeAll { $0.sceneID == scene.id }
-        if activeID == scene.id { activeID = scenes[0].id }
-        save()
+        scenes = remaining; events = remainingEvents; activeID = selection
         Task {
             let center = UNUserNotificationCenter.current()
             let pending = await center.pendingNotificationRequests()
@@ -63,8 +77,11 @@ import UserNotifications
         guard let index = scenes.firstIndex(where: { $0.id == activeID }) else { return nil }
         let updated = Simulation.applying(event, to: scenes[index])
         guard updated != scenes[index] else { error = "This event would exceed the dashboard limits or available balance. Adjust the amount or totals in Edit scene."; return nil }
-        scenes[index] = updated
-        events.insert(event, at: 0); events = Array(events.prefix(1000)); save()
+        var updatedScenes = scenes
+        updatedScenes[index] = updated
+        let updatedEvents = Array(([event] + events).prefix(1000))
+        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID, presets: presets)) else { return nil }
+        scenes = updatedScenes; events = updatedEvents
         return event
     }
     func refreshNotifications() async {
@@ -75,7 +92,15 @@ import UserNotifications
         case .denied: notificationStatus = "Disabled in Settings"
         default: notificationStatus = "Not requested"
         }
-        pendingCount = await center.pendingNotificationRequests().count
+        let requests = await center.pendingNotificationRequests()
+        queuedAlerts = requests.map { request in
+            QueuedAlert(id: request.identifier,
+                sceneID: (request.content.userInfo["sceneID"] as? String).flatMap(UUID.init(uuidString:)),
+                title: request.content.title, body: request.content.body, date: (request.content.userInfo["scheduledAt"] as? Double).map { Date(timeIntervalSince1970: $0) }
+                    ?? (request.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
+                    ?? (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate())
+        }.sorted { ($0.date ?? .distantFuture) < ($1.date ?? .distantFuture) }
+        pendingCount = queuedAlerts.count
     }
     func schedule(kind: EventKind, amount: Double, detail: String, delay: Double, count: Int) async -> Bool {
         guard !isScheduling, !isResetting else { error = "Wait for the current session operation to finish."; return false }
@@ -107,7 +132,7 @@ import UserNotifications
                 let content = UNMutableNotificationContent()
                 content.title = cue.event.title; content.body = cue.event.body(scene: scheduledScene)
                 content.sound = .default; content.threadIdentifier = scheduledScene.id.uuidString
-                content.userInfo = ["sceneID": scheduledScene.id.uuidString]
+                content.userInfo = ["sceneID": scheduledScene.id.uuidString, "scheduledAt": Date().addingTimeInterval(cue.delay).timeIntervalSince1970]
                 let id = "reverie.\(cue.event.id.uuidString)"
                 try await center.add(UNNotificationRequest(identifier: id, content: content,
                     trigger: UNTimeIntervalNotificationTrigger(timeInterval: cue.delay, repeats: false)))
@@ -137,13 +162,66 @@ import UserNotifications
         let center = UNUserNotificationCenter.current()
         center.removeAllPendingNotificationRequests()
         center.removeAllDeliveredNotifications()
-        scenes = StudioScene.examples; activeID = scenes[0].id; events = []; save()
+        let starter = Archive(scenes: StudioScene.examples, events: [], activeID: StudioScene.examples[0].id)
+        if persist(starter) {
+            scenes = starter.scenes; activeID = starter.activeID; events = []; presets = []
+            NotificationRouter.shared.request = nil
+        }
         await refreshNotifications()
     }
-    func export() -> String {
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return (try? String(data: encoder.encode(Archive(scenes: scenes, events: events, activeID: activeID)), encoding: .utf8)) ?? ""
+    func cancelAlert(_ alert: QueuedAlert) async {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [alert.id])
+        await refreshNotifications()
     }
+    @discardableResult func savePreset(_ preset: NotificationPreset) -> Bool {
+        var clean = preset
+        clean.name = preset.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        clean.detail = preset.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.kind == .subscriber { clean.amount = 0.01 }
+        guard clean.isValid else { error = "Check the saved cue name and notification settings."; return false }
+        var updated = presets
+        if let index = updated.firstIndex(where: { $0.id == clean.id }) { updated[index] = clean }
+        else {
+            guard updated.count < 50 else { error = "You can save up to 50 notification cues."; return false }
+            updated.append(clean)
+        }
+        do {
+            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated))
+            presets = updated; return true
+        } catch { self.error = "Could not save your cue: \(error.localizedDescription)"; return false }
+    }
+    func deletePreset(_ preset: NotificationPreset) {
+        let updated = presets.filter { $0.id != preset.id }
+        do {
+            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated))
+            presets = updated
+        } catch { self.error = "Could not delete your cue: \(error.localizedDescription)" }
+    }
+    func importSession(_ data: Data) async -> Bool {
+        guard !isResetting else { error = "Wait for the current session operation to finish."; return false }
+        do {
+            let archive = try Archive.decode(data)
+            // Commit the complete replacement before changing UI state or cancelling current alerts.
+            try storage.save(archive)
+            isResetting = true
+            defer { isResetting = false }
+            notificationGeneration += 1
+            scenes = archive.scenes; events = archive.events; activeID = archive.activeID; presets = archive.presets
+            let center = UNUserNotificationCenter.current()
+            center.removeAllPendingNotificationRequests(); center.removeAllDeliveredNotifications()
+            NotificationRouter.shared.request = nil
+            await refreshNotifications()
+            return true
+        } catch { self.error = "Could not import this session: \(error.localizedDescription)"; return false }
+    }
+    func exportData() -> Data? {
+        do { return try Archive(scenes: scenes, events: events, activeID: activeID, presets: presets).encoded(prettyPrinted: true) }
+        catch { self.error = "Could not export this session: \(error.localizedDescription)"; return nil }
+    }
+    func export() -> String {
+        exportData().flatMap { String(data: $0, encoding: .utf8) } ?? ""
+    }
+
 }
 
 struct SceneRoute: Identifiable {

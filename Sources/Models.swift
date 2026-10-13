@@ -61,15 +61,74 @@ struct SceneEvent: Codable, Identifiable, Equatable {
     }
 }
 
+struct NotificationPreset: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var name: String
+    var kind: EventKind
+    var amount: Double
+    var detail: String
+    var delay: Double
+    var count: Int
+    var isValid: Bool {
+        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !cleanName.isEmpty && name.count <= 60 && detail.count <= 240 &&
+        delay.isFinite && (2...86400).contains(delay) && (1...20).contains(count) &&
+        Simulation.validAmount(amount)
+    }
+}
+struct QueuedAlert: Identifiable, Equatable {
+    let id: String
+    let sceneID: UUID?
+    let title: String
+    let body: String
+    let date: Date?
+}
 struct Archive: Codable {
+    static let maximumBytes = 2_000_000
     var scenes: [StudioScene]
     var events: [SceneEvent]
     var activeID: UUID
+    var presets: [NotificationPreset]
+    init(scenes: [StudioScene], events: [SceneEvent], activeID: UUID, presets: [NotificationPreset] = []) {
+        self.scenes = scenes; self.events = events; self.activeID = activeID; self.presets = presets
+    }
+    private enum CodingKeys: String, CodingKey { case scenes, events, activeID, presets }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        scenes = try container.decode([StudioScene].self, forKey: .scenes)
+        events = try container.decode([SceneEvent].self, forKey: .events)
+        activeID = try container.decode(UUID.self, forKey: .activeID)
+        presets = try container.decodeIfPresent([NotificationPreset].self, forKey: .presets) ?? []
+    }
     var isValid: Bool {
         let sceneIDs = Set(scenes.map(\.id))
-        return !scenes.isEmpty && scenes.allSatisfy(\.isValid) && sceneIDs.count == scenes.count &&
+        return (1...100).contains(scenes.count) && scenes.allSatisfy(\.isValid) && sceneIDs.count == scenes.count &&
         sceneIDs.contains(activeID) && events.count <= 1000 && Set(events.map(\.id)).count == events.count &&
-        events.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) }
+        events.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
+        presets.count <= 50 && Set(presets.map(\.id)).count == presets.count && presets.allSatisfy(\.isValid)
+    }
+    func encoded(prettyPrinted: Bool = false) throws -> Data {
+        guard isValid else { throw ArchiveError.invalidSession }
+        let encoder = JSONEncoder()
+        if prettyPrinted { encoder.outputFormatting = [.prettyPrinted, .sortedKeys] }
+        let data = try encoder.encode(self)
+        guard data.count <= Self.maximumBytes else { throw ArchiveError.tooLarge }
+        return data
+    }
+    static func decode(_ data: Data) throws -> Archive {
+        guard data.count <= maximumBytes else { throw ArchiveError.tooLarge }
+        let archive = try JSONDecoder().decode(Archive.self, from: data)
+        guard archive.isValid else { throw ArchiveError.invalidSession }
+        return archive
+    }
+}
+enum ArchiveError: LocalizedError {
+    case tooLarge, invalidSession
+    var errorDescription: String? {
+        switch self {
+        case .tooLarge: return "Session files must be smaller than 2 MB."
+        case .invalidSession: return "The session contains invalid scenes, events, or saved cues."
+        }
     }
 }
 

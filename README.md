@@ -1,6 +1,6 @@
 # Reverie
 
-Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, JSON export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles and are sent by Reverie. Simulation context is explained in onboarding and Settings.
+Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, saved cue presets, alert queue with individual cancellation, JSON import/export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles and are sent by Reverie. Simulation context is explained in onboarding and Settings.
 
 ## Open and run
 
@@ -22,13 +22,14 @@ Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINAT
 1. Dashboard: switch scenes from the chevrons; edit name, type, currency, and totals with the pencil.
 2. Studio: compose an event and add it to the dashboard, or schedule 1–20 alerts separately. Multiple notifications arrive ten seconds apart. Scheduling does not change dashboard totals.
 3. Activity: review and search the active scene's recorded events.
-4. Settings: create, edit, delete, or select scenes; export a JSON snapshot; change appearance; cancel notifications; reset data.
+4. Settings: create, edit, delete, or select scenes; export a JSON file or import a saved session; change appearance; cancel notifications; reset data.
+5. Studio saved cues: save the current setup, edit and reuse named presets, and review or cancel individual queued alerts.
 
 Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Real system notifications cannot use another installed app's name/icon. Charts show explicitly labeled illustrative curves, not invented historical records. All currencies use the device locale for formatting. No real financial or commerce services are connected.
 
 ## Validation status
 
-The shared Foundation code compiled with Swift 6.0.3 in an official Linux Swift container. **21 shared-logic and storage tests passed**, including accounting, refunds, localized numeric input, scheduling plans, persistence, recovery backups, and failed writes. Run `./scripts/verify-core.sh` to reproduce them with Swift 6+ or Docker.
+The shared Foundation code compiled with Swift 6.0.3 in an official Linux Swift container. **27 shared-logic and storage tests passed**, including accounting, refunds, localized numeric input, scheduling plans, persistence, recovery backups, and failed writes. Run `./scripts/verify-core.sh` to reproduce them with Swift 6+ or Docker.
 
 Native Swift source and test grammar passed Swift frontend parsing. XcodeGen generated and validated the included project with complete configuration presets and all source/test references. Full Apple SDK compilation, native Store tests, UI tests, simulator behavior, accessibility runtime checks, and signing remain unverified. The hosted macOS workflow will perform unsigned device compilation and simulator unit/UI tests after the project is pushed to an accessible repository. See `Verification/STATUS.md` and the retained test output.
 
@@ -54,3 +55,9 @@ The connected GitHub integration could read repositories but returned HTTP 403 w
 Supported events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
 
 Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
+
+## Restoring a session
+
+Settings → Export session writes a native `.json` file through Files. Imports include all scenes, activity, and saved cues, and require confirmation before replacing current data. Import validates file size (up to 2 MB), identities, numerical bounds, references, and cue settings before changing anything; queued alerts are cleared after replacement. Older exports without saved cues still load. Invalid imports leave the current session unchanged.
+
+Saved cues store event type, amount, details, start delay, and alert count. Loading a cue fills Studio without scheduling it. The queued-alert view shows payloads, scene names, scheduled times, and per-alert cancellation. Queued iOS requests are not re-scheduled automatically when a session is imported.

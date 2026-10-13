@@ -49,4 +49,36 @@ import XCTest
         XCTAssertFalse(store.scenes.isEmpty)
         XCTAssertEqual(try Data(contentsOf: file), corrupt)
     }
+    func testFailedSaveDoesNotPretendAnEventWasRecorded() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let file = directory.appending(path: "session.json")
+        let store = StudioStore(fileURL: file)
+        let before = store.active
+        XCTAssertNil(store.emit(kind: .order, amount: 50, detail: "Unsaved"))
+        XCTAssertEqual(store.active, before)
+        XCTAssertTrue(store.events.isEmpty)
+        XCTAssertNotNil(store.error)
+    }
+    func testSavedCuePersistsAndCanBeRenamed() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        var cue = NotificationPreset(name: "First name", kind: .order, amount: 49, detail: "Order", delay: 5, count: 3)
+        XCTAssertTrue(store.savePreset(cue))
+        cue.name = "Second name"
+        XCTAssertTrue(store.savePreset(cue))
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.presets, [cue])
+    }
+    func testInvalidImportLeavesCurrentSessionIntact() async throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let before = store.scenes
+        let imported = await store.importSession(Data("broken".utf8))
+        XCTAssertFalse(imported)
+        XCTAssertEqual(store.scenes, before)
+        XCTAssertNotNil(store.error)
+    }
+
 }

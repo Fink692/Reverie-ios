@@ -8,7 +8,7 @@ final class SessionStorage {
     func load() throws -> Archive? {
         guard FileManager.default.fileExists(atPath: file.path) else { return nil }
         do {
-            let archive = try JSONDecoder().decode(Archive.self, from: Data(contentsOf: file))
+            let archive = try Archive.decode(Data(contentsOf: file))
             guard archive.isValid else { throw SessionStorageError.invalidSession }
             return archive
         } catch {
@@ -18,7 +18,7 @@ final class SessionStorage {
     }
     func save(_ archive: Archive) throws {
         guard archive.isValid else { throw SessionStorageError.invalidSession }
-        let data = try JSONEncoder().encode(archive)
+        let data = try archive.encoded()
         if needsRecoveryBackup {
             let backup = file.deletingPathExtension().appendingPathExtension("recovery-\(UUID().uuidString).json")
             try FileManager.default.copyItem(at: file, to: backup)

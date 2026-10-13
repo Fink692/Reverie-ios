@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import UniformTypeIdentifiers
 
 private let accent = Color(red: 0.24, green: 0.36, blue: 0.94)
 
@@ -79,7 +80,7 @@ struct WelcomeView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     WelcomeFeature(symbol: "square.grid.2x2", title: "A world of your own", detail: "Create stores, banking dashboards, and creator scenes.")
                     WelcomeFeature(symbol: "bell.badge", title: "Make the moment", detail: "Compose events and schedule alerts for the perfect cue.")
-                    WelcomeFeature(symbol: "lock", title: "Private by design", detail: "Your scenes stay on this device. No account needed.")
+                    WelcomeFeature(symbol: "lock", title: "Private by design", detail: "Stored locally; you can export your sessions. No account needed.")
                 }
                 Text("Reverie is a roleplay simulator. All figures and notifications are fictional. It is not connected to a bank or Shopify.")
                     .font(.footnote)
@@ -403,6 +404,20 @@ struct EventRow: View {
     }
 }
 
+private enum ComposerSheet: Identifiable {
+    case savedCues
+    case saveCue(NotificationPreset)
+    case queue
+
+    var id: String {
+        switch self {
+        case .savedCues: return "saved-cues"
+        case .saveCue(let preset): return preset.id.uuidString
+        case .queue: return "notification-queue"
+        }
+    }
+}
+
 struct ComposerView: View {
     @EnvironmentObject var store: StudioStore
     @State private var kind: EventKind = .order
@@ -414,6 +429,7 @@ struct ComposerView: View {
     @State private var confirmation: String?
     @State private var composedSceneID: UUID?
     @State private var composedSceneKind: SceneKind?
+    @State private var presentedSheet: ComposerSheet?
     private enum InputField: Hashable { case amount, details }
     @FocusState private var focusedInput: InputField?
 
@@ -495,40 +511,24 @@ struct ComposerView: View {
                 } footer: {
                     Text("Scheduled alerts are a separate performance cue and do not change dashboard totals.")
                 }
-                Section("Notification session") {
-                    Stepper("\(count) notification\(count == 1 ? "" : "s")", value: $count, in: 1...20)
-                        .disabled(working)
-                    Picker("Start after", selection: $delay) {
-                        Text("5 seconds").tag(5.0)
-                        Text("30 seconds").tag(30.0)
-                        Text("1 minute").tag(60.0)
-                        Text("5 minutes").tag(300.0)
-                    }
-                    .accessibilityIdentifier("notification-delay")
-                    .disabled(working)
-                    Text("Multiple alerts arrive 10 seconds apart.").font(.caption).foregroundStyle(.secondary)
-                    Button {
-                        cueNotifications()
-                    } label: {
-                        HStack {
-                            Label("Cue notifications", systemImage: "bell.badge.fill")
-                            Spacer()
-                            if working { ProgressView().accessibilityLabel("Scheduling notifications") }
-                        }
-                    }
-                    .disabled(!valid || working)
-                    if store.pendingCount > 0 {
-                        LabeledContent("Queued", value: "\(store.pendingCount) alerts")
-                            .foregroundStyle(.secondary)
-                        Button("Cancel \(store.pendingCount) queued alerts", role: .destructive) {
-                            Task { await store.cancelNotifications() }
-                        }
-                        .disabled(working)
-                    }
-                }
+                notificationSession
+                savedCueSection
             }
             .navigationTitle("Studio")
             .scrollDismissesKeyboard(.interactively)
+            .sheet(item: $presentedSheet) { destination in
+                switch destination {
+                case .savedCues:
+                    SavedCuesView { preset in
+                        loadPreset(preset)
+                        presentedSheet = nil
+                    }
+                case .saveCue(let preset):
+                    CuePresetEditor(preset: preset)
+                case .queue:
+                    QueuedAlertsView()
+                }
+            }
             .task(id: "\(store.activeID)-\(store.active.kind.rawValue)") {
                 applyScenePreset()
                 await store.refreshNotifications()
@@ -543,6 +543,97 @@ struct ComposerView: View {
                 }
             }
         }
+    }
+
+    private var notificationSession: some View {
+        Section("Notification session") {
+            Stepper("\(count) notification\(count == 1 ? "" : "s")", value: $count, in: 1...20)
+                .disabled(working)
+            Picker("Start after", selection: $delay) {
+                Text("5 seconds").tag(5.0)
+                Text("30 seconds").tag(30.0)
+                Text("1 minute").tag(60.0)
+                Text("5 minutes").tag(300.0)
+                if ![5.0, 30.0, 60.0, 300.0].contains(delay) {
+                    Text(cueDelayLabel(delay)).tag(delay)
+                }
+            }
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("notification-delay")
+            .disabled(working)
+            Text("Multiple alerts arrive 10 seconds apart.").font(.caption).foregroundStyle(.secondary)
+            Button {
+                cueNotifications()
+            } label: {
+                HStack {
+                    Label("Cue notifications", systemImage: "bell.badge.fill")
+                    Spacer()
+                    if working { ProgressView().accessibilityLabel("Scheduling notifications") }
+                }
+            }
+            .disabled(!valid || working)
+            Button {
+                presentedSheet = .queue
+            } label: {
+                LabeledContent("View queued alerts", value: store.pendingCount.formatted())
+            }
+            .accessibilityIdentifier("view-queued-alerts")
+            .disabled(working)
+            if store.pendingCount > 0 {
+                LabeledContent("Queued", value: "\(store.pendingCount) alerts")
+                    .foregroundStyle(.secondary)
+                Button("Cancel \(store.pendingCount) queued alerts", role: .destructive) {
+                    Task { await store.cancelNotifications() }
+                }
+                .disabled(working)
+            }
+        }
+    }
+
+    private var savedCueSection: some View {
+        Section {
+            if store.presets.isEmpty {
+                Text("Save a setup to use again whenever the moment calls.")
+                    .foregroundStyle(.secondary)
+            } else {
+                Button {
+                    focusedInput = nil
+                    presentedSheet = .savedCues
+                } label: {
+                    LabeledContent("Saved cues", value: store.presets.count.formatted())
+                }
+                .accessibilityIdentifier("saved-cues")
+                .disabled(working)
+            }
+            Button {
+                focusedInput = nil
+                presentedSheet = .saveCue(NotificationPreset(
+                    name: kind.title, kind: kind, amount: eventAmount,
+                    detail: detail, delay: delay, count: count
+                ))
+            } label: {
+                Label("Save current cue", systemImage: "bookmark")
+            }
+            .accessibilityIdentifier("save-current-cue")
+            .disabled(!valid || working || store.presets.count >= 50)
+        } header: {
+            Text("Your cues")
+        } footer: {
+            Text(store.presets.count >= 50
+                 ? "You have 50 saved cues. Delete one to save another."
+                 : "Saved cues remember the event, amount, details, timing, and alert count. Amounts use the active scene's currency.")
+        }
+    }
+
+    private func loadPreset(_ preset: NotificationPreset) {
+        focusedInput = nil
+        kind = preset.kind
+        amount = localizedEntry(preset.amount)
+        detail = preset.detail
+        delay = preset.delay
+        count = preset.count
+        composedSceneID = store.activeID
+        composedSceneKind = store.active.kind
     }
 
     private func applyScenePreset() {
@@ -734,8 +825,7 @@ struct SceneEditor: View {
         scene.sales = Simulation.parseAmount(sales) ?? 0
         scene.orders = wholeNumber(orders, maximum: 1_000_000) ?? 0
         scene.audience = wholeNumber(audience, maximum: 100_000_000) ?? 0
-        store.update(scene)
-        dismiss()
+        if store.update(scene) { dismiss() }
     }
 }
 
@@ -743,80 +833,457 @@ struct SettingsView: View {
     @EnvironmentObject var store: StudioStore
     @AppStorage("appearance") private var appearance = "System"
     @State private var editing: StudioScene?
-    @State private var reset = false
+    @State private var importingFile = false
+    @State private var exportingFile = false
+    @State private var exportDocument: SessionFileDocument?
+    @State private var pendingImport: Data?
+    @State private var importedFilename = ""
+    @State private var sessionBusy = false
+    @State private var sessionFeedback: String?
+    private enum SessionConfirmation: Equatable { case reset, replace }
+    @State private var requestedConfirmation: SessionConfirmation?
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    ForEach(store.scenes) { scene in
-                        HStack(spacing: 12) {
-                            Button { store.select(scene) } label: {
-                                Label(scene.name, systemImage: scene.kind.symbol)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .buttonStyle(.borderless)
-                            .accessibilityHint(scene.id == store.activeID ? "Current dashboard" : "Switches your dashboard to this scene")
-                            if scene.id == store.activeID {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(accent)
-                                    .accessibilityLabel("Selected")
-                            }
-                            Button { editing = scene } label: {
-                                Image(systemName: "pencil").frame(width: 44, height: 44)
-                            }
-                            .buttonStyle(.borderless)
-                            .accessibilityLabel("Edit \(scene.name)")
-                        }
-                        .swipeActions {
-                            if store.scenes.count > 1 {
-                                Button("Delete", role: .destructive) { store.delete(scene) }
-                            }
-                        }
-                    }
-                    Button {
-                        editing = StudioScene(name: "Untitled scene", kind: .commerce, balance: 0, sales: 0, orders: 0, audience: 0)
-                    } label: { Label("New scene", systemImage: "plus") }
-                } header: {
-                    Text("Your scenes")
-                } footer: {
-                    Text("Select a scene to switch dashboards. Swipe left to delete a scene and its activity.")
-                }
-                Section("Experience") {
-                    Picker("Appearance", selection: $appearance) {
-                        ForEach(["System", "Light", "Dark"], id: \.self) { Text($0).tag($0) }
-                    }
-                    LabeledContent("Notifications", value: store.notificationStatus)
-                    LabeledContent("Queued alerts", value: store.pendingCount.formatted())
-                    Button("Open iOS Settings") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                    }
-                    Button("Cancel queued notifications", role: .destructive) {
-                        Task { await store.cancelNotifications() }
-                    }
-                    .disabled(store.pendingCount == 0)
-                }
-                Section("Your data") {
-                    ShareLink(item: store.export()) { Label("Export session", systemImage: "square.and.arrow.up") }
-                    Button("Reset all scenes", role: .destructive) { reset = true }
-                }
+                scenesSection
+                experienceSection
+                dataSection
                 Section("About Reverie") {
                     StudioLabel()
                     Text("A private stage for fictional milestones. No accounts, real money, analytics tracking, or connections to financial services.")
                     Text("Not affiliated with Shopify or any bank. Notifications identify Reverie. Charts are illustrative.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    Text("Stored locally. Exported files and device backups may be stored by your chosen services.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     LabeledContent("Version", value: "1.0.0")
                 }
             }
+            .disabled(sessionBusy)
             .navigationTitle("Settings")
             .task { await store.refreshNotifications() }
             .sheet(item: $editing) { SceneEditor(scene: $0) }
-            .confirmationDialog("Reset all scenes and cancel every queued alert?", isPresented: $reset, titleVisibility: .visible) {
-                Button("Reset everything", role: .destructive) { Task { await store.reset() } }
+            .fileImporter(isPresented: $importingFile, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first { prepareImport(from: url) }
+                case .failure(let error):
+                    reportFileError(error, action: "open this session")
+                }
+            }
+            .fileExporter(isPresented: $exportingFile, document: exportDocument, contentType: .json, defaultFilename: "Reverie-session") { result in
+                switch result {
+                case .success:
+                    sessionFeedback = "Your scenes, activity, and saved cues were exported."
+                case .failure(let error):
+                    reportFileError(error, action: "export this session")
+                }
+                exportDocument = nil
+            }
+            .confirmationDialog(
+                requestedConfirmation == .reset ? "Reset all scenes and cancel every queued alert?" : "Replace your current session?",
+                isPresented: Binding(
+                    get: { requestedConfirmation != nil },
+                    set: { if !$0 { requestedConfirmation = nil; pendingImport = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                if requestedConfirmation == .reset {
+                    Button("Reset everything", role: .destructive) { resetSession() }
+                } else if let data = pendingImport {
+                    Button("Replace session", role: .destructive) { importSession(data) }
+                }
+                Button("Cancel", role: .cancel) { pendingImport = nil }
+            } message: {
+                Text(requestedConfirmation == .reset
+                     ? "This removes your scenes, activity, and saved cues, and restores the starter scenes."
+                     : "Importing \(importedFilename) replaces your scenes, activity, and saved cues, and cancels all queued alerts.")
+            }
+            .alert("Your session", isPresented: Binding(get: { sessionFeedback != nil }, set: { if !$0 { sessionFeedback = nil } })) {
+                Button("OK") { sessionFeedback = nil }
+            } message: { Text(sessionFeedback ?? "") }
+        }
+    }
+
+    private var scenesSection: some View {
+        Section {
+            ForEach(store.scenes) { scene in
+                HStack(spacing: 12) {
+                    Button { store.select(scene) } label: {
+                        Label(scene.name, systemImage: scene.kind.symbol)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityHint(scene.id == store.activeID ? "Current dashboard" : "Switches your dashboard to this scene")
+                    if scene.id == store.activeID {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(accent)
+                            .accessibilityLabel("Selected")
+                    }
+                    Button { editing = scene } label: {
+                        Image(systemName: "pencil").frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Edit \(scene.name)")
+                }
+                .swipeActions {
+                    if store.scenes.count > 1 {
+                        Button("Delete", role: .destructive) { store.delete(scene) }
+                    }
+                }
+            }
+            Button {
+                editing = StudioScene(name: "Untitled scene", kind: .commerce, balance: 0, sales: 0, orders: 0, audience: 0)
+            } label: { Label("New scene", systemImage: "plus") }
+            .disabled(store.scenes.count >= 100)
+        } header: {
+            Text("Your scenes")
+        } footer: {
+            Text("Select a scene to switch dashboards. Swipe left to delete a scene and its activity.")
+        }
+    }
+
+    private var experienceSection: some View {
+        Section("Experience") {
+            Picker("Appearance", selection: $appearance) {
+                ForEach(["System", "Light", "Dark"], id: \.self) { Text($0).tag($0) }
+            }
+            LabeledContent("Notifications", value: store.notificationStatus)
+            LabeledContent("Queued alerts", value: store.pendingCount.formatted())
+            Button("Open iOS Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            }
+            Button("Cancel queued notifications", role: .destructive) {
+                Task { await store.cancelNotifications() }
+            }
+            .disabled(store.pendingCount == 0)
+        }
+    }
+
+    private var dataSection: some View {
+        Section {
+            Button {
+                if let data = store.exportData() {
+                    exportDocument = SessionFileDocument(data: data)
+                    exportingFile = true
+                }
+            } label: { Label("Export session", systemImage: "square.and.arrow.up") }
+            .accessibilityIdentifier("export-session")
+            Button { importingFile = true } label: {
+                Label("Import session", systemImage: "square.and.arrow.down")
+            }
+            .accessibilityIdentifier("import-session")
+            Button("Reset all scenes", role: .destructive) { requestedConfirmation = .reset }
+            if sessionBusy {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Updating your session…").foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        } header: {
+            Text("Your data")
+        } footer: {
+            Text("Exports include your scenes, activity, and saved cues. Import a Reverie JSON file up to 2 MB to restore a session.")
+        }
+    }
+
+    private func prepareImport(from url: URL) {
+        sessionBusy = true
+        importedFilename = url.lastPathComponent
+        Task {
+            do {
+                let data = try await Task.detached(priority: .userInitiated) {
+                    let bytes = try SessionFileDocument.readImport(from: url)
+                    _ = try Archive.decode(bytes)
+                    return bytes
+                }.value
+                pendingImport = data
+                requestedConfirmation = .replace
+            } catch {
+                reportFileError(error, action: "open this session")
+            }
+            sessionBusy = false
+        }
+    }
+
+    private func importSession(_ data: Data) {
+        pendingImport = nil
+        sessionBusy = true
+        Task {
+            if await store.importSession(data) { sessionFeedback = "Your session was imported. Queued alerts were cleared." }
+            sessionBusy = false
+        }
+    }
+
+    private func resetSession() {
+        sessionBusy = true
+        Task {
+            await store.reset()
+            sessionBusy = false
+        }
+    }
+
+    private func reportFileError(_ error: Error, action: String) {
+        if let cocoaError = error as? CocoaError, cocoaError.code == .userCancelled { return }
+        store.error = "Could not \(action): \(error.localizedDescription)"
+    }
+}
+
+private struct SessionFileDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    var data: Data
+
+    init(data: Data) { self.data = data }
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else { throw CocoaError(.fileReadCorruptFile) }
+        guard data.count <= Archive.maximumBytes else { throw ArchiveError.tooLarge }
+        self.data = data
+    }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+    static func readImport(from url: URL) throws -> Data {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var data = Data()
+        while let chunk = try handle.read(upToCount: min(65_536, Archive.maximumBytes + 1 - data.count)), !chunk.isEmpty {
+            data.append(chunk)
+            guard data.count <= Archive.maximumBytes else { throw ArchiveError.tooLarge }
+        }
+        return data
+    }
+}
+
+private struct SavedCuesView: View {
+    @EnvironmentObject var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var editing: NotificationPreset?
+    var onApply: (NotificationPreset) -> Void
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if store.presets.isEmpty {
+                    ContentUnavailableView("No saved cues", systemImage: "bookmark", description: Text("Save a setup in Studio to use it again."))
+                }
+                ForEach(store.presets) { preset in
+                    HStack(alignment: .center, spacing: 12) {
+                        Button { onApply(preset) } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(preset.name).font(.headline).foregroundStyle(.primary)
+                                Text("\(preset.kind.title) · \(preset.count) alert\(preset.count == 1 ? "" : "s")")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                                Text("Starts after \(cueDelayLabel(preset.delay))")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(preset.name)
+                        .accessibilityValue("\(preset.kind.title), \(preset.count) alerts after \(cueDelayLabel(preset.delay))")
+                        .accessibilityHint("Loads this cue into Studio without scheduling it")
+                        .accessibilityIdentifier("load-cue-\(preset.id.uuidString)")
+                        Button { editing = preset } label: {
+                            Image(systemName: "pencil").frame(width: 44, height: 44)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Edit \(preset.name)")
+                    }
+                    .swipeActions {
+                        Button("Delete", role: .destructive) { store.deletePreset(preset) }
+                    }
+                }
+            }
+            .navigationTitle("Saved cues")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
+            .sheet(item: $editing) { CuePresetEditor(preset: $0) }
+        }
+    }
+}
+
+private struct CuePresetEditor: View {
+    @EnvironmentObject var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    @State var preset: NotificationPreset
+    @State private var amount = ""
+    @State private var startAfter = ""
+    private enum InputField: Hashable { case name, amount, details, delay }
+    @FocusState private var focusedInput: InputField?
+
+    private var prepared: NotificationPreset {
+        var value = preset
+        value.name = preset.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        value.detail = preset.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        value.amount = preset.kind == .subscriber ? 0.01 : Simulation.parseAmount(amount) ?? 0
+        value.delay = Simulation.parseAmount(startAfter) ?? 0
+        return value
+    }
+    private var valid: Bool { prepared.isValid && preset.name.count <= 60 && preset.detail.count <= 240 }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Cue name", text: $preset.name)
+                        .focused($focusedInput, equals: .name)
+                        .accessibilityIdentifier("cue-name")
+                } header: {
+                    Text("Name")
+                } footer: {
+                    if preset.name.count > 60 { Text("Keep cue names to 60 characters or fewer.") }
+                }
+                Section {
+                    Picker("Type", selection: $preset.kind) {
+                        ForEach(EventKind.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.menu)
+                    if preset.kind != .subscriber {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Amount · \(store.active.currency)").font(.caption).foregroundStyle(.secondary)
+                            TextField("Amount", text: $amount)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedInput, equals: .amount)
+                                .accessibilityLabel("Cue amount")
+                        }
+                    }
+                    TextField("Details", text: $preset.detail, axis: .vertical)
+                        .lineLimit(2...4)
+                        .focused($focusedInput, equals: .details)
+                } header: {
+                    Text("Event")
+                } footer: {
+                    Text(preset.detail.count > 240
+                         ? "Keep event details to 240 characters or fewer."
+                         : "Amounts use the active scene's currency when you load this cue.")
+                }
+                Section {
+                    Stepper("\(preset.count) notification\(preset.count == 1 ? "" : "s")", value: $preset.count, in: 1...20)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Start after · seconds").font(.caption).foregroundStyle(.secondary)
+                        TextField("Seconds", text: $startAfter)
+                            .keyboardType(.decimalPad)
+                            .focused($focusedInput, equals: .delay)
+                            .accessibilityLabel("Start after in seconds")
+                    }
+                } header: {
+                    Text("Timing")
+                } footer: {
+                    Text("Start after 2 seconds to 24 hours. Multiple alerts arrive 10 seconds apart. Saving a cue does not schedule notifications.")
+                }
+            }
+            .navigationTitle("Save cue")
+            .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        focusedInput = nil
+                        if store.savePreset(prepared) { dismiss() }
+                    }
+                    .disabled(!valid)
+                    .accessibilityIdentifier("save-cue")
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focusedInput = nil }
+                }
+            }
+            .onAppear {
+                amount = localizedEntry(preset.amount)
+                startAfter = localizedEntry(preset.delay)
             }
         }
     }
+}
+
+private struct QueuedAlertsView: View {
+    @EnvironmentObject var store: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var cancelling: Set<String> = []
+    private var alerts: [QueuedAlert] {
+        store.queuedAlerts.sorted {
+            let first = $0.date ?? .distantFuture
+            let second = $1.date ?? .distantFuture
+            return first == second ? $0.id < $1.id : first < second
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if alerts.isEmpty {
+                    ContentUnavailableView("Your queue is clear", systemImage: "bell", description: Text("Notifications you cue in Studio appear here until they are delivered."))
+                }
+                ForEach(alerts) { alert in
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(alert.title).font(.headline)
+                            Text(alert.body).font(.subheadline).foregroundStyle(.secondary)
+                            if let sceneID = alert.sceneID,
+                               let scene = store.scenes.first(where: { $0.id == sceneID }) {
+                                Text(scene.name).font(.caption.weight(.semibold)).foregroundStyle(accent)
+                            }
+                            if let date = alert.date {
+                                Text(date.formatted(date: .abbreviated, time: .standard))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            } else {
+                                Text("Delivery time set by iOS").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        Button(role: .destructive) {
+                            cancelling.insert(alert.id)
+                            Task {
+                                await store.cancelAlert(alert)
+                                cancelling.remove(alert.id)
+                            }
+                        } label: {
+                            Group {
+                                if cancelling.contains(alert.id) { ProgressView() }
+                                else { Image(systemName: "xmark.circle.fill") }
+                            }
+                            .frame(width: 44, height: 44)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(cancelling.contains(alert.id))
+                        .accessibilityLabel("Cancel \(alert.title)")
+                        .accessibilityIdentifier("cancel-alert-\(alert.id)")
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+            .navigationTitle("Queued alerts")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
+            .task { await store.refreshNotifications() }
+            .refreshable { await store.refreshNotifications() }
+        }
+    }
+}
+
+private func cueDelayLabel(_ delay: Double) -> String {
+    if delay >= 3600, delay.truncatingRemainder(dividingBy: 3600) == 0 {
+        let hours = Int(delay / 3600)
+        return "\(hours) hour\(hours == 1 ? "" : "s")"
+    }
+    if delay >= 60, delay.truncatingRemainder(dividingBy: 60) == 0 {
+        let minutes = Int(delay / 60)
+        return "\(minutes) minute\(minutes == 1 ? "" : "s")"
+    }
+    return "\(delay.formatted(.number.precision(.fractionLength(0...2)))) seconds"
 }
 
 private func localizedEntry(_ value: Double) -> String {
