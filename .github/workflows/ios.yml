@@ -16,7 +16,7 @@ jobs:
         run: swift test
   ios:
     runs-on: macos-15
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Install project generator
@@ -62,6 +62,14 @@ jobs:
           sleep 3
           xcrun simctl io "$SIMULATOR_ID" screenshot simulator.png
           ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/Reverie.app Reverie-simulator.zip
+      - name: Build unsigned Shopify and bank variants
+        run: |
+          set -o pipefail
+          ./scripts/build-brand-variants.sh 2>&1 | tee variants-build.log
+      - name: Capture installed Shopify and Chase startup
+        run: |
+          set -o pipefail
+          ./scripts/verify-brand-startup.sh 2>&1 | tee brand-startup.log
       - name: Upload build evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,4 +83,7 @@ jobs:
             simulator.png
             Reverie-simulator.zip
             Reverie-unsigned.ipa
+            variants-build.log
+            brand-startup.log
+            brand-artifacts
           if-no-files-found: warn

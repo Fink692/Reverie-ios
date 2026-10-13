@@ -1,112 +1,115 @@
+warning: 'app': found 1 file(s) which are unhandled; explicitly declare them as resources or exclude from the target
+    /app/Sources/Order.caf
 [0/1] Planning build
 Building for debugging...
-[0/4] Write sources
-[2/4] Write swift-version-24593BA9C3E375BF.txt
-[4/6] Emitting module Reverie
-[5/6] Compiling Reverie Models.swift
-[7/9] Compiling ReverieCoreTests PlaybackModelTests.swift
-[8/9] Emitting module ReverieCoreTests
-[9/16] /app/.build/x86_64-unknown-linux-gnu/debug/ReverieCorePackageDiscoveredTests.derived/all-discovered-tests.swift
-[10/17] Write sources
-[11/17] Wrapping AST for ReverieCoreTests for debugging
-[13/20] Emitting module ReverieCorePackageDiscoveredTests
-[14/20] Compiling ReverieCorePackageDiscoveredTests ReverieCoreTests.swift
-[15/20] Compiling ReverieCorePackageDiscoveredTests all-discovered-tests.swift
-[16/21] /app/.build/x86_64-unknown-linux-gnu/debug/ReverieCorePackageTests.derived/runner.swift
-[17/22] Write sources
-[18/22] Wrapping AST for ReverieCorePackageDiscoveredTests for debugging
-[20/24] Emitting module ReverieCorePackageTests
-[21/24] Compiling ReverieCorePackageTests runner.swift
-[22/24] Write Objects.LinkFileList
-[23/24] Linking ReverieCorePackageTests.xctest
-Build complete! (2.83s)
-Test Suite 'All tests' started at 2026-10-13 02:57:16.736
-Test Suite 'debug.xctest' started at 2026-10-13 02:57:16.737
-Test Suite 'PlaybackModelTests' started at 2026-10-13 02:57:16.737
-Test Case 'PlaybackModelTests.testCommerceNotificationUsesOrderQuantityAndStoreName' started at 2026-10-13 02:57:16.737
-Test Case 'PlaybackModelTests.testCommerceNotificationUsesOrderQuantityAndStoreName' passed (0.002 seconds)
-Test Case 'PlaybackModelTests.testImpossibleOrderMetadataCannotChangeTotals' started at 2026-10-13 02:57:16.739
+[0/3] Write sources
+[1/3] Write swift-version-24593BA9C3E375BF.txt
+[3/6] Emitting module Reverie
+[4/6] Compiling Reverie Models.swift
+[5/6] Compiling Reverie PlaybackModels.swift
+[6/7] Compiling Reverie SessionStorage.swift
+[7/15] Wrapping AST for Reverie for debugging
+[9/20] Compiling ReverieCoreTests SessionCodecTests.swift
+[10/21] Compiling ReverieCoreTests PlaybackModelTests.swift
+[11/21] Emitting module ReverieCoreTests
+[12/21] Compiling ReverieCoreTests SimulationTests.swift
+[13/21] Compiling ReverieCoreTests SessionStorageTests.swift
+[14/21] Compiling ReverieCoreTests ValidationTests.swift
+[15/21] /app/.build/x86_64-unknown-linux-gnu/debug/ReverieCorePackageDiscoveredTests.derived/all-discovered-tests.swift
+[16/22] Write sources
+[18/25] Compiling ReverieCorePackageDiscoveredTests ReverieCoreTests.swift
+[19/25] Compiling ReverieCorePackageDiscoveredTests all-discovered-tests.swift
+[20/25] Emitting module ReverieCorePackageDiscoveredTests
+[21/23] Write Objects.LinkFileList
+[22/23] Linking ReverieCorePackageTests.xctest
+Build complete! (2.25s)
+Test Suite 'All tests' started at 2026-10-13 03:35:27.449
+Test Suite 'debug.xctest' started at 2026-10-13 03:35:27.450
+Test Suite 'PlaybackModelTests' started at 2026-10-13 03:35:27.450
+Test Case 'PlaybackModelTests.testCommerceNotificationUsesOrderQuantityAndStoreName' started at 2026-10-13 03:35:27.450
+Test Case 'PlaybackModelTests.testCommerceNotificationUsesOrderQuantityAndStoreName' passed (0.001 seconds)
+Test Case 'PlaybackModelTests.testImpossibleOrderMetadataCannotChangeTotals' started at 2026-10-13 03:35:27.452
 Test Case 'PlaybackModelTests.testImpossibleOrderMetadataCannotChangeTotals' passed (0.0 seconds)
-Test Case 'PlaybackModelTests.testInvalidChartsAndCardSuffixesAreRejected' started at 2026-10-13 02:57:16.740
-Test Case 'PlaybackModelTests.testInvalidChartsAndCardSuffixesAreRejected' passed (0.102 seconds)
-Test Case 'PlaybackModelTests.testLegacyArchiveDefaultsPlaybackProfiles' started at 2026-10-13 02:57:16.842
+Test Case 'PlaybackModelTests.testInvalidChartsAndCardSuffixesAreRejected' started at 2026-10-13 03:35:27.452
+Test Case 'PlaybackModelTests.testInvalidChartsAndCardSuffixesAreRejected' passed (0.001 seconds)
+Test Case 'PlaybackModelTests.testLegacyArchiveDefaultsPlaybackProfiles' started at 2026-10-13 03:35:27.454
 Test Case 'PlaybackModelTests.testLegacyArchiveDefaultsPlaybackProfiles' passed (0.002 seconds)
-Test Case 'PlaybackModelTests.testProfilesAndOrderMetadataSurviveExport' started at 2026-10-13 02:57:16.844
-Test Case 'PlaybackModelTests.testProfilesAndOrderMetadataSurviveExport' passed (0.002 seconds)
-Test Case 'PlaybackModelTests.testProfilesCannotReferenceMissingScene' started at 2026-10-13 02:57:16.846
+Test Case 'PlaybackModelTests.testProfilesAndOrderMetadataSurviveExport' started at 2026-10-13 03:35:27.455
+Test Case 'PlaybackModelTests.testProfilesAndOrderMetadataSurviveExport' passed (0.001 seconds)
+Test Case 'PlaybackModelTests.testProfilesCannotReferenceMissingScene' started at 2026-10-13 03:35:27.457
 Test Case 'PlaybackModelTests.testProfilesCannotReferenceMissingScene' passed (0.0 seconds)
-Test Suite 'PlaybackModelTests' passed at 2026-10-13 02:57:16.846
-	 Executed 6 tests, with 0 failures (0 unexpected) in 0.108 (0.108) seconds
-Test Suite 'SessionCodecTests' started at 2026-10-13 02:57:16.846
-Test Case 'SessionCodecTests.testCorruptedReferencesCannotBeImported' started at 2026-10-13 02:57:16.846
-Test Case 'SessionCodecTests.testCorruptedReferencesCannotBeImported' passed (0.113 seconds)
-Test Case 'SessionCodecTests.testDuplicateOrInvalidPresetsAreRejected' started at 2026-10-13 02:57:16.963
-Test Case 'SessionCodecTests.testDuplicateOrInvalidPresetsAreRejected' passed (0.017 seconds)
-Test Case 'SessionCodecTests.testExportImportPreservesCuesAndSceneSelection' started at 2026-10-13 02:57:16.980
-Test Case 'SessionCodecTests.testExportImportPreservesCuesAndSceneSelection' passed (0.001 seconds)
-Test Case 'SessionCodecTests.testLegacyExportWithoutPresetsStillLoads' started at 2026-10-13 02:57:16.980
-Test Case 'SessionCodecTests.testLegacyExportWithoutPresetsStillLoads' passed (0.001 seconds)
-Test Case 'SessionCodecTests.testOversizedFileIsRejectedBeforeJSONDecode' started at 2026-10-13 02:57:16.981
+Test Suite 'PlaybackModelTests' passed at 2026-10-13 03:35:27.457
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.007 (0.007) seconds
+Test Suite 'SessionCodecTests' started at 2026-10-13 03:35:27.457
+Test Case 'SessionCodecTests.testCorruptedReferencesCannotBeImported' started at 2026-10-13 03:35:27.457
+Test Case 'SessionCodecTests.testCorruptedReferencesCannotBeImported' passed (0.0 seconds)
+Test Case 'SessionCodecTests.testDuplicateOrInvalidPresetsAreRejected' started at 2026-10-13 03:35:27.457
+Test Case 'SessionCodecTests.testDuplicateOrInvalidPresetsAreRejected' passed (0.0 seconds)
+Test Case 'SessionCodecTests.testExportImportPreservesCuesAndSceneSelection' started at 2026-10-13 03:35:27.457
+Test Case 'SessionCodecTests.testExportImportPreservesCuesAndSceneSelection' passed (0.0 seconds)
+Test Case 'SessionCodecTests.testLegacyExportWithoutPresetsStillLoads' started at 2026-10-13 03:35:27.458
+Test Case 'SessionCodecTests.testLegacyExportWithoutPresetsStillLoads' passed (0.0 seconds)
+Test Case 'SessionCodecTests.testOversizedFileIsRejectedBeforeJSONDecode' started at 2026-10-13 03:35:27.458
 Test Case 'SessionCodecTests.testOversizedFileIsRejectedBeforeJSONDecode' passed (0.001 seconds)
-Test Case 'SessionCodecTests.testPresetCapacityIsBounded' started at 2026-10-13 02:57:16.982
+Test Case 'SessionCodecTests.testPresetCapacityIsBounded' started at 2026-10-13 03:35:27.459
 Test Case 'SessionCodecTests.testPresetCapacityIsBounded' passed (0.0 seconds)
-Test Suite 'SessionCodecTests' passed at 2026-10-13 02:57:16.982
-	 Executed 6 tests, with 0 failures (0 unexpected) in 0.132 (0.132) seconds
-Test Suite 'SessionStorageTests' started at 2026-10-13 02:57:16.982
-Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' started at 2026-10-13 02:57:16.982
-Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' passed (0.005 seconds)
-Test Case 'SessionStorageTests.testInvalidSaveDoesNotReplaceValidSession' started at 2026-10-13 02:57:16.987
+Test Suite 'SessionCodecTests' passed at 2026-10-13 03:35:27.459
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'SessionStorageTests' started at 2026-10-13 03:35:27.459
+Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' started at 2026-10-13 03:35:27.459
+Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' passed (0.003 seconds)
+Test Case 'SessionStorageTests.testInvalidSaveDoesNotReplaceValidSession' started at 2026-10-13 03:35:27.462
 Test Case 'SessionStorageTests.testInvalidSaveDoesNotReplaceValidSession' passed (0.001 seconds)
-Test Case 'SessionStorageTests.testMissingSessionAndAtomicRoundTrip' started at 2026-10-13 02:57:16.988
+Test Case 'SessionStorageTests.testMissingSessionAndAtomicRoundTrip' started at 2026-10-13 03:35:27.463
 Test Case 'SessionStorageTests.testMissingSessionAndAtomicRoundTrip' passed (0.001 seconds)
-Test Case 'SessionStorageTests.testWriteFailureIsReported' started at 2026-10-13 02:57:16.990
+Test Case 'SessionStorageTests.testWriteFailureIsReported' started at 2026-10-13 03:35:27.465
 Test Case 'SessionStorageTests.testWriteFailureIsReported' passed (0.0 seconds)
-Test Suite 'SessionStorageTests' passed at 2026-10-13 02:57:16.990
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
-Test Suite 'SimulationTests' started at 2026-10-13 02:57:16.990
-Test Case 'SimulationTests.testArchiveRoundTripPreservesSceneReferences' started at 2026-10-13 02:57:16.990
+Test Suite 'SessionStorageTests' passed at 2026-10-13 03:35:27.465
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'SimulationTests' started at 2026-10-13 03:35:27.465
+Test Case 'SimulationTests.testArchiveRoundTripPreservesSceneReferences' started at 2026-10-13 03:35:27.465
 Test Case 'SimulationTests.testArchiveRoundTripPreservesSceneReferences' passed (0.0 seconds)
-Test Case 'SimulationTests.testBankDepositUpdatesBalanceAndIncome' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testBankDepositUpdatesBalanceAndIncome' started at 2026-10-13 03:35:27.465
 Test Case 'SimulationTests.testBankDepositUpdatesBalanceAndIncome' passed (0.0 seconds)
-Test Case 'SimulationTests.testCreatorPayoutUpdatesEarnings' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testCreatorPayoutUpdatesEarnings' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testCreatorPayoutUpdatesEarnings' passed (0.0 seconds)
-Test Case 'SimulationTests.testInvalidAmountsAreRejected' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testInvalidAmountsAreRejected' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testInvalidAmountsAreRejected' passed (0.0 seconds)
-Test Case 'SimulationTests.testOrderUpdatesTotalsAndPreservesIdentity' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testOrderUpdatesTotalsAndPreservesIdentity' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testOrderUpdatesTotalsAndPreservesIdentity' passed (0.0 seconds)
-Test Case 'SimulationTests.testPaymentCannotOverdraw' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testPaymentCannotOverdraw' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testPaymentCannotOverdraw' passed (0.0 seconds)
-Test Case 'SimulationTests.testRefundReducesSalesWithoutDeletingOrderCount' started at 2026-10-13 02:57:16.991
+Test Case 'SimulationTests.testRefundReducesSalesWithoutDeletingOrderCount' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testRefundReducesSalesWithoutDeletingOrderCount' passed (0.0 seconds)
-Test Case 'SimulationTests.testSubscriberOnlyChangesAudience' started at 2026-10-13 02:57:16.992
+Test Case 'SimulationTests.testSubscriberOnlyChangesAudience' started at 2026-10-13 03:35:27.466
 Test Case 'SimulationTests.testSubscriberOnlyChangesAudience' passed (0.0 seconds)
-Test Suite 'SimulationTests' passed at 2026-10-13 02:57:16.992
+Test Suite 'SimulationTests' passed at 2026-10-13 03:35:27.466
 	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'ValidationTests' started at 2026-10-13 02:57:16.992
-Test Case 'ValidationTests.testArchiveRejectsDuplicateScenesAndOrphanEvents' started at 2026-10-13 02:57:16.992
+Test Suite 'ValidationTests' started at 2026-10-13 03:35:27.466
+Test Case 'ValidationTests.testArchiveRejectsDuplicateScenesAndOrphanEvents' started at 2026-10-13 03:35:27.466
 Test Case 'ValidationTests.testArchiveRejectsDuplicateScenesAndOrphanEvents' passed (0.0 seconds)
-Test Case 'ValidationTests.testArchiveRejectsInvalidTotalsAndCounts' started at 2026-10-13 02:57:16.992
+Test Case 'ValidationTests.testArchiveRejectsInvalidTotalsAndCounts' started at 2026-10-13 03:35:27.466
 Test Case 'ValidationTests.testArchiveRejectsInvalidTotalsAndCounts' passed (0.0 seconds)
-Test Case 'ValidationTests.testEventCannotUpdateAnotherScene' started at 2026-10-13 02:57:16.992
+Test Case 'ValidationTests.testEventCannotUpdateAnotherScene' started at 2026-10-13 03:35:27.467
 Test Case 'ValidationTests.testEventCannotUpdateAnotherScene' passed (0.0 seconds)
-Test Case 'ValidationTests.testLocalizedDecimalDigitsRoundTrip' started at 2026-10-13 02:57:16.992
+Test Case 'ValidationTests.testLocalizedDecimalDigitsRoundTrip' started at 2026-10-13 03:35:27.467
 Test Case 'ValidationTests.testLocalizedDecimalDigitsRoundTrip' passed (0.001 seconds)
-Test Case 'ValidationTests.testLocalizedDecimalInputAndZero' started at 2026-10-13 02:57:16.993
+Test Case 'ValidationTests.testLocalizedDecimalInputAndZero' started at 2026-10-13 03:35:27.468
 Test Case 'ValidationTests.testLocalizedDecimalInputAndZero' passed (0.0 seconds)
-Test Case 'ValidationTests.testNotificationCapacityAndTimingAreBounded' started at 2026-10-13 02:57:16.994
+Test Case 'ValidationTests.testNotificationCapacityAndTimingAreBounded' started at 2026-10-13 03:35:27.468
 Test Case 'ValidationTests.testNotificationCapacityAndTimingAreBounded' passed (0.0 seconds)
-Test Case 'ValidationTests.testNotificationPlanKeepsSceneAndSpacing' started at 2026-10-13 02:57:16.994
+Test Case 'ValidationTests.testNotificationPlanKeepsSceneAndSpacing' started at 2026-10-13 03:35:27.468
 Test Case 'ValidationTests.testNotificationPlanKeepsSceneAndSpacing' passed (0.0 seconds)
-Test Case 'ValidationTests.testOverflowingDashboardTotalsStayUnchanged' started at 2026-10-13 02:57:16.994
+Test Case 'ValidationTests.testOverflowingDashboardTotalsStayUnchanged' started at 2026-10-13 03:35:27.468
 Test Case 'ValidationTests.testOverflowingDashboardTotalsStayUnchanged' passed (0.0 seconds)
-Test Case 'ValidationTests.testSubscriberNotificationHasNoMoneyOrEmptySeparator' started at 2026-10-13 02:57:16.994
+Test Case 'ValidationTests.testSubscriberNotificationHasNoMoneyOrEmptySeparator' started at 2026-10-13 03:35:27.469
 Test Case 'ValidationTests.testSubscriberNotificationHasNoMoneyOrEmptySeparator' passed (0.0 seconds)
-Test Suite 'ValidationTests' passed at 2026-10-13 02:57:16.994
-	 Executed 9 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
-Test Suite 'debug.xctest' passed at 2026-10-13 02:57:16.994
-	 Executed 33 tests, with 0 failures (0 unexpected) in 0.252 (0.252) seconds
-Test Suite 'All tests' passed at 2026-10-13 02:57:16.995
-	 Executed 33 tests, with 0 failures (0 unexpected) in 0.252 (0.252) seconds
+Test Suite 'ValidationTests' passed at 2026-10-13 03:35:27.469
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'debug.xctest' passed at 2026-10-13 03:35:27.469
+	 Executed 33 tests, with 0 failures (0 unexpected) in 0.018 (0.018) seconds
+Test Suite 'All tests' passed at 2026-10-13 03:35:27.469
+	 Executed 33 tests, with 0 failures (0 unexpected) in 0.018 (0.018) seconds
 ◇ Test run started.
 ↳ Testing Library Version: 6.0.3 (18c42c19cac3faf)
 ✔ Test run with 0 tests passed after 0.001 seconds.

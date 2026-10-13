@@ -9,9 +9,10 @@ final class ReverieUITests: XCTestCase {
         testSessionID = UUID().uuidString
     }
 
-    private func makeApp() -> XCUIApplication {
+    private func makeApp(brand: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-test-session", testSessionID, "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        if let brand { app.launchArguments += ["-ui-test-brand", brand] }
         return app
     }
 
@@ -42,6 +43,18 @@ final class ReverieUITests: XCTestCase {
         }
     }
 
+    private func waitForHittable(_ element: XCUIElement, timeout: TimeInterval = 5, file: StaticString = #filePath, line: UInt = #line) {
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                guard let element = object as? XCUIElement else { return false }
+                return element.exists && element.isHittable
+            },
+            object: element
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed,
+                       "The control did not become hittable within \(timeout) seconds.", file: file, line: line)
+    }
+
     func testOnboardingStaysDismissedAfterRelaunch() {
         let app = makeApp()
         app.launch()
@@ -53,6 +66,50 @@ final class ReverieUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
         XCTAssertFalse(welcome.exists)
+    }
+
+    func testCommerceBrandStartsInPlaybackAfterOnboardingAndRelaunch() {
+        let app = makeApp(brand: "commerce")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let home = app.buttons["commerce-tab-home"]
+        waitForHittable(home)
+        let closeScene = app.buttons["close-scene"]
+        waitForHittable(closeScene)
+        closeScene.tap()
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Northstar"].tap()
+        app.terminate()
+        app.launch()
+        waitForHittable(home)
+        XCTAssertFalse(welcome.exists)
+        closeScene.tap()
+    }
+
+    func testBankBrandStartsInPlaybackAfterOnboardingAndRelaunch() {
+        let app = makeApp(brand: "chase")
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 5))
+        welcome.tap()
+        let bankPicker = app.buttons["bank-theme-picker"]
+        waitForHittable(bankPicker)
+        XCTAssertTrue(bankPicker.label.contains("Chase"))
+        let closeScene = app.buttons["close-scene"]
+        closeScene.tap()
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Northstar"].waitForExistence(timeout: 3))
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Studio Supply"].tap()
+        app.terminate()
+        app.launch()
+        waitForHittable(bankPicker)
+        XCTAssertTrue(bankPicker.label.contains("Chase"))
+        XCTAssertFalse(welcome.exists)
+        closeScene.tap()
     }
 
     func testNewSceneValidationAndPersistence() {
@@ -176,14 +233,22 @@ final class ReverieUITests: XCTestCase {
         openScene.tap()
         let bankPicker = app.buttons["bank-theme-picker"]
         XCTAssertTrue(bankPicker.waitForExistence(timeout: 5))
-        XCTAssertTrue(bankPicker.isHittable)
+        waitForHittable(bankPicker)
         XCTAssertTrue(bankPicker.label.contains("Chase"))
+        let balanceElements = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label CONTAINS %@", "$84,250.75")
+        )
+        XCTAssertTrue(balanceElements.allElementsBoundByIndex.contains { $0.isHittable }, "Chase must show the selected scene's balance")
         let chaseScreenshot = XCTAttachment(screenshot: app.screenshot())
         chaseScreenshot.name = "Bank playback Chase"
         chaseScreenshot.lifetime = .keepAlways
         add(chaseScreenshot)
 
-        for name in ["Monzo", "Revolut"] {
+        let bankNames = [
+            "Bank of America", "Wells Fargo", "Citi", "Capital One", "HSBC", "Barclays",
+            "Lloyds Bank", "NatWest", "Monzo", "Starling Bank", "Revolut"
+        ]
+        for name in bankNames {
             bankPicker.tap()
             let bank = app.buttons[name]
             XCTAssertTrue(bank.waitForExistence(timeout: 3))
@@ -192,6 +257,8 @@ final class ReverieUITests: XCTestCase {
                 predicate: NSPredicate(format: "label CONTAINS %@", name), object: bankPicker
             )
             XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+            waitForHittable(bankPicker)
+            XCTAssertTrue(balanceElements.allElementsBoundByIndex.contains { $0.isHittable }, "\(name) must show the selected scene's balance")
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "Bank playback \(name)"
             screenshot.lifetime = .keepAlways
@@ -205,6 +272,7 @@ final class ReverieUITests: XCTestCase {
         scrollTo(openScene, in: app)
         openScene.tap()
         XCTAssertTrue(bankPicker.waitForExistence(timeout: 5))
+        waitForHittable(bankPicker)
         XCTAssertTrue(bankPicker.label.contains("Revolut"))
         app.buttons["close-scene"].tap()
     }

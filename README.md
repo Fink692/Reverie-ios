@@ -1,6 +1,6 @@
 # Reverie
 
-Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, saved cue presets, alert queue with individual cancellation, JSON import/export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles and are sent by Reverie. Simulation context is explained in onboarding and Settings.
+Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator dashboards, editable scenes and totals, immediate simulated events, searchable activity, local notification sessions, saved cue presets, alert queue with individual cancellation, JSON import/export, persistence, light/dark appearance, and reset controls. Notifications use natural event titles. The Studio build uses Reverie’s name and icon; optional commerce/bank variants use their own configured display names and official reference icons. Simulation context is explained in onboarding and Settings.
 
 ## Open and run
 
@@ -25,13 +25,13 @@ Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINAT
 4. Settings: create, edit, delete, or select scenes; export a JSON file or import a saved session; change appearance; cancel notifications; reset data.
 5. Studio saved cues: save the current setup, edit and reuse named presets, and review or cancel individual queued alerts.
 
-Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Real system notifications cannot use another installed app's name/icon. Charts show explicitly labeled illustrative curves, not invented historical records. All currencies use the device locale for formatting. No real financial or commerce services are connected.
+Notification permission is requested only when cueing alerts. Focus modes, notification settings, and system delivery policy can affect presentation. Each build variant has its own unique bundle identity, display name, and icon. iOS renders notifications using that installed variant’s identity. Charts show explicitly labeled illustrative curves, not invented historical records. All currencies use the device locale for formatting. No real financial or commerce services are connected.
 
 ## Validation status
 
 The baseline hosted build (`f989f89`) passed on GitHub Actions: unsigned physical-device compilation, 34 native XCTest cases, and 6 iPhone UI tests, using Xcode 16.4 and an iPhone 17 Pro Max simulator running iOS 26.2. The baseline run is https://github.com/Fink692/Reverie-ios/actions/runs/38337929358.
 
-The newer immersive commerce/bank scenes are undergoing their own hosted build. Shared model/storage tests run locally with Swift 6.0.3; source grammar and generated project references are checked too. Native screenshots are compared with official references before assessing visual parity. No App Store certification or signed-device release is claimed.
+The immersive build (`28c276b`) passed device compilation and all 42 native unit tests; 7 of 8 UI tests passed. The remaining bank test found a selector before it became tappable. Its wait and touch target have been corrected, and the next hosted build verifies all 12 bank themes plus branded startup. The latest shared Swift suite has 33 passing tests. See `Verification/STATUS.md` for current evidence. No App Store certification or signed-device release is claimed.
 
 ## Design references
 
@@ -40,7 +40,7 @@ The newer immersive commerce/bank scenes are undergoing their own hosted build. 
 - Shopify app overview: https://help.shopify.com/en/manual/shopify-admin/shopify-app
 - Shopify analytics: https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/overview-dashboard
 
-References informed native navigation, concise alerts, sales/order metrics, and activity patterns. Reverie uses its own identity and fictional scenes, rather than bank/Shopify branding.
+References informed native navigation, concise alerts, sales/order metrics, and activity patterns. The Studio build uses Reverie’s identity. Optional brand variants use public App Store artwork with provenance in `References/Branding`, unique Reverie bundle identifiers, and fictional local scenes.
 
 ## Build without owning a Mac
 
@@ -54,7 +54,7 @@ The user-provided repository is https://github.com/Fink692/Reverie-ios. It is pu
 
 Supported events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
 
-Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
+Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard in Studio; a matching commerce/bank variant opens its immersive scene. A corrupt save is kept in a uniquely named recovery file before new data replaces it.
 
 ## Restoring a session
 
@@ -68,6 +68,12 @@ Dashboard → Open scene hides Studio navigation and opens commerce or bank play
 
 Bank playback offers Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC UK, Barclays UK, Lloyds, NatWest, Monzo, Revolut and Starling. These are 12 named references, not an exhaustive list of every major bank worldwide. Each has a distinct reference-based overview, account/activity pages, editable balances, simulated payments/deposits, and persisted card controls. Change the scene currency in Studio for the desired region.
 
-Reference provenance and known differences are in `References/Shopify/README.md` and `References/Banks/README.md`. App Store images include promotional framing; the implementation reproduces visible in-app patterns, and has its own Close scene control. It is not yet certified as pixel-identical to complete third-party apps. System notifications retain Reverie's installed identity.
+Reference provenance and known differences are in `References/Shopify/README.md` and `References/Banks/README.md`. App Store images include promotional framing; the implementation reproduces visible in-app patterns, and has its own Close scene control. It is not certified as pixel-identical to complete third-party apps. Optional variants supply matching reference icons and brand display names, but exact genuine installed display-name values have not been verified. Commerce orders use an original cash-register sound approximation; the exact Shopify Cha-Ching recording has not been verified.
 
 The workflow also produces `Reverie-unsigned.ipa`. This is a physical-device build package, **not directly installable until signed** using an Apple account/developer team or an authorized sideloading tool. The simulator archive runs on a Mac's iOS Simulator. Neither artifact grants access to real bank or Shopify services.
+
+## Separate commerce and bank packages
+
+After the base device build, run `./scripts/build-brand-variants.sh` on a Mac. It produces 13 unsigned packages and a verified SHA-256 manifest in `brand-artifacts`: Shopify-style commerce plus Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC, Barclays, Lloyds Bank, NatWest, Monzo, Revolut and Starling Bank. Use `--only chase` (or another ID from `References/Branding/variants.json`) to build one package. GitHub Actions builds and uploads all 13 automatically.
+
+Each variant launches its matching immersive scene after the roleplay onboarding and on subsequent launches. Close the scene to use Studio controls. All variants remain local fictional simulators with separate storage; their identities do not replace the genuine apps. See `INSTALL.md` for signing and installation options.

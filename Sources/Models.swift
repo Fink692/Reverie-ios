@@ -56,12 +56,15 @@ struct SceneEvent: Codable, Identifiable, Equatable {
     var orderNumber: Int?
     var customerName: String?
     var itemCount: Int?
+    /// True for an atomic transfer between this scene's checking and savings accounts.
+    var savingsTransfer: Bool?
     var title: String { kind.title }
     var isValid: Bool {
         Simulation.validAmount(amount) && detail.count <= 240 && date.timeIntervalSince1970.isFinite &&
         (orderNumber.map { (1...2_000_000).contains($0) } ?? true) &&
         (customerName.map { !$0.isEmpty && $0.count <= 80 } ?? true) &&
-        (itemCount.map { (1...1000).contains($0) } ?? true)
+        (itemCount.map { (1...1000).contains($0) } ?? true) &&
+        (savingsTransfer != true || kind == .payment || kind == .deposit)
     }
     func body(scene: StudioScene) -> String {
         if scene.kind == .commerce && kind == .order {

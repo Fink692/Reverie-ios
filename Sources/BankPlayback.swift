@@ -13,6 +13,7 @@ struct BankPlayback: View {
 
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var profile: BankProfile { store.bankProfile(for: sceneID) }
+    private var holderName: String { profile.holderName ?? scene?.name ?? profile.accountName }
     private var theme: BankTheme { profile.theme }
     private var palette: BankPalette { BankPalette(theme) }
     private var activity: [SceneEvent] {
@@ -33,6 +34,8 @@ struct BankPlayback: View {
                         case .more: morePage(scene)
                         case .deposits: BankPaymentPage(sceneID: sceneID, theme: theme, initiallyIncoming: true)
                         case .spaces: BankAccountDetail(sceneID: sceneID, theme: theme, savings: true)
+                        case .transfers: BankSavingsTransferPage(sceneID: sceneID, theme: theme)
+                        case .statement: BankStatementPage(sceneID: sceneID, theme: theme)
                         }
                         if theme != .hsbc { bottomTabs }
                     }
@@ -56,6 +59,8 @@ struct BankPlayback: View {
                         }
                     } label: {
                         BankBrandMark(theme: theme, color: palette.headerInk)
+                            .frame(minWidth: 140, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .accessibilityLabel("Choose bank, currently \(theme.name)")
                     .accessibilityIdentifier("bank-theme-picker")
@@ -119,8 +124,8 @@ struct BankPlayback: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Good morning, \(profile.accountName)").font(.system(size: 22, weight: .medium))
-                    Button("See statements") { tab = .activity }.font(.system(size: 14))
+                    Text("Good morning, \(holderName)").font(.system(size: 22, weight: .medium))
+                    Button("See statements") { tab = .statement }.font(.system(size: 14))
                 }
                 Spacer()
                 Image(systemName: "bubble.left").font(.title3)
@@ -159,7 +164,7 @@ struct BankPlayback: View {
             }.font(.system(size: 14)).foregroundStyle(.secondary).padding(12).bankSurface(radius: 3)
             VStack(alignment: .leading, spacing: 16) {
                 Button { showProfile = true } label: {
-                    HStack { VStack(alignment: .leading, spacing: 3) { Text("Hello, \(profile.accountName)").fontWeight(.bold); Text("Preferred Rewards").font(.caption).foregroundStyle(.secondary) }; Spacer(); Image(systemName: "chevron.right") }
+                    HStack { VStack(alignment: .leading, spacing: 3) { Text("Hello, \(holderName)").fontWeight(.bold); Text("Preferred Rewards").font(.caption).foregroundStyle(.secondary) }; Spacer(); Image(systemName: "chevron.right") }
                 }.buttonStyle(.plain)
                 Divider()
                 HStack { Image(systemName: "location.north.circle"); Text("Bank of America Life Plan").fontWeight(.semibold); Spacer(); Image(systemName: "chevron.right") }.font(.system(size: 14))
@@ -178,7 +183,7 @@ struct BankPlayback: View {
     private func wellsHome(_ scene: StudioScene) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
-                Text("Good morning, \(profile.accountName)").font(.system(size: 24, weight: .medium))
+                Text("Good morning, \(holderName)").font(.system(size: 24, weight: .medium))
                 Spacer()
                 Button { tab = .activity } label: { Image(systemName: "bell") }.accessibilityLabel("Activity")
             }.padding(.top, 22)
@@ -194,7 +199,7 @@ struct BankPlayback: View {
     private func citiHome(_ scene: StudioScene) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 20) {
-                HStack { Text("Welcome, \(profile.accountName)").font(.system(size: 21, weight: .bold)); Spacer(); Image(systemName: "magnifyingglass") }
+                HStack { Text("Welcome, \(holderName)").font(.system(size: 21, weight: .bold)); Spacer(); Image(systemName: "magnifyingglass") }
                 HStack(spacing: 20) { Text("My Citi").fontWeight(.bold).underline(); Text("Banking"); Button("Cards") { showCard = true }; Spacer() }.font(.system(size: 13))
                 Text("⌃  Checking").font(.system(size: 15, weight: .semibold))
                 NavigationLink {
@@ -207,7 +212,7 @@ struct BankPlayback: View {
                 }
                 HStack(spacing: 8) {
                     Button("Pay & transfer") { tab = .payments }
-                    Button("Statements") { tab = .activity }
+                    Button("Statements") { tab = .statement }
                     Button("Lock Card") { showCard = true }
                 }.font(.system(size: 12, weight: .semibold)).buttonStyle(.bordered).tint(.white)
             }.padding(22).foregroundStyle(.white)
@@ -220,7 +225,7 @@ struct BankPlayback: View {
     private func capitalHome(_ scene: StudioScene) -> some View {
         VStack(spacing: 16) {
             VStack(spacing: 6) {
-                Text("Good morning, \(profile.accountName)!").font(.system(size: 20, weight: .medium))
+                Text("Good morning, \(holderName)!").font(.system(size: 20, weight: .medium))
                 Text("Your accounts, all in one place.").font(.system(size: 14)).foregroundStyle(.secondary)
                 Button("Pay now") { tab = .payments }.font(.system(size: 15, weight: .semibold))
             }.padding(.vertical, 22)
@@ -250,7 +255,7 @@ struct BankPlayback: View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 5) {
                 Text("Home").font(.system(size: 29, weight: .bold))
-                Text("\(profile.accountName)").font(.system(size: 14)).foregroundStyle(.secondary)
+                Text(holderName).font(.system(size: 14)).foregroundStyle(.secondary)
             }.padding(.top, 18)
             Button { tab = .more } label: {
                 HStack { Image(systemName: "magnifyingglass"); Text("Search and quick actions"); Spacer() }.font(.system(size: 14)).foregroundStyle(.secondary).padding(12).bankSurface(radius: 5)
@@ -318,7 +323,7 @@ struct BankPlayback: View {
                 HStack { Text("monzo").font(.system(size: 24, weight: .bold)); Spacer(); VStack(alignment: .trailing, spacing: 3) { Text(scene.money(scene.balance)).font(.system(size: 26, weight: .bold)); Text("Balance").font(.caption) } }
                 Text("04-00-04 · ••••\(profile.accountSuffix)").font(.system(size: 12, weight: .medium))
                 HStack(spacing: 10) {
-                    Button { tab = .payments } label: { Label("Add money", systemImage: "plus.circle.fill") }
+                    Button { tab = .deposits } label: { Label("Add money", systemImage: "plus.circle.fill") }
                     Button { showCard = true } label: { Label("Card", systemImage: "creditcard.fill") }
                     Spacer()
                     NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: false) } label: { Image(systemName: "ellipsis.circle.fill") }.accessibilityLabel("Account details")
@@ -338,8 +343,8 @@ struct BankPlayback: View {
                 Text(scene.money(scene.balance)).font(.system(size: 43, weight: .bold, design: .rounded)).minimumScaleFactor(0.6).lineLimit(1)
                 NavigationLink { BankAccountDetail(sceneID: sceneID, theme: theme, savings: false) } label: { Text("Accounts").font(.system(size: 14, weight: .medium)).padding(.horizontal, 17).padding(.vertical, 8).background(.white.opacity(0.18), in: Capsule()) }
                 HStack(spacing: 0) {
-                    revolutAction("Add money", symbol: "plus", action: { tab = .payments })
-                    revolutAction("Move", symbol: "arrow.left.arrow.right", action: { tab = .payments })
+                    revolutAction("Add money", symbol: "plus", action: { tab = .deposits })
+                    revolutAction("Move", symbol: "arrow.left.arrow.right", action: { tab = .transfers })
                     revolutAction("Details", symbol: "info", action: { showProfile = true })
                     revolutAction("More", symbol: "ellipsis", action: { tab = .more })
                 }.padding(.top, 10)
@@ -419,6 +424,8 @@ struct BankPlayback: View {
             ForEach(Array(actions.enumerated()), id: \.offset) { _, action in
                 Button {
                     if action.0.lowercased().contains("card") { showCard = true }
+                    else if action.0.lowercased().contains("deposit") || action.0.lowercased().contains("add money") { tab = .deposits }
+                    else if action.0 == "Transfer" { tab = .transfers }
                     else if action.0 == "Activity" { tab = .activity }
                     else { tab = .payments }
                 } label: {
@@ -538,7 +545,7 @@ struct BankPlayback: View {
     }
 }
 
-private enum BankPlaybackTab: String { case home, payments, activity, cards, more, deposits, spaces }
+private enum BankPlaybackTab: String { case home, payments, activity, cards, more, deposits, spaces, transfers, statement }
 
 private struct BankAccountDetail: View {
     @EnvironmentObject private var store: StudioStore
@@ -553,26 +560,27 @@ private struct BankAccountDetail: View {
                 List {
                     Section {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text(savings ? "Savings" : profile.accountName + "'s account").font(.system(size: 18, weight: .medium))
+                            Text(savings ? "Savings" : profile.accountName).font(.system(size: 18, weight: .medium))
                             Text(scene.money(savings ? profile.savings : scene.balance)).font(.system(size: 35, weight: .semibold)).minimumScaleFactor(0.6).lineLimit(1)
                             Text("Available balance").font(.system(size: 13)).foregroundStyle(.secondary)
                         }.padding(.vertical, 14)
                         LabeledContent("Account ending", value: savings ? theme.playbackSavingsSuffix : profile.accountSuffix)
-                        LabeledContent("Account holder", value: profile.accountName)
+                        LabeledContent("Account holder", value: profile.holderName ?? scene.name)
                         LabeledContent("Currency", value: scene.currency)
                     }
                     Section {
-                        NavigationLink { BankPaymentPage(sceneID: sceneID, theme: theme) } label: { Label("Pay & transfer", systemImage: "arrow.left.arrow.right") }
-                        NavigationLink { BankStatementPage(sceneID: sceneID, theme: theme) } label: { Label("Statement", systemImage: "doc.text") }
+                        NavigationLink { BankSavingsTransferPage(sceneID: sceneID, theme: theme, initiallyToSavings: !savings) } label: { Label("Transfer between my accounts", systemImage: "arrow.left.arrow.right") }
+                        if !savings {
+                            NavigationLink { BankPaymentPage(sceneID: sceneID, theme: theme) } label: { Label("Pay & transfer", systemImage: "arrow.left.arrow.right") }
+                        }
+                        NavigationLink { BankStatementPage(sceneID: sceneID, theme: theme, savings: savings) } label: { Label("Statement", systemImage: "doc.text") }
                     }
-                    if !savings {
-                        Section("Transactions") {
-                            let events = store.events.filter { $0.sceneID == sceneID }.sorted { $0.date > $1.date }
+                    Section("Transactions") {
+                            let events = store.events.filter { $0.sceneID == sceneID && (!savings || $0.savingsTransfer == true) }.sorted { $0.date > $1.date }
                             if events.isEmpty { Text("No transactions yet").foregroundStyle(.secondary) }
                             ForEach(events) { event in
-                                NavigationLink { BankTransactionDetail(event: event, scene: scene, theme: theme) } label: { BankTransactionRow(event: event, scene: scene, theme: theme).padding(.horizontal, -16) }
+                                NavigationLink { BankTransactionDetail(event: event, scene: scene, theme: theme, savings: savings) } label: { BankTransactionRow(event: event, scene: scene, theme: theme, savings: savings).padding(.horizontal, -16) }
                             }
-                        }
                     }
                 }.listStyle(.insetGrouped)
             } else { ContentUnavailableView("Account unavailable", systemImage: "building.columns") }
@@ -584,18 +592,21 @@ private struct BankTransactionRow: View {
     let event: SceneEvent
     let scene: StudioScene
     let theme: BankTheme
+    var savings = false
+    private var outflow: Bool { savings && event.savingsTransfer == true ? !event.kind.isOutflow : event.kind.isOutflow }
+    private var detail: String { savings && event.savingsTransfer == true ? (event.kind.isOutflow ? "Transfer from checking" : "Transfer to checking") : (event.detail.isEmpty ? event.title : event.detail) }
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: event.kind.symbol).font(.system(size: 18, weight: .medium))
+            Image(systemName: event.savingsTransfer == true ? (outflow ? "arrow.up.right" : "arrow.down.left") : event.kind.symbol).font(.system(size: 18, weight: .medium))
                 .foregroundStyle(BankPalette(theme).accent).frame(width: 38, height: 38)
                 .background(BankPalette(theme).accent.opacity(0.08), in: RoundedRectangle(cornerRadius: theme == .monzo ? 9 : 20))
             VStack(alignment: .leading, spacing: 5) {
-                Text(event.detail.isEmpty ? event.title : event.detail).font(.system(size: 14, weight: .medium)).lineLimit(2)
+                Text(detail).font(.system(size: 14, weight: .medium)).lineLimit(2)
                 Text(event.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: 11)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
-            Text((event.kind.isOutflow ? "−" : "+") + scene.money(event.amount)).font(.system(size: 14, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                .foregroundStyle(event.kind.isOutflow ? BankPalette(theme).ink : Color(bankHex: 0x168067))
+            Text((outflow ? "−" : "+") + scene.money(event.amount)).font(.system(size: 14, weight: .semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(outflow ? BankPalette(theme).ink : Color(bankHex: 0x168067))
         }.foregroundStyle(BankPalette(theme).ink).padding(.horizontal, 16).padding(.vertical, 12)
     }
 }
@@ -604,20 +615,23 @@ private struct BankTransactionDetail: View {
     let event: SceneEvent
     let scene: StudioScene
     let theme: BankTheme
+    var savings = false
+    private var outflow: Bool { savings && event.savingsTransfer == true ? !event.kind.isOutflow : event.kind.isOutflow }
+    private var detail: String { savings && event.savingsTransfer == true ? (event.kind.isOutflow ? "Transfer from checking" : "Transfer to checking") : (event.detail.isEmpty ? event.title : event.detail) }
     var body: some View {
         List {
             Section {
                 VStack(spacing: 14) {
-                    Image(systemName: event.kind.symbol).font(.system(size: 30)).foregroundStyle(BankPalette(theme).accent).frame(width: 70, height: 70).background(BankPalette(theme).accent.opacity(0.09), in: Circle())
-                    Text(event.detail.isEmpty ? event.title : event.detail).font(.system(size: 22, weight: .semibold)).multilineTextAlignment(.center)
-                    Text((event.kind.isOutflow ? "−" : "+") + scene.money(event.amount)).font(.system(size: 33, weight: .semibold)).monospacedDigit().minimumScaleFactor(0.6).lineLimit(1)
+                    Image(systemName: event.savingsTransfer == true ? (outflow ? "arrow.up.right" : "arrow.down.left") : event.kind.symbol).font(.system(size: 30)).foregroundStyle(BankPalette(theme).accent).frame(width: 70, height: 70).background(BankPalette(theme).accent.opacity(0.09), in: Circle())
+                    Text(detail).font(.system(size: 22, weight: .semibold)).multilineTextAlignment(.center)
+                    Text((outflow ? "−" : "+") + scene.money(event.amount)).font(.system(size: 33, weight: .semibold)).monospacedDigit().minimumScaleFactor(0.6).lineLimit(1)
                     Label("Completed", systemImage: "checkmark.circle.fill").font(.system(size: 14)).foregroundStyle(Color(bankHex: 0x168067))
                 }.frame(maxWidth: .infinity).padding(.vertical, 22)
             }
             Section("Details") {
-                LabeledContent("Type", value: event.title)
+                LabeledContent("Type", value: event.savingsTransfer == true ? "Own account transfer" : event.title)
                 LabeledContent("Date", value: event.date.formatted(date: .long, time: .shortened))
-                LabeledContent("Account", value: scene.name)
+                LabeledContent("Account", value: savings ? "Savings" : scene.name)
                 LabeledContent("Currency", value: scene.currency)
                 LabeledContent("Reference", value: String(event.id.uuidString.prefix(12)))
             }
@@ -664,8 +678,9 @@ private struct BankPaymentPage: View {
                     } else {
                         Section {
                             Picker("Payment type", selection: $incoming) { Text("Send money").tag(false); Text("Add money").tag(true) }.pickerStyle(.segmented)
-                            LabeledContent("From account", value: store.bankProfile(for: sceneID).accountName)
+                            LabeledContent(incoming ? "To account" : "From account", value: store.bankProfile(for: sceneID).accountName)
                             LabeledContent("Available", value: scene.money(scene.balance))
+                            NavigationLink { BankSavingsTransferPage(sceneID: sceneID, theme: theme) } label: { Label("Between my accounts", systemImage: "arrow.left.arrow.right") }
                         }
                         Section(incoming ? "Sender" : "Payee") {
                             TextField(incoming ? "Sender name" : "Payee name", text: $recipient).textContentType(.name).autocorrectionDisabled()
@@ -694,11 +709,77 @@ private struct BankPaymentPage: View {
     }
 }
 
+private struct BankSavingsTransferPage: View {
+    @EnvironmentObject private var store: StudioStore
+    let sceneID: UUID
+    let theme: BankTheme
+    @State private var amount = ""
+    @State private var toSavings = true
+    @State private var review = false
+    @State private var completed = false
+    init(sceneID: UUID, theme: BankTheme, initiallyToSavings: Bool = true) {
+        self.sceneID = sceneID
+        self.theme = theme
+        _toSavings = State(initialValue: initiallyToSavings)
+    }
+    private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
+    private var profile: BankProfile { store.bankProfile(for: sceneID) }
+    private var parsedAmount: Double? { Simulation.parseAmount(amount) }
+    private var valid: Bool {
+        guard let value = parsedAmount, Simulation.validAmount(value), let scene, scene.kind == .banking else { return false }
+        return toSavings ? value <= scene.balance && profile.savings + value <= 1_000_000_000 : value <= profile.savings && scene.balance + value <= 1_000_000_000
+    }
+    var body: some View {
+        Group {
+            if let scene {
+                Form {
+                    if completed {
+                        Section {
+                            VStack(spacing: 14) {
+                                Image(systemName: "checkmark.circle.fill").font(.system(size: 50)).foregroundStyle(Color(bankHex: 0x168067))
+                                Text("Transfer complete").font(.system(size: 25, weight: .semibold))
+                                Text(scene.money(parsedAmount ?? 0)).font(.system(size: 30, weight: .semibold))
+                                Text(toSavings ? "Checking → Savings" : "Savings → Checking").font(.system(size: 15))
+                                Button("Make another transfer") { completed = false; amount = "" }
+                            }.frame(maxWidth: .infinity).padding(.vertical, 24)
+                        }
+                        Section("Updated balances") {
+                            LabeledContent(profile.accountName, value: scene.money(scene.balance))
+                            LabeledContent("Savings", value: scene.money(profile.savings))
+                        }
+                    } else {
+                        Section("Transfer between my accounts") {
+                            Picker("Direction", selection: $toSavings) { Text("To savings").tag(true); Text("From savings").tag(false) }.pickerStyle(.segmented)
+                            LabeledContent("From", value: toSavings ? profile.accountName : "Savings")
+                            LabeledContent("To", value: toSavings ? "Savings" : profile.accountName)
+                            LabeledContent("Available", value: scene.money(toSavings ? scene.balance : profile.savings))
+                            TextField("Amount (\(scene.currency))", text: $amount).keyboardType(.decimalPad).accessibilityIdentifier("bank-transfer-amount")
+                        }
+                        Section {
+                            Button("Review transfer") { review = true }.disabled(!valid).fontWeight(.semibold).frame(maxWidth: .infinity).accessibilityIdentifier("bank-transfer-review")
+                        } footer: {
+                            if let value = parsedAmount, value > (toSavings ? scene.balance : profile.savings) { Text("The amount exceeds the selected account's available balance.") }
+                        }
+                        if let error = store.error { Section { Text(error).font(.footnote).foregroundStyle(.red) } }
+                    }
+                }
+                .confirmationDialog("Confirm transfer", isPresented: $review, titleVisibility: .visible) {
+                    Button("Confirm transfer") {
+                        guard valid, let value = parsedAmount else { return }
+                        completed = store.transferSavings(sceneID: sceneID, amount: value, toSavings: toSavings)
+                    }
+                } message: { Text("\(scene.money(parsedAmount ?? 0)) \(toSavings ? "from checking to savings" : "from savings to checking")") }
+            } else { ContentUnavailableView("Account unavailable", systemImage: "building.columns") }
+        }.navigationTitle("Transfer").navigationBarTitleDisplayMode(.inline).tint(BankPalette(theme).accent)
+    }
+}
+
 private struct BankCardPage: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
     private var profile: BankProfile { store.bankProfile(for: sceneID) }
+    private var holderName: String { profile.holderName ?? store.scenes.first(where: { $0.id == sceneID })?.name ?? profile.accountName }
     private var palette: BankPalette { BankPalette(theme) }
     var body: some View {
         ScrollView {
@@ -707,7 +788,7 @@ private struct BankCardPage: View {
                 VStack(alignment: .leading, spacing: 34) {
                     HStack { BankBrandMark(theme: theme, color: .white); Spacer(); Image(systemName: "wave.3.right").font(.title2) }
                     HStack { RoundedRectangle(cornerRadius: 4).fill(Color(bankHex: 0xD7BC86)).frame(width: 38, height: 29); Spacer(); if profile.cardFrozen { Label("Frozen", systemImage: "snowflake").font(.system(size: 14, weight: .semibold)) } }
-                    VStack(alignment: .leading, spacing: 10) { Text("••••  ••••  ••••  \(profile.accountSuffix)").font(.system(size: 20, weight: .medium, design: .monospaced)); HStack { Text(profile.accountName.uppercased()).font(.system(size: 12, weight: .medium)); Spacer(); Text("VISA").font(.system(size: 22, weight: .bold)).italic() } }
+                    VStack(alignment: .leading, spacing: 10) { Text("••••  ••••  ••••  \(profile.accountSuffix)").font(.system(size: 20, weight: .medium, design: .monospaced)); HStack { Text(holderName.uppercased()).font(.system(size: 12, weight: .medium)); Spacer(); Text("VISA").font(.system(size: 22, weight: .bold)).italic() } }
                 }.foregroundStyle(.white).padding(24).frame(maxWidth: .infinity)
                     .background(LinearGradient(colors: [theme == .monzo ? Color(bankHex: 0xFF4C43) : palette.accent, theme == .revolut ? Color(bankHex: 0x734BE4) : palette.accent.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 18))
                     .opacity(profile.cardFrozen ? 0.65 : 1)
@@ -718,7 +799,7 @@ private struct BankCardPage: View {
                     Text(profile.cardFrozen ? "Your card is frozen in this scene. Unfreeze it whenever you're ready." : "Temporarily freeze this card in your scene.").font(.system(size: 14)).foregroundStyle(.secondary)
                 }.padding(20).bankSurface(radius: 12)
                 VStack(alignment: .leading, spacing: 14) {
-                    LabeledContent("Card holder", value: profile.accountName)
+                    LabeledContent("Card holder", value: holderName)
                     Divider()
                     LabeledContent("Account ending", value: profile.accountSuffix)
                     Divider()
@@ -734,6 +815,7 @@ private struct BankProfileEditor: View {
     @Environment(\.dismiss) private var dismiss
     let sceneID: UUID
     @State private var name = ""
+    @State private var accountHolder = ""
     @State private var suffix = ""
     @State private var savings = ""
     private var profile: BankProfile { store.bankProfile(for: sceneID) }
@@ -741,13 +823,14 @@ private struct BankProfileEditor: View {
         let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let digits = suffix.utf8.allSatisfy { (48...57).contains($0) }
         guard let value = Simulation.parseAmount(savings) else { return false }
-        return !clean.isEmpty && clean.count <= 60 && suffix.count == 4 && digits && (0...1_000_000_000).contains(value)
+        return !clean.isEmpty && clean.count <= 80 && accountHolder.trimmingCharacters(in: .whitespacesAndNewlines).count <= 80 && suffix.count == 4 && digits && (0...1_000_000_000).contains(value)
     }
     var body: some View {
         NavigationStack {
             Form {
                 Section("Account") {
-                    TextField("Account holder", text: $name).textContentType(.name)
+                    TextField("Account name", text: $name)
+                    TextField("Account holder", text: $accountHolder).textContentType(.name)
                     TextField("Account ending (4 digits)", text: $suffix).keyboardType(.numberPad)
                     TextField("Savings balance", text: $savings).keyboardType(.decimalPad)
                 }
@@ -764,12 +847,14 @@ private struct BankProfileEditor: View {
                     guard valid, let value = Simulation.parseAmount(savings) else { return }
                     var updated = profile
                     updated.accountName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let holder = accountHolder.trimmingCharacters(in: .whitespacesAndNewlines)
+                    updated.holderName = holder.isEmpty ? nil : holder
                     updated.accountSuffix = suffix
                     updated.savings = value
                     if store.updateBankProfile(updated) { dismiss() }
                 }.disabled(!valid) }
             }
-            .onAppear { name = profile.accountName; suffix = profile.accountSuffix; savings = profile.savings.formatted(.number.grouping(.never)) }
+            .onAppear { name = profile.accountName; accountHolder = profile.holderName ?? store.scenes.first(where: { $0.id == sceneID })?.name ?? ""; suffix = profile.accountSuffix; savings = profile.savings.formatted(.number.grouping(.never)) }
         }
     }
 }
@@ -778,21 +863,23 @@ private struct BankStatementPage: View {
     @EnvironmentObject private var store: StudioStore
     let sceneID: UUID
     let theme: BankTheme
+    var savings = false
     var body: some View {
         Group {
             if let scene = store.scenes.first(where: { $0.id == sceneID }) {
                 List {
                     Section {
                         BankBrandMark(theme: theme, color: BankPalette(theme).accent).padding(.vertical, 8)
-                        LabeledContent("Account holder", value: store.bankProfile(for: sceneID).accountName)
-                        LabeledContent("Account ending", value: store.bankProfile(for: sceneID).accountSuffix)
+                        LabeledContent("Account", value: savings ? "Savings" : store.bankProfile(for: sceneID).accountName)
+                        LabeledContent("Account holder", value: store.bankProfile(for: sceneID).holderName ?? scene.name)
+                        LabeledContent("Account ending", value: savings ? theme.playbackSavingsSuffix : store.bankProfile(for: sceneID).accountSuffix)
                         LabeledContent("Date", value: Date().formatted(date: .long, time: .omitted))
-                        LabeledContent("Closing balance", value: scene.money(scene.balance))
+                        LabeledContent("Closing balance", value: scene.money(savings ? store.bankProfile(for: sceneID).savings : scene.balance))
                     }
                     Section("Transactions") {
-                        let events = store.events.filter { $0.sceneID == sceneID }.sorted { $0.date > $1.date }
+                        let events = store.events.filter { $0.sceneID == sceneID && (!savings || $0.savingsTransfer == true) }.sorted { $0.date > $1.date }
                         if events.isEmpty { Text("No transactions in this statement").foregroundStyle(.secondary) }
-                        ForEach(events) { event in BankTransactionRow(event: event, scene: scene, theme: theme).padding(.horizontal, -16) }
+                        ForEach(events) { event in BankTransactionRow(event: event, scene: scene, theme: theme, savings: savings).padding(.horizontal, -16) }
                     }
                 }.listStyle(.insetGrouped)
             } else { ContentUnavailableView("Account unavailable", systemImage: "doc.text") }

@@ -35,7 +35,8 @@ Verified generated output:
     target build phases.
   - PlaybackModels.swift, CommercePlayback.swift, BankPlayback.swift, and
     PlaybackModelTests.swift are included in their correct target build phases.
-  - Assets.xcassets and PrivacyInfo.xcprivacy have resource build phase entries.
+  - Assets.xcassets, PrivacyInfo.xcprivacy, and the original Order.caf sound have
+    application resource build phase entries. Assets include all 13 brand icons.
   - iPhone SDK, iOS 17 deployment target, Swift 5 language mode, Debug testability,
     and Debug compilation conditions are present.
   - iPhone portrait/landscape orientations and all four iPad orientations are

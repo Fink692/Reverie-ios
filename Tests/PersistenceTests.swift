@@ -112,4 +112,122 @@ import XCTest
         XCTAssertEqual(store.commerceOrders(for: scene.id).first { $0.id == order.id }?.fulfillment, .fulfilled)
     }
 
+    func testSavingsTransfersUseCapturedAccountAndPersistConservedFunds() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let activeBefore = store.active
+        let bankBefore = store.scenes[1]
+        let savingsBefore = store.bankProfile(for: bankBefore.id).savings
+        XCTAssertTrue(store.bankProfiles.isEmpty)
+
+        XCTAssertTrue(store.transferSavings(sceneID: bankBefore.id, amount: 125.5, toSavings: true))
+        var expectedBank = bankBefore
+        expectedBank.balance -= 125.5
+        XCTAssertEqual(store.scenes.first { $0.id == bankBefore.id }, expectedBank)
+        XCTAssertEqual(store.bankProfile(for: bankBefore.id).savings, savingsBefore + 125.5)
+        XCTAssertEqual(expectedBank.balance + store.bankProfile(for: bankBefore.id).savings,
+                       bankBefore.balance + savingsBefore, accuracy: 0.000001)
+        XCTAssertEqual(store.active, activeBefore)
+        let outgoing = try XCTUnwrap(store.events.first)
+        XCTAssertEqual(outgoing.sceneID, bankBefore.id)
+        XCTAssertEqual(outgoing.kind, .payment)
+        XCTAssertEqual(outgoing.amount, 125.5)
+        XCTAssertEqual(outgoing.savingsTransfer, true)
+
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.scenes.first { $0.id == bankBefore.id }, expectedBank)
+        XCTAssertEqual(restored.bankProfile(for: bankBefore.id).savings, savingsBefore + 125.5)
+        XCTAssertEqual(restored.events, [outgoing])
+        XCTAssertTrue(restored.transferSavings(sceneID: bankBefore.id, amount: 125.5, toSavings: false))
+        XCTAssertEqual(restored.scenes.first { $0.id == bankBefore.id }, bankBefore)
+        XCTAssertEqual(restored.bankProfile(for: bankBefore.id).savings, savingsBefore)
+        XCTAssertEqual(restored.active, activeBefore)
+        XCTAssertEqual(restored.events.map(\.kind), [.deposit, .payment])
+        XCTAssertTrue(restored.events.allSatisfy { $0.sceneID == bankBefore.id && $0.savingsTransfer == true })
+        let finalReload = StudioStore(fileURL: file)
+        XCTAssertEqual(finalReload.scenes, restored.scenes)
+        XCTAssertEqual(finalReload.bankProfiles, restored.bankProfiles)
+        XCTAssertEqual(finalReload.events, restored.events)
+    }
+
+    func testSavingsTransferRejectsInvalidAmountsSourcesAndSceneReferences() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let bank = store.scenes[1]
+        XCTAssertTrue(store.preparePlayback(for: bank.id))
+        for amount in [Double.nan, .infinity, -.infinity, -1, 0, 0.001, 1_000_000_001] {
+            for toSavings in [true, false] {
+                try assertRejectedSavingsTransfer(store, sceneID: bank.id, amount: amount, toSavings: toSavings, fileURL: file)
+            }
+        }
+        try assertRejectedSavingsTransfer(store, sceneID: bank.id, amount: bank.balance + 1, toSavings: true, fileURL: file)
+        try assertRejectedSavingsTransfer(store, sceneID: bank.id, amount: store.bankProfile(for: bank.id).savings + 1, toSavings: false, fileURL: file)
+        try assertRejectedSavingsTransfer(store, sceneID: store.scenes[0].id, amount: 1, toSavings: true, fileURL: file)
+        try assertRejectedSavingsTransfer(store, sceneID: UUID(), amount: 1, toSavings: false, fileURL: file)
+    }
+
+    func testSavingsTransferRejectsDestinationOverflowWithoutChangingSavedSession() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        var bank = store.scenes[1]
+        var profile = store.bankProfile(for: bank.id)
+        profile.savings = 1_000_000_000
+        XCTAssertTrue(store.updateBankProfile(profile))
+        try assertRejectedSavingsTransfer(store, sceneID: bank.id, amount: 0.01, toSavings: true, fileURL: file)
+        bank.balance = 1_000_000_000
+        XCTAssertTrue(store.update(bank))
+        try assertRejectedSavingsTransfer(store, sceneID: bank.id, amount: 0.01, toSavings: false, fileURL: file)
+    }
+
+    func testFailedSavingsTransferSaveDoesNotPartiallyCreateProfileOrHistory() throws {
+        let missingDirectory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let file = missingDirectory.appending(path: "session.json")
+        let store = StudioStore(fileURL: file)
+        let before = try XCTUnwrap(store.exportData())
+        XCTAssertFalse(store.transferSavings(sceneID: store.scenes[1].id, amount: 10, toSavings: true))
+        XCTAssertEqual(store.exportData(), before)
+        XCTAssertTrue(store.bankProfiles.isEmpty)
+        XCTAssertTrue(store.events.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+        XCTAssertNotNil(store.error)
+    }
+
+    func testOrderPaymentOverridesPersistAndPreserveFulfillmentWithoutReapplyingTotals() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let commerceBefore = store.scenes[0]
+        XCTAssertTrue(store.preparePlayback(for: commerceBefore.id))
+        let order = try XCTUnwrap(store.commerceOrders(for: commerceBefore.id).first)
+        XCTAssertTrue(order.isPaid)
+        XCTAssertTrue(store.setOrderPaid(orderID: order.id, sceneID: commerceBefore.id, isPaid: false))
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.commerceOrders(for: commerceBefore.id).first { $0.id == order.id }?.isPaid, false)
+        XCTAssertTrue(restored.setOrderStatus(orderID: order.id, sceneID: commerceBefore.id, status: .fulfilled))
+        XCTAssertTrue(restored.setOrderPaid(orderID: order.id, sceneID: commerceBefore.id, isPaid: true))
+        let finalReload = StudioStore(fileURL: file)
+        let updatedOrder = try XCTUnwrap(finalReload.commerceOrders(for: commerceBefore.id).first { $0.id == order.id })
+        XCTAssertTrue(updatedOrder.isPaid)
+        XCTAssertEqual(updatedOrder.fulfillment, .fulfilled)
+        XCTAssertEqual(finalReload.scenes.first { $0.id == commerceBefore.id }, commerceBefore)
+        XCTAssertTrue(finalReload.events.isEmpty)
+        let beforeUnknown = try XCTUnwrap(finalReload.exportData())
+        let savedBytes = try Data(contentsOf: file)
+        XCTAssertFalse(finalReload.setOrderPaid(orderID: UUID(), sceneID: commerceBefore.id, isPaid: false))
+        XCTAssertEqual(finalReload.exportData(), beforeUnknown)
+        XCTAssertEqual(try Data(contentsOf: file), savedBytes)
+    }
+
+    private func assertRejectedSavingsTransfer(_ store: StudioStore, sceneID: UUID, amount: Double, toSavings: Bool,
+                                               fileURL: URL, file: StaticString = #filePath, line: UInt = #line) throws {
+        let before = try XCTUnwrap(store.exportData())
+        let savedBytes = try Data(contentsOf: fileURL)
+        XCTAssertFalse(store.transferSavings(sceneID: sceneID, amount: amount, toSavings: toSavings), file: file, line: line)
+        XCTAssertEqual(store.exportData(), before, file: file, line: line)
+        XCTAssertEqual(try Data(contentsOf: fileURL), savedBytes, file: file, line: line)
+    }
+
 }

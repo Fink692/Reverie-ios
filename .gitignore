@@ -12,3 +12,6 @@ Reverie-simulator.zip
 xcuserdata/
 *.xcuserstate
 test-attachments/
+brand-artifacts/
+*.ipa
+__pycache__/

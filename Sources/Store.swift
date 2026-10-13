@@ -140,7 +140,9 @@ import UserNotifications
                 }
                 let content = UNMutableNotificationContent()
                 content.title = cue.event.title; content.body = cue.event.body(scene: scheduledScene)
-                content.sound = .default; content.threadIdentifier = scheduledScene.id.uuidString
+                content.sound = scheduledScene.kind == .commerce && kind == .order
+                    ? UNNotificationSound(named: UNNotificationSoundName("Order.caf")) : .default
+                content.threadIdentifier = scheduledScene.id.uuidString
                 content.userInfo = ["sceneID": scheduledScene.id.uuidString, "scheduledAt": Date().addingTimeInterval(cue.delay).timeIntervalSince1970]
                 let id = "reverie.\(cue.event.id.uuidString)"
                 try await center.add(UNNotificationRequest(identifier: id, content: content,
@@ -255,6 +257,45 @@ import UserNotifications
         guard persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updated)) else { return false }
         bankProfiles = updated; return true
     }
+    @discardableResult func transferSavings(sceneID: UUID, amount: Double, toSavings: Bool) -> Bool {
+        guard Simulation.validAmount(amount),
+              let sceneIndex = scenes.firstIndex(where: { $0.id == sceneID && $0.kind == .banking }) else {
+            error = "Choose a banking account and a valid transfer amount."; return false
+        }
+        let originalScene = scenes[sceneIndex]
+        var updatedScene = originalScene
+        var profile = bankProfile(for: sceneID)
+        guard profile.isValid else { error = "Check the savings account details."; return false }
+        if toSavings {
+            guard amount <= originalScene.balance, profile.savings + amount <= 1_000_000_000 else {
+                error = "The transfer exceeds the available checking balance or savings limit."; return false
+            }
+            updatedScene.balance -= amount
+            profile.savings += amount
+        } else {
+            guard amount <= profile.savings, originalScene.balance + amount <= 1_000_000_000 else {
+                error = "The transfer exceeds the available savings balance or checking limit."; return false
+            }
+            updatedScene.balance += amount
+            profile.savings -= amount
+        }
+        guard updatedScene.isValid, profile.isValid else { error = "The transfer would exceed this account's limits."; return false }
+        var event = SceneEvent(sceneID: sceneID, kind: toSavings ? .payment : .deposit, amount: amount,
+            detail: toSavings ? "Transfer to savings" : "Transfer from savings")
+        event.savingsTransfer = true
+        var updatedScenes = scenes
+        updatedScenes[sceneIndex] = updatedScene
+        var updatedProfiles = bankProfiles
+        if let profileIndex = updatedProfiles.firstIndex(where: { $0.sceneID == sceneID }) { updatedProfiles[profileIndex] = profile }
+        else { updatedProfiles.append(profile) }
+        let updatedEvents = Array(([event] + events).prefix(1000))
+        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID,
+            presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updatedProfiles)) else { return false }
+        scenes = updatedScenes
+        bankProfiles = updatedProfiles
+        events = updatedEvents
+        return true
+    }
     func commerceOrders(for sceneID: UUID) -> [CommerceOrder] {
         let profile = commerceProfile(for: sceneID)
         var orders = profile.initialOrders
@@ -266,7 +307,10 @@ import UserNotifications
         }
         return orders.map { order in
             var value = order
-            if let state = profile.orderStates.first(where: { $0.id == order.id }) { value.fulfillment = state.fulfillment }
+            if let state = profile.orderStates.first(where: { $0.id == order.id }) {
+                value.fulfillment = state.fulfillment
+                value.isPaid = state.isPaid ?? value.isPaid
+            }
             return value
         }.sorted { $0.date > $1.date }
     }
@@ -275,6 +319,14 @@ import UserNotifications
         var profile = commerceProfile(for: sceneID)
         if let index = profile.orderStates.firstIndex(where: { $0.id == orderID }) { profile.orderStates[index].fulfillment = status }
         else { profile.orderStates.append(CommerceOrderState(id: orderID, fulfillment: status)) }
+        return updateCommerceProfile(profile)
+    }
+    @discardableResult func setOrderPaid(orderID: UUID, sceneID: UUID, isPaid: Bool) -> Bool {
+        guard scenes.contains(where: { $0.id == sceneID && $0.kind == .commerce }),
+              let order = commerceOrders(for: sceneID).first(where: { $0.id == orderID }) else { return false }
+        var profile = commerceProfile(for: sceneID)
+        if let index = profile.orderStates.firstIndex(where: { $0.id == orderID }) { profile.orderStates[index].isPaid = isPaid }
+        else { profile.orderStates.append(CommerceOrderState(id: orderID, fulfillment: order.fulfillment, isPaid: isPaid)) }
         return updateCommerceProfile(profile)
     }
     @discardableResult func addCommerceOrder(sceneID: UUID, customer: String, itemCount: Int, total: Double) -> SceneEvent? {
@@ -316,4 +368,5 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
 extension Notification.Name {
     static let notificationStateDidChange = Notification.Name("reverie.notificationStateDidChange")
+    static let welcomeCompleted = Notification.Name("reverie.welcomeCompleted")
 }

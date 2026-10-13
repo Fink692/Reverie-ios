@@ -1,0 +1,105 @@
+[
+  {
+    "id": "commerce",
+    "displayName": "Shopify",
+    "bundleIdentifier": "com.reverie.brand.commerce",
+    "appIcon": "Brand-commerce",
+    "playbackKind": "commerce"
+  },
+  {
+    "id": "chase",
+    "displayName": "Chase",
+    "bundleIdentifier": "com.reverie.brand.chase",
+    "appIcon": "Brand-chase",
+    "playbackKind": "banking",
+    "bankTheme": "chase"
+  },
+  {
+    "id": "bankOfAmerica",
+    "displayName": "Bank of America",
+    "bundleIdentifier": "com.reverie.brand.bankofamerica",
+    "appIcon": "Brand-bankOfAmerica",
+    "playbackKind": "banking",
+    "bankTheme": "bankOfAmerica"
+  },
+  {
+    "id": "wellsFargo",
+    "displayName": "Wells Fargo",
+    "bundleIdentifier": "com.reverie.brand.wellsfargo",
+    "appIcon": "Brand-wellsFargo",
+    "playbackKind": "banking",
+    "bankTheme": "wellsFargo"
+  },
+  {
+    "id": "citi",
+    "displayName": "Citi",
+    "bundleIdentifier": "com.reverie.brand.citi",
+    "appIcon": "Brand-citi",
+    "playbackKind": "banking",
+    "bankTheme": "citi"
+  },
+  {
+    "id": "capitalOne",
+    "displayName": "Capital One",
+    "bundleIdentifier": "com.reverie.brand.capitalone",
+    "appIcon": "Brand-capitalOne",
+    "playbackKind": "banking",
+    "bankTheme": "capitalOne"
+  },
+  {
+    "id": "hsbc",
+    "displayName": "HSBC",
+    "bundleIdentifier": "com.reverie.brand.hsbc",
+    "appIcon": "Brand-hsbc",
+    "playbackKind": "banking",
+    "bankTheme": "hsbc"
+  },
+  {
+    "id": "barclays",
+    "displayName": "Barclays",
+    "bundleIdentifier": "com.reverie.brand.barclays",
+    "appIcon": "Brand-barclays",
+    "playbackKind": "banking",
+    "bankTheme": "barclays"
+  },
+  {
+    "id": "lloyds",
+    "displayName": "Lloyds Bank",
+    "bundleIdentifier": "com.reverie.brand.lloyds",
+    "appIcon": "Brand-lloyds",
+    "playbackKind": "banking",
+    "bankTheme": "lloyds"
+  },
+  {
+    "id": "natWest",
+    "displayName": "NatWest",
+    "bundleIdentifier": "com.reverie.brand.natwest",
+    "appIcon": "Brand-natWest",
+    "playbackKind": "banking",
+    "bankTheme": "natWest"
+  },
+  {
+    "id": "monzo",
+    "displayName": "Monzo",
+    "bundleIdentifier": "com.reverie.brand.monzo",
+    "appIcon": "Brand-monzo",
+    "playbackKind": "banking",
+    "bankTheme": "monzo"
+  },
+  {
+    "id": "revolut",
+    "displayName": "Revolut",
+    "bundleIdentifier": "com.reverie.brand.revolut",
+    "appIcon": "Brand-revolut",
+    "playbackKind": "banking",
+    "bankTheme": "revolut"
+  },
+  {
+    "id": "starling",
+    "displayName": "Starling Bank",
+    "bundleIdentifier": "com.reverie.brand.starling",
+    "appIcon": "Brand-starling",
+    "playbackKind": "banking",
+    "bankTheme": "starling"
+  }
+]

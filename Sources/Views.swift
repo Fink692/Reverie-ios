@@ -12,6 +12,9 @@ struct RootView: View {
     @EnvironmentObject var store: StudioStore
     @Environment(\.scenePhase) private var phase
     @AppStorage("appearance") private var appearance = "System"
+    @AppStorage("welcomed") private var welcomed = false
+    @State private var brandPlayback: StudioScene?
+    @State private var presentedBrand = false
     @State private var selection: StudioTab = .dashboard
 
     var body: some View {
@@ -31,16 +34,49 @@ struct RootView: View {
         }
         .tint(accent)
         .preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light)
-        .task { await store.refreshNotifications() }
+        .task {
+            await store.refreshNotifications()
+            openInitialBrandScene()
+        }
         .onChange(of: phase) { _, value in
             if value == .active { Task { await store.refreshNotifications() } }
         }
         .onReceive(NotificationRouter.shared.$request) { route in
-            if route != nil { selection = .dashboard }
+            guard let route else { return }
+            selection = .dashboard
+            if welcomed, let configuration = AppPlaybackConfiguration.current,
+               let scene = store.scenes.first(where: { $0.id == route.sceneID && $0.kind == configuration.kind }),
+               store.preparePlayback(for: scene.id) {
+                presentedBrand = true
+                brandPlayback = scene
+            } else { brandPlayback = nil }
         }
         .onReceive(NotificationCenter.default.publisher(for: .notificationStateDidChange)) { _ in
             Task { await store.refreshNotifications() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .welcomeCompleted)) { _ in openInitialBrandScene() }
+        .fullScreenCover(item: $brandPlayback) { scene in
+            switch scene.kind {
+            case .commerce: CommercePlayback(sceneID: scene.id).environmentObject(store)
+            case .banking: BankPlayback(sceneID: scene.id).environmentObject(store)
+            case .creator: EmptyView()
+            }
+        }
+        .onChange(of: store.scenes) { _, scenes in
+            if let brandPlayback, !scenes.contains(where: { $0.id == brandPlayback.id && $0.kind == brandPlayback.kind }) {
+                self.brandPlayback = nil
+            }
+        }
+    }
+    private func openInitialBrandScene() {
+        guard welcomed, !presentedBrand,
+              let configuration = AppPlaybackConfiguration.current,
+              let scene = store.scenes.first(where: { $0.id == store.activeID && $0.kind == configuration.kind }) ?? store.scenes.first(where: { $0.kind == configuration.kind }),
+              store.preparePlayback(for: scene.id) else { return }
+        store.select(scene)
+        guard store.activeID == scene.id else { return }
+        presentedBrand = true
+        brandPlayback = scene
     }
 }
 

@@ -34,6 +34,7 @@ struct CommerceOrder: Codable, Identifiable, Equatable {
 struct CommerceOrderState: Codable, Identifiable, Equatable {
     var id: UUID
     var fulfillment: CommerceFulfillment
+    var isPaid: Bool?
 }
 struct CommerceProfile: Codable, Identifiable, Equatable {
     var sceneID: UUID
@@ -112,12 +113,14 @@ struct BankProfile: Codable, Identifiable, Equatable {
     var accountSuffix: String
     var cardFrozen: Bool
     var savings: Double
+    var holderName: String?
     var isValid: Bool {
         !accountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && accountName.count <= 80 &&
         accountSuffix.range(of: "^[0-9]{4}$", options: .regularExpression) != nil &&
-        savings.isFinite && (0...1_000_000_000).contains(savings)
+        savings.isFinite && (0...1_000_000_000).contains(savings) &&
+        (holderName.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 80 } ?? true)
     }
     static func starter(for sceneID: UUID) -> BankProfile {
-        BankProfile(sceneID: sceneID, theme: .chase, accountName: "Everyday account", accountSuffix: "2048", cardFrozen: false, savings: 12500)
+        BankProfile(sceneID: sceneID, theme: .chase, accountName: "Everyday account", accountSuffix: "2048", cardFrozen: false, savings: 12500, holderName: "Jamie")
     }
 }

@@ -145,7 +145,7 @@ struct CommercePlayback: View {
             VStack(spacing: 0) {
                 analytics(scene)
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(greeting).font(.system(size: 21, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+                    Text(greeting).font(.system(size: 21, weight: .medium)).foregroundStyle(Color(red: 0.30, green: 0.30, blue: 0.30)).fixedSize(horizontal: false, vertical: true)
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
                             activityCard(title: "Payouts in \(profile.payoutDays) days", value: scene.money(profile.payoutAmount), symbol: "gauge.with.dots.needle.33percent") { sheet = .payout }
@@ -171,7 +171,7 @@ struct CommercePlayback: View {
                 .background(Color.white, in: UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
             }
         }
-        .background(Color.white)
+        .background(Color.black)
         .scrollIndicators(.hidden)
         .accessibilityIdentifier("commerce-home")
     }
@@ -269,7 +269,7 @@ struct CommercePlayback: View {
             .padding(17).frame(maxWidth: .infinity, alignment: .leading)
             .background(.white, in: RoundedRectangle(cornerRadius: 24))
         }
-        .background(LinearGradient(colors: [Color(red: 0.55, green: 0.26, blue: 0.99), Color(red: 0.4, green: 0.28, blue: 0.95), Color(red: 0.77, green: 0.2, blue: 0.86)], startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: 24))
+        .background(LinearGradient(colors: [Color(red: 0.55, green: 0.26, blue: 0.99), Color(red: 0.4, green: 0.28, blue: 0.95), Color(red: 0.43, green: 0.27, blue: 0.96)], startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.black.opacity(0.05)))
         .shadow(color: .black.opacity(0.04), radius: 5, y: 3)
     }
@@ -301,7 +301,7 @@ struct CommercePlayback: View {
                 Text(value).font(.system(size: 14, weight: .medium))
                 Image(systemName: "chevron.right").font(.system(size: 10)).foregroundStyle(CommerceColors.secondary)
             }
-            .frame(minHeight: 36)
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -487,8 +487,11 @@ struct CommercePlayback: View {
             TextField(placeholder, text: $query).font(.system(size: 16)).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityLabel(placeholder)
             if !query.isEmpty {
-                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(CommerceColors.secondary) }
-                    .accessibilityLabel("Clear search").frame(width: 30, height: 36)
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(CommerceColors.secondary)
+                        .frame(width: 44, height: 44).contentShape(Rectangle())
+                }
+                .accessibilityLabel("Clear search")
             }
         }
         .padding(.horizontal, 12).frame(minHeight: 44)
@@ -686,7 +689,7 @@ private struct CommerceOrderRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
-                Text("#\(order.number)").font(.system(size: 18, weight: .semibold))
+                Text(verbatim: "#\(order.number)").font(.system(size: 18, weight: .semibold))
                 Spacer()
                 Text(scene.money(order.total)).font(.system(size: 16))
             }
@@ -720,35 +723,13 @@ private struct CommerceOrderDetail: View {
     @Environment(\.dismiss) private var dismiss
     private var scene: StudioScene? { store.scenes.first { $0.id == sceneID } }
     private var order: CommerceOrder? { store.commerceOrders(for: sceneID).first { $0.id == orderID } }
+
     var body: some View {
         NavigationStack {
             Group {
                 if let order, let scene {
-                    Form {
-                        Section {
-                            HStack {
-                                CommerceStatusBadge(status: order.fulfillment)
-                                Text(order.isPaid ? "Paid" : "Unpaid").font(.caption).padding(.horizontal, 8).padding(.vertical, 3)
-                                    .background(CommerceColors.fill, in: Capsule())
-                            }
-                            LabeledContent("Placed", value: order.date.formatted(date: .abbreviated, time: .shortened))
-                            LabeledContent("Customer", value: order.customer)
-                        }
-                        Section("Order summary") {
-                            LabeledContent("Items", value: order.itemCount.formatted())
-                            LabeledContent("Total", value: scene.money(order.total))
-                        }
-                        Section("Fulfillment") {
-                            Button(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled") {
-                                store.setOrderStatus(orderID: orderID, sceneID: sceneID, status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
-                            }
-                            Button(order.fulfillment == .archived ? "Reopen order" : "Archive order") {
-                                store.setOrderStatus(orderID: orderID, sceneID: sceneID, status: order.fulfillment == .archived ? .unfulfilled : .archived)
-                            }
-                        }
-                        if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
-                    }
-                    .navigationTitle("#\(order.number)")
+                    detail(order, scene: scene)
+                        .navigationTitle(Text(verbatim: "#\(order.number)"))
                 } else {
                     ContentUnavailableView("Order unavailable", systemImage: "tray")
                 }
@@ -756,6 +737,141 @@ private struct CommerceOrderDetail: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
+        .accessibilityIdentifier("commerce-order-detail")
+    }
+
+    private func detail(_ order: CommerceOrder, scene: StudioScene) -> some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 6) {
+                        CommerceStatusBadge(status: order.fulfillment)
+                        Text(order.isPaid ? "Paid" : "Unpaid")
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(CommerceColors.fill, in: Capsule())
+                    }
+                    Text(order.date.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 13)).foregroundStyle(CommerceColors.secondary)
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: order.fulfillment == .fulfilled ? "checkmark.circle" : "tray")
+                        .foregroundStyle(CommerceColors.secondary)
+                    Text(verbatim: "\(order.fulfillment.title) (\(order.itemCount))")
+                        .font(.system(size: 16, weight: .semibold))
+                    Spacer()
+                }
+                productRow(order, scene: scene)
+                Button {
+                    store.setOrderStatus(orderID: orderID, sceneID: sceneID,
+                                         status: order.fulfillment == .fulfilled ? .unfulfilled : .fulfilled)
+                } label: {
+                    Text(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Fulfill items")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 46)
+                        .background(Color(red: 0.18, green: 0.18, blue: 0.18), in: RoundedRectangle(cornerRadius: 9))
+                }
+                .buttonStyle(.plain)
+                .padding(.vertical, 3)
+                .accessibilityLabel(order.fulfillment == .fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled")
+                .accessibilityIdentifier("fulfill-order")
+            }
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: order.isPaid ? "checkmark.circle" : "creditcard")
+                        .foregroundStyle(CommerceColors.secondary)
+                    Text(order.isPaid ? "Paid" : "Payment pending").font(.system(size: 16, weight: .semibold))
+                    Spacer()
+                }
+                HStack {
+                    Text("Subtotal").font(.system(size: 14))
+                    Text("\(order.itemCount) \(order.itemCount == 1 ? "item" : "items")")
+                        .font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                    Spacer()
+                    Text(scene.money(order.total)).font(.system(size: 14))
+                }
+                HStack {
+                    Text("Total").font(.system(size: 15, weight: .semibold))
+                    Spacer()
+                    Text(scene.currency).font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                    Text(scene.money(order.total)).font(.system(size: 15, weight: .semibold))
+                }
+                LabeledContent(order.isPaid ? "Paid by customer" : "Amount due", value: scene.money(order.total))
+                    .font(.system(size: 14))
+                Button(order.isPaid ? "Mark as unpaid" : "Mark as paid") {
+                    store.setOrderPaid(orderID: orderID, sceneID: sceneID, isPaid: !order.isPaid)
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(CommerceColors.secondary)
+                .frame(minHeight: 44).contentShape(Rectangle())
+                .accessibilityIdentifier("order-payment-status")
+            }
+            Section {
+                HStack(spacing: 12) {
+                    Text(initials(order.customer)).font(.system(size: 14, weight: .semibold))
+                        .frame(width: 38, height: 38)
+                        .background(CommerceColors.fill, in: Circle())
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Customer").font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                        Text(order.customer).font(.system(size: 15, weight: .medium))
+                    }
+                }
+            }
+            Section {
+                Button(order.fulfillment == .archived ? "Reopen order" : "Archive order") {
+                    store.setOrderStatus(orderID: orderID, sceneID: sceneID,
+                                         status: order.fulfillment == .archived ? .unfulfilled : .archived)
+                }
+                .foregroundStyle(CommerceColors.secondary)
+                .frame(minHeight: 44).contentShape(Rectangle())
+            }
+            if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
+        }
+        .listStyle(.insetGrouped)
+        .foregroundStyle(Color.black)
+        .scrollContentBackground(.hidden)
+        .background(Color(red: 0.965, green: 0.965, blue: 0.965))
+    }
+
+    private func productRow(_ order: CommerceOrder, scene: StudioScene) -> some View {
+        // The archive stores aggregate order totals. Name a catalog item only when its
+        // price and quantity exactly explain that total; otherwise preserve the known aggregate.
+        let product = store.commerceProfile(for: sceneID).products.first {
+            abs($0.price * Double(order.itemCount) - order.total) < 0.005
+        }
+        return HStack(alignment: .top, spacing: 12) {
+            Image(systemName: product?.symbol ?? "cube.box")
+                .font(.system(size: 25)).foregroundStyle(CommerceColors.secondary)
+                .frame(width: 56, height: 62)
+                .background(CommerceColors.fill, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(alignment: .topTrailing) {
+                    Text(verbatim: String(order.itemCount))
+                        .font(.system(size: 10, weight: .semibold)).padding(.horizontal, 5).padding(.vertical, 2)
+                        .background(Color.white, in: Capsule()).offset(x: 4, y: -4)
+                }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(product?.title ?? "Order items").font(.system(size: 15, weight: .semibold))
+                Text(product == nil ? "Custom order" : "Default variant")
+                    .font(.system(size: 12)).foregroundStyle(CommerceColors.secondary)
+                if let product {
+                    Text("\(scene.money(product.price)) × \(order.itemCount)").font(.system(size: 13))
+                } else {
+                    Text("Quantity: \(order.itemCount)").font(.system(size: 13))
+                }
+            }
+            Spacer(minLength: 4)
+            Text(scene.money(order.total)).font(.system(size: 14)).padding(.top, 2)
+        }
+        .padding(.vertical, 8)
+    }
+    private func initials(_ name: String) -> String {
+        name.split(separator: " ").prefix(2).compactMap { $0.first }.map(String.init).joined().uppercased()
     }
 }
 
@@ -1038,7 +1154,7 @@ private struct CommerceStoreSearch: View {
                         ForEach(orders) { order in
                             Button { destination = .order(order.id) } label: {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("#\(order.number)").font(.headline)
+                                    Text(verbatim: "#\(order.number)").font(.headline)
                                     Text(order.customer).font(.subheadline).foregroundStyle(.secondary)
                                 }
                             }

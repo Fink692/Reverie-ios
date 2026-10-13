@@ -1,6 +1,26 @@
 import SwiftUI
 import UserNotifications
 
+struct AppPlaybackConfiguration {
+    let kind: SceneKind
+    let bank: BankTheme?
+
+    static var current: AppPlaybackConfiguration? {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-ui-test-session"), let index = arguments.firstIndex(of: "-ui-test-brand"), arguments.indices.contains(index + 1) {
+            let value = arguments[index + 1]
+            if value == "commerce" { return AppPlaybackConfiguration(kind: .commerce, bank: nil) }
+            if let bank = BankTheme(rawValue: value) { return AppPlaybackConfiguration(kind: .banking, bank: bank) }
+            return nil
+        }
+        guard let rawKind = Bundle.main.object(forInfoDictionaryKey: "ReveriePlaybackKind") as? String,
+              let kind = SceneKind(rawValue: rawKind), kind != .creator else { return nil }
+        let bank = (Bundle.main.object(forInfoDictionaryKey: "ReverieBankTheme") as? String).flatMap(BankTheme.init(rawValue:))
+        guard kind != .banking || bank != nil else { return nil }
+        return AppPlaybackConfiguration(kind: kind, bank: bank)
+    }
+}
+
 @main struct ReverieApp: App {
     @StateObject private var store: StudioStore
     @StateObject private var router = NotificationRouter.shared
@@ -9,24 +29,42 @@ import UserNotifications
     private let delegate = NotificationDelegate()
     init() {
         let arguments = ProcessInfo.processInfo.arguments
+        let defaults: UserDefaults
+        let startupStore: StudioStore
         if let index = arguments.firstIndex(of: "-ui-test-session"), arguments.indices.contains(index + 1),
            let session = UUID(uuidString: arguments[index + 1]) {
-            let defaults = UserDefaults(suiteName: "reverie.ui-tests.\(session.uuidString)") ?? .standard
-            preferences = defaults
-            _welcomed = AppStorage(wrappedValue: false, "welcomed", store: defaults)
-            _store = StateObject(wrappedValue: StudioStore(fileURL: FileManager.default.temporaryDirectory.appending(path: "reverie-ui-\(session.uuidString).json")))
+            defaults = UserDefaults(suiteName: "reverie.ui-tests.\(session.uuidString)") ?? .standard
+            startupStore = StudioStore(fileURL: FileManager.default.temporaryDirectory.appending(path: "reverie-ui-\(session.uuidString).json"))
         } else {
-            preferences = .standard
-            _welcomed = AppStorage(wrappedValue: false, "welcomed", store: .standard)
-            _store = StateObject(wrappedValue: StudioStore())
+            defaults = .standard
+            startupStore = StudioStore()
         }
+        if let configuration = AppPlaybackConfiguration.current, !defaults.bool(forKey: "brandConfigured"),
+           var scene = startupStore.scenes.first(where: { $0.kind == configuration.kind }) {
+            if let bank = configuration.bank {
+                scene.currency = bank.country == "United States" ? "USD" : "GBP"
+                if startupStore.update(scene) {
+                    var profile = BankProfile.starter(for: scene.id)
+                    profile.theme = bank
+                    if startupStore.updateBankProfile(profile) { defaults.set(true, forKey: "brandConfigured") }
+                }
+            } else {
+                startupStore.select(scene)
+                if startupStore.activeID == scene.id, startupStore.preparePlayback(for: scene.id) { defaults.set(true, forKey: "brandConfigured") }
+            }
+        }
+        preferences = defaults
+        _welcomed = AppStorage(wrappedValue: false, "welcomed", store: defaults)
+        _store = StateObject(wrappedValue: startupStore)
         UNUserNotificationCenter.current().delegate = delegate
     }
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(store)
                 .defaultAppStorage(preferences)
-                .sheet(isPresented: Binding(get: { !welcomed }, set: { welcomed = !$0 })) {
+                .sheet(isPresented: Binding(get: { !welcomed }, set: { welcomed = !$0 }), onDismiss: {
+                    if welcomed { NotificationCenter.default.post(name: .welcomeCompleted, object: nil) }
+                }) {
                     WelcomeView { welcomed = true }.interactiveDismissDisabled()
                 }
                 .alert("Something needs attention", isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })) {

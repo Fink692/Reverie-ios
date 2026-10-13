@@ -15,6 +15,7 @@
 		2144FE352774FA6BE7AB6001 /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478AEF362123ECB71960140D /* PlaybackModels.swift */; };
 		34676AB17AFCCBC20EDAD3C1 /* SessionCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ED88F20680A84D5B2F93316 /* SessionCodecTests.swift */; };
 		4B9EDD54B1487BA161A1A798 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F6101AB287291F731B9D7B /* PersistenceTests.swift */; };
+		4FB7F6608E2E4774EBB79FB9 /* Order.caf in Resources */ = {isa = PBXBuildFile; fileRef = D2B61A2DD23D51570B82D753 /* Order.caf */; };
 		53A0E1BDEC2B5658232EA031 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2DECBDC619FE6987A082396 /* Store.swift */; };
 		5F0B61EE69A5E24EEEF142AE /* SessionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */; };
 		784A94A2A6953A1DC6F33471 /* SessionStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */; };
@@ -62,6 +63,7 @@
 		B45C4A048EF8D790434D2483 /* ReverieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverieApp.swift; sourceTree = "<group>"; };
 		BE7DF0A1CE5DCF19DCBEC3E5 /* Reverie.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Reverie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D2B61A2DD23D51570B82D753 /* Order.caf */ = {isa = PBXFileReference; path = Order.caf; sourceTree = "<group>"; };
 		E2DECBDC619FE6987A082396 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		E5CB299DD7755BC89EC1C986 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -74,6 +76,7 @@
 				0B2DD01D6FC941494C7AC377 /* BankPlayback.swift */,
 				AF3420ED2AB4E169E019A68C /* CommercePlayback.swift */,
 				E5CB299DD7755BC89EC1C986 /* Models.swift */,
+				D2B61A2DD23D51570B82D753 /* Order.caf */,
 				478AEF362123ECB71960140D /* PlaybackModels.swift */,
 				09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */,
 				B45C4A048EF8D790434D2483 /* ReverieApp.swift */,
@@ -223,6 +226,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EA61CCCAD6B09405BA2402DD /* Assets.xcassets in Resources */,
+				4FB7F6608E2E4774EBB79FB9 /* Order.caf in Resources */,
 				1C8723DF25AF1475D2179B41 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
