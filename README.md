@@ -29,7 +29,7 @@ Notification permission is requested only when cueing alerts. Focus modes, notif
 
 ## Validation status
 
-The prior [hosted baseline](https://github.com/Fink692/Reverie-ios/actions/runs/38367881655) passes **47 shared Swift tests, 71 native unit tests, and 17 UI tests** with zero failures. The current visual fidelity revision adds native layouts and artwork, a Trust Wallet interaction test, and production-metadata startup captures for all 20 variants; its Apple verification is pending. Evidence and visual reference limits are recorded in [Verification/STATUS.md](Verification/STATUS.md) and [visual coverage](Verification/VISUAL-COVERAGE.md). Physical-device installation and distribution signing still require an Apple account and a device; packages are unsigned.
+The [verified native build](https://github.com/Fink692/Reverie-ios/actions/runs/38411196377) passes **47 shared Swift tests, 71 native unit tests, and 18 UI tests** with zero failures. All 20 unsigned brand packages pass native and independent identity, icon, resource, and checksum checks. The visual revision includes Trust Wallet search/NFT interactions, Wealthsimple Holdings, individual bank headers, and Polymarket sports artwork. Functional checks do not establish complete 1:1 parity. Evidence and remaining differences are recorded in [Verification/STATUS.md](Verification/STATUS.md) and [visual coverage](Verification/VISUAL-COVERAGE.md). Physical-device installation and distribution signing require an Apple account and a device; packages are unsigned.
 
 ## Design references
 

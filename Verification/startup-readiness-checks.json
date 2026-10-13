@@ -1,0 +1,160 @@
+{
+  "captureRun": 38418631787,
+  "captureRunURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38418631787",
+  "captureWorkflowCommit": "5b5c752481ac50639ba0a0fb036b75306e62908e",
+  "nativeBuildRun": 38411196377,
+  "nativeBuildCommit": "261945d1a99a7828d8dc551467ccf2819fc12f94",
+  "artifactSHA256": "16beb23de7ad53ca58e204c8dd1fc6a9e2355b583533ff6ef368a46600974a2f",
+  "artifactSizeBytes": 82510722,
+  "artifactCRCVerified": true,
+  "variantCount": 20,
+  "allStartupScreensVisuallyReviewed": true,
+  "initialBlankShopifyFrameRejected": true,
+  "unchangedApplicationExecutableDebugLibrariesAndCatalog": true,
+  "archivedSimulatorAdditionalTestSupportLibraries": [
+    "Frameworks/libXCTestBundleInject.dylib",
+    "Frameworks/libXCTestSwiftSupport.dylib"
+  ],
+  "variants": [
+    {
+      "id": "commerce",
+      "displayName": "Shopify",
+      "acceptedAttempt": 2,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "083991df9b0eee0f971999484e66e576010f1d5947ad0dd88369a965989bccaf"
+    },
+    {
+      "id": "chase",
+      "displayName": "Chase",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "c8e62b942e0d4a6168d4490116033d0d323b5c581d75b4872f02a66f6914a23d"
+    },
+    {
+      "id": "bankOfAmerica",
+      "displayName": "Bank of America",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "2bad08a61bb68762c43c6775c975c31076b686f4197e443519fef65101bcde4d"
+    },
+    {
+      "id": "wellsFargo",
+      "displayName": "Wells Fargo",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "8e657c982d140340bc93917fc2195c828bf5054901602b58b82da055d8a6d704"
+    },
+    {
+      "id": "citi",
+      "displayName": "Citi",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "ac8de34d6a16c3d89376c82f9efdb5708e83473dff699a78878ff4c98b3eca40"
+    },
+    {
+      "id": "capitalOne",
+      "displayName": "Capital One",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "299c686209e499db354e3c185f19d626cab05ee4a7d66bd8a199a7b9e5c2771d"
+    },
+    {
+      "id": "hsbc",
+      "displayName": "HSBC",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "e0e32adc82b5430599b387eb514af9cc77014796ae35d5b5e7eae124b7f9db53"
+    },
+    {
+      "id": "barclays",
+      "displayName": "Barclays",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "29475238dfeaaf74fa791e98d9ac7d779960242467c31dd34ed00ecc2a72c99c"
+    },
+    {
+      "id": "lloyds",
+      "displayName": "Lloyds Bank",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "a57a2e2932630c9004274931e6b7e60ac8ecddc4dd37b5c0eabe3f71937913be"
+    },
+    {
+      "id": "natWest",
+      "displayName": "NatWest",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "f2d8a99a7b195f1e4a4f77ce43cacdfa0be00c9f3f1398b0743a405c48120e0d"
+    },
+    {
+      "id": "monzo",
+      "displayName": "Monzo",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "1f7439720db6abca3d581d84384d1247fe3a5abc081def7db35cd5122e3e9c99"
+    },
+    {
+      "id": "revolut",
+      "displayName": "Revolut",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "7a39005652a4af751dccf60c7b20b7be7b6502d0e04777adfedcd78aa4e99a61"
+    },
+    {
+      "id": "starling",
+      "displayName": "Starling Bank",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "5821f455434e81e7b219c143458fdaeba816e98b53eb27f6e1b3bef4cd6445cb"
+    },
+    {
+      "id": "robinhood",
+      "displayName": "Robinhood",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "29fade2d4e2bc819542e8022ae25d9bcf1a65df9c342960a3865bed93789627b"
+    },
+    {
+      "id": "wealthsimple",
+      "displayName": "Wealthsimple",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "7594cf95e0dd0d9c56383b13f7362404b8c453a28a8d5657b73ddcdd80655a8c"
+    },
+    {
+      "id": "coinbase",
+      "displayName": "Coinbase",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "bb2087a651dfde55161dd6392a53a12d4e96e575a5bc251f98589b13ef7eb799"
+    },
+    {
+      "id": "polymarket",
+      "displayName": "Polymarket",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "b2232948dfae33fcceecaec85d3cb1c8a81f92c5a8e43095b30a671750c37baa"
+    },
+    {
+      "id": "metamask",
+      "displayName": "MetaMask",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "2daf102b5cb997581ed7322f5cc5b6e600c9e0707de220767b646f82c88fd489"
+    },
+    {
+      "id": "phantom",
+      "displayName": "Phantom",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "1c87bd60e79c50e79c5da640dc92fd412cf04b98a09a95acdac5cc1e73531a3d"
+    },
+    {
+      "id": "trustWallet",
+      "displayName": "Trust Wallet",
+      "acceptedAttempt": 1,
+      "applicationMetadataAndHashesMatchNativeRun": true,
+      "startupScreenshotSHA256": "476876495618ed42bb277319c19ee9b5b6a48c8865d6bd3acb06d614fc3d4b02"
+    }
+  ]
+}

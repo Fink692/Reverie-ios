@@ -1,188 +1,611 @@
 {
+  "generatedAt": "2026-10-13T14:53:23.637503+00:00",
+  "workflowRun": 38411196377,
+  "nativeCommit": "261945d1a99a7828d8dc551467ccf2819fc12f94",
   "result": "passed",
-  "runID": "38367881655",
+  "nativeAndIndependentManifestExactMatchExceptTimestamp": true,
   "variantCount": 20,
-  "distinctBundleIdentifiers": 20,
-  "sourcePreviewPNGsVerified": 20,
-  "nativeIconNamesVerified": 20,
-  "sharedExecutableSHA256": "0d032728fa39fb7b33050d314970255173162353fa13fd694a7a7a898e35dd5a",
-  "sharedAssetCatalogSHA256": "44a7de0d8008420cbccd50408c50385f2c15519b3de1ee28f31b8a51605ad62e",
-  "sharedBinarySHA256": {
-    "Reverie": "0d032728fa39fb7b33050d314970255173162353fa13fd694a7a7a898e35dd5a"
+  "uniqueIdentifiers": 20,
+  "sourceIdenticalPreviewPNGCount": 20,
+  "mainExecutableSHA256": "27e73cad0f4b41d5517ca77accced38fc3dd65362bbb8bc800caefb962ede4de",
+  "assetCatalogSHA256": "282493f00e63377fbf58b2ed6c77bb696520350ce5c516b5301442824f3329da",
+  "compiledLibrariesSHA256": {
+    "Reverie": "27e73cad0f4b41d5517ca77accced38fc3dd65362bbb8bc800caefb962ede4de"
   },
-  "nativeMachO": {
-    "cpu": "arm64",
+  "machO": {
+    "architecture": "arm64",
+    "type": "MH_EXECUTE",
     "buildVersions": [
       {
         "platform": 2,
-        "minimumOS": 1114112,
-        "sdk": 1180928
+        "minimum": "17.0.0",
+        "sdk": "18.5.0",
+        "toolCount": 1
       }
     ],
-    "hasCodeSignature": false
+    "loadCommandCount": 53,
+    "codeSignatureLoadCommandAbsent": true
   },
+  "nativeRenditionDumpExactMatch": true,
   "variants": [
     {
       "id": "commerce",
+      "file": "Reverie-commerce-unsigned.ipa",
+      "sizeBytes": 15792064,
+      "sha256": "973e664445577e6d7d9ce46db04f5e935aa4a795ce4b4f21a5cc2d3c32eb1488",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "25bd3ffd082b2b08df298a77c2085ad1236e23473b85f359381ea967f92fd1ba",
       "bundleIdentifier": "com.reverie.brand.commerce",
+      "displayName": "Shopify",
       "playbackKind": "commerce",
-      "archiveSHA256": "2964a019dd007e83466dfdccb68c9ecaae24bad2c6908b6fe54e6b6d44004bd0",
-      "previewPNG": "Brand-commerce.png",
-      "previewSHA256": "25bd3ffd082b2b08df298a77c2085ad1236e23473b85f359381ea967f92fd1ba"
+      "theme": {},
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-commerce"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-commerce"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "chase",
+      "file": "Reverie-chase-unsigned.ipa",
+      "sizeBytes": 15742613,
+      "sha256": "8aa946cbfe09d58b0f131ea084da8f92d75898d0da4fed60a44dc84014026632",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "cc19606c5474f21b1a84315ae343427c47eba949c1a13c9ad44f213320a50f89",
       "bundleIdentifier": "com.reverie.brand.chase",
+      "displayName": "Chase",
       "playbackKind": "banking",
-      "archiveSHA256": "e75e91ce5934147bb091212b4eae204bfcbee1119a8c1b9827e4a219c054f824",
-      "previewPNG": "Brand-chase.png",
-      "previewSHA256": "cc19606c5474f21b1a84315ae343427c47eba949c1a13c9ad44f213320a50f89"
+      "theme": {
+        "ReverieBankTheme": "chase"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-chase"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-chase"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "bankOfAmerica",
+      "file": "Reverie-bankOfAmerica-unsigned.ipa",
+      "sizeBytes": 15190678,
+      "sha256": "43e0f1ac7c8dbcc7b648d7c70e60bcb54780a5201ee860eb25b08ab85f14e96c",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "9b75fdc0636c2c75ff245823e81347014bb48c4f0d6c83acf8ede47a0c489047",
       "bundleIdentifier": "com.reverie.brand.bankofamerica",
+      "displayName": "Bank of America",
       "playbackKind": "banking",
-      "archiveSHA256": "52ac846437f3f613090148683751cd684e3a111dc996115134355cbd312e2692",
-      "previewPNG": "Brand-bankOfAmerica.png",
-      "previewSHA256": "9b75fdc0636c2c75ff245823e81347014bb48c4f0d6c83acf8ede47a0c489047"
+      "theme": {
+        "ReverieBankTheme": "bankOfAmerica"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-bankOfAmerica"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-bankOfAmerica"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "wellsFargo",
+      "file": "Reverie-wellsFargo-unsigned.ipa",
+      "sizeBytes": 15200120,
+      "sha256": "322454cd5b3adae11ea001402e1baa4827d9e7f829a5f87444ce64186d56e0ca",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "0ffbdeaa2b76b11c75a0ae4881d958e8f1bdb37c8245ce02162c04f5b6d7a009",
       "bundleIdentifier": "com.reverie.brand.wellsfargo",
+      "displayName": "Wells Fargo",
       "playbackKind": "banking",
-      "archiveSHA256": "aece69ea75ca775f2d158036c30eeaf11f01ae1d74e002535981db27268d3db3",
-      "previewPNG": "Brand-wellsFargo.png",
-      "previewSHA256": "0ffbdeaa2b76b11c75a0ae4881d958e8f1bdb37c8245ce02162c04f5b6d7a009"
+      "theme": {
+        "ReverieBankTheme": "wellsFargo"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-wellsFargo"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-wellsFargo"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "citi",
+      "file": "Reverie-citi-unsigned.ipa",
+      "sizeBytes": 15168368,
+      "sha256": "4190d409353350f56acb104d982ed9f14d69577c56928bfe5dabd28ec203d831",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "1f55379b3aa95b62957a3df06e6363cdaceac371e050ced3f669fedec655fcee",
       "bundleIdentifier": "com.reverie.brand.citi",
+      "displayName": "Citi",
       "playbackKind": "banking",
-      "archiveSHA256": "ed279143c87dc5f9fe53541a93d045508bd4d348aa6d11ccb41d5bcec11d02e3",
-      "previewPNG": "Brand-citi.png",
-      "previewSHA256": "1f55379b3aa95b62957a3df06e6363cdaceac371e050ced3f669fedec655fcee"
+      "theme": {
+        "ReverieBankTheme": "citi"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-citi"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-citi"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "capitalOne",
+      "file": "Reverie-capitalOne-unsigned.ipa",
+      "sizeBytes": 15411766,
+      "sha256": "423aa66e887274bc7a083797015aa792f6ac5c9d7d2310d1b6c1de85a39b4f5d",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "dbdb4b2f4bfeb82f16801d6c53fe48e09cf5d0253fe3135f39de25125cd4a881",
       "bundleIdentifier": "com.reverie.brand.capitalone",
+      "displayName": "Capital One",
       "playbackKind": "banking",
-      "archiveSHA256": "eaaac8ee0b736b12578301ba2e1bf00c2a7dbc4797beb14817652e1121123583",
-      "previewPNG": "Brand-capitalOne.png",
-      "previewSHA256": "dbdb4b2f4bfeb82f16801d6c53fe48e09cf5d0253fe3135f39de25125cd4a881"
+      "theme": {
+        "ReverieBankTheme": "capitalOne"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-capitalOne"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-capitalOne"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "hsbc",
+      "file": "Reverie-hsbc-unsigned.ipa",
+      "sizeBytes": 15161478,
+      "sha256": "d0cdac16e99e0881027831c425feddf04dfaf2b5d343ccf8c24d102a6139fac2",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "121dc9ba0fd73ae606399a638b2370d28d92457dd73febbe5bbc739ab42a1525",
       "bundleIdentifier": "com.reverie.brand.hsbc",
+      "displayName": "HSBC",
       "playbackKind": "banking",
-      "archiveSHA256": "75bb4f1ff600d741769323879776b7e78daa8a464cafaa2f063a021e51e1bcc5",
-      "previewPNG": "Brand-hsbc.png",
-      "previewSHA256": "121dc9ba0fd73ae606399a638b2370d28d92457dd73febbe5bbc739ab42a1525"
+      "theme": {
+        "ReverieBankTheme": "hsbc"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-hsbc"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-hsbc"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "barclays",
+      "file": "Reverie-barclays-unsigned.ipa",
+      "sizeBytes": 15706848,
+      "sha256": "273d347b5f204832d093b78392196ad927063f0381699d274252bcc266f38471",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "46560ed033644fc0b9f71e409b34ac5b47c0a3f3680d6ca199bd75df93a118fc",
       "bundleIdentifier": "com.reverie.brand.barclays",
+      "displayName": "Barclays",
       "playbackKind": "banking",
-      "archiveSHA256": "39d75f08d66b990a61d769fd9349bd3132899f9209029332bd32d5beee202914",
-      "previewPNG": "Brand-barclays.png",
-      "previewSHA256": "46560ed033644fc0b9f71e409b34ac5b47c0a3f3680d6ca199bd75df93a118fc"
+      "theme": {
+        "ReverieBankTheme": "barclays"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-barclays"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-barclays"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "lloyds",
+      "file": "Reverie-lloyds-unsigned.ipa",
+      "sizeBytes": 15192760,
+      "sha256": "c874ea20a79f5f87445c775d46d89ec49bff6a820c41626b5a5e471f05ce1e2a",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "2a969d2b358df566e9041169c757c3637c1ed3b9827d3fd1617359a44e13290d",
       "bundleIdentifier": "com.reverie.brand.lloyds",
+      "displayName": "Lloyds Bank",
       "playbackKind": "banking",
-      "archiveSHA256": "0a79ee016353d8cfde0e22a5cfd0f08046646452790931bd2dbc1f737e852975",
-      "previewPNG": "Brand-lloyds.png",
-      "previewSHA256": "2a969d2b358df566e9041169c757c3637c1ed3b9827d3fd1617359a44e13290d"
+      "theme": {
+        "ReverieBankTheme": "lloyds"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-lloyds"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-lloyds"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "natWest",
+      "file": "Reverie-natWest-unsigned.ipa",
+      "sizeBytes": 15241629,
+      "sha256": "4cd7ef196d62c4e5e44c2359d51668df95d3ec8f76434ca454d3e9b44af0305b",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "899eb62b519a7d375d60ea9264b708d356e09ac50fa19501c08a6609f6f750d9",
       "bundleIdentifier": "com.reverie.brand.natwest",
+      "displayName": "NatWest",
       "playbackKind": "banking",
-      "archiveSHA256": "dcaacafec5998c7341f24641de9581778cc1694166a34f67eee2f7105d55b7a0",
-      "previewPNG": "Brand-natWest.png",
-      "previewSHA256": "899eb62b519a7d375d60ea9264b708d356e09ac50fa19501c08a6609f6f750d9"
+      "theme": {
+        "ReverieBankTheme": "natWest"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-natWest"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-natWest"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "monzo",
+      "file": "Reverie-monzo-unsigned.ipa",
+      "sizeBytes": 15368457,
+      "sha256": "bc4a7312f6d34c9bdb66a08bcc5f7c0a514480b436056e1afa0453176bde883e",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "95be56f0f315d623c3b904e62d085939184391afadc4d2496f4544021604d6f3",
       "bundleIdentifier": "com.reverie.brand.monzo",
+      "displayName": "Monzo",
       "playbackKind": "banking",
-      "archiveSHA256": "6ba9abd9261b11f62fc7ebde96208f0955ff6c5b56253315f5b90b57e29c48de",
-      "previewPNG": "Brand-monzo.png",
-      "previewSHA256": "95be56f0f315d623c3b904e62d085939184391afadc4d2496f4544021604d6f3"
+      "theme": {
+        "ReverieBankTheme": "monzo"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-monzo"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-monzo"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "revolut",
+      "file": "Reverie-revolut-unsigned.ipa",
+      "sizeBytes": 15163199,
+      "sha256": "c65e9883c95e7cf1f2aada6a92b955580c397de1a8108f3a73c7aab364e62bea",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "2602694c741351e37953f0a8c95ce2c37ee73f29c83d1a7e3e500b0c715f9169",
       "bundleIdentifier": "com.reverie.brand.revolut",
+      "displayName": "Revolut",
       "playbackKind": "banking",
-      "archiveSHA256": "23ac181fff3c23c1aa9da8100a82af54c8e83109ab7e6ebd63bbbed6dbd33571",
-      "previewPNG": "Brand-revolut.png",
-      "previewSHA256": "2602694c741351e37953f0a8c95ce2c37ee73f29c83d1a7e3e500b0c715f9169"
+      "theme": {
+        "ReverieBankTheme": "revolut"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-revolut"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-revolut"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "starling",
+      "file": "Reverie-starling-unsigned.ipa",
+      "sizeBytes": 15730198,
+      "sha256": "c59db3562f525ed65848df09b99fde1a8eee8a492975d5d18511c5c1f114f46c",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "76b0fb2e0973928a3d056a93aba28c4e7d2589f309b46471c596a22647929ce9",
       "bundleIdentifier": "com.reverie.brand.starling",
+      "displayName": "Starling Bank",
       "playbackKind": "banking",
-      "archiveSHA256": "d9c77b66cbadbbf7a4cf410f70978b56794c383b5c185745521773fd0a52968f",
-      "previewPNG": "Brand-starling.png",
-      "previewSHA256": "76b0fb2e0973928a3d056a93aba28c4e7d2589f309b46471c596a22647929ce9"
+      "theme": {
+        "ReverieBankTheme": "starling"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-starling"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-starling"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "robinhood",
+      "file": "Reverie-robinhood-unsigned.ipa",
+      "sizeBytes": 16153567,
+      "sha256": "abd7ad3f8e2428662403b42cf94b351fda36cb1b87c2aec278f11f29d4b64010",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5",
       "bundleIdentifier": "com.reverie.brand.robinhood",
+      "displayName": "Robinhood",
       "playbackKind": "portfolio",
-      "archiveSHA256": "686be42e6e7153fc5084eb011e71633b8d159676bcd88021667edada5e9d0a4a",
-      "previewPNG": "Brand-robinhood.png",
-      "previewSHA256": "a3da5b93bc39c626c6923c7d8732a78fc2d7ceab3d345d0e59714bb9499411b5"
+      "theme": {
+        "ReveriePortfolioTheme": "robinhood"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-robinhood"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-robinhood"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "wealthsimple",
+      "file": "Reverie-wealthsimple-unsigned.ipa",
+      "sizeBytes": 15273526,
+      "sha256": "845a2e96e6ac5a409df7fc474cd8b8a0e452dde27b0eda72580c821905c7cd61",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4",
       "bundleIdentifier": "com.reverie.brand.wealthsimple",
+      "displayName": "Wealthsimple",
       "playbackKind": "portfolio",
-      "archiveSHA256": "85d5dde8803851905d004eecfbc33c87c1377598ae8ae2df6ebd6a03e6cad3fe",
-      "previewPNG": "Brand-wealthsimple.png",
-      "previewSHA256": "0859c205aed3742d31f39fc4bfa253df6940039e40f5b927b2122a544929a3a4"
+      "theme": {
+        "ReveriePortfolioTheme": "wealthsimple"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-wealthsimple"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-wealthsimple"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "coinbase",
+      "file": "Reverie-coinbase-unsigned.ipa",
+      "sizeBytes": 15171235,
+      "sha256": "44f932d3c5ac157190e3e5e433268c69b05aa85fcf88dcefcc203d01038d4351",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a",
       "bundleIdentifier": "com.reverie.brand.coinbase",
+      "displayName": "Coinbase",
       "playbackKind": "portfolio",
-      "archiveSHA256": "8c2cc53e15a126fc88823a20789704a6b66a26b2c1eeddbc1c7a7825e32de4dd",
-      "previewPNG": "Brand-coinbase.png",
-      "previewSHA256": "fa457e732b0b3e7deb71d3477c847a733299b627d6dff12c1d3a85804c50d64a"
+      "theme": {
+        "ReveriePortfolioTheme": "coinbase"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-coinbase"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-coinbase"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "polymarket",
+      "file": "Reverie-polymarket-unsigned.ipa",
+      "sizeBytes": 16578282,
+      "sha256": "b4c11214b2ffb47a60415da7da7c199a384883416e6e03d70c3b73b9ea6ea1e2",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b",
       "bundleIdentifier": "com.reverie.brand.polymarket",
+      "displayName": "Polymarket",
       "playbackKind": "prediction",
-      "archiveSHA256": "ecf778c8fdb9051d3554932a864d43a5bfd40b7c8b16955f537478fa1bccd729",
-      "previewPNG": "Brand-polymarket.png",
-      "previewSHA256": "6160fe1e3e49a178a36e761dcd1abee1be5e1b721c5547d606f1a50d0445b11b"
+      "theme": {
+        "ReveriePredictionTheme": "polymarket"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-polymarket"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-polymarket"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "metamask",
+      "file": "Reverie-metamask-unsigned.ipa",
+      "sizeBytes": 15194059,
+      "sha256": "a012b61b25447c31f6ea96187f492696f630426ebd9a9b28121fe8a5cda8a250",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8",
       "bundleIdentifier": "com.reverie.brand.metamask",
+      "displayName": "MetaMask",
       "playbackKind": "wallet",
-      "archiveSHA256": "82aebed6bdd488f15d8231ddc3767b3643f5786a12a7069256b7db9f35290e16",
-      "previewPNG": "Brand-metamask.png",
-      "previewSHA256": "d7218eec780edb0bc1f7f0cca02481f522b5729d81305cb3b958f132c3f132f8"
+      "theme": {
+        "ReverieWalletTheme": "metamask"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-metamask"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-metamask"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "phantom",
+      "file": "Reverie-phantom-unsigned.ipa",
+      "sizeBytes": 15168935,
+      "sha256": "a5b79dc1b4a663cd97e8d45a7c93cf164172524bb0124f9ad7f681b2910ca791",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e",
       "bundleIdentifier": "com.reverie.brand.phantom",
+      "displayName": "Phantom",
       "playbackKind": "wallet",
-      "archiveSHA256": "b73be4b807ea79881d6fc32fe472128b378581472c522da86d595f54678ff30b",
-      "previewPNG": "Brand-phantom.png",
-      "previewSHA256": "f6377dc414f835bfc554df9df418e1fedf31753cf9589701ca50d8b9233a147e"
+      "theme": {
+        "ReverieWalletTheme": "phantom"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-phantom"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-phantom"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     },
     {
       "id": "trustWallet",
+      "file": "Reverie-trustWallet-unsigned.ipa",
+      "sizeBytes": 15276683,
+      "sha256": "907bf0c8ea15fcf17baefcc74c389494795f9d8f80c576998ffda54a288b518a",
+      "crcVerified": true,
+      "sourcePreviewSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785",
       "bundleIdentifier": "com.reverie.brand.trustwallet",
+      "displayName": "Trust Wallet",
       "playbackKind": "wallet",
-      "archiveSHA256": "9db52fc85e26aba38de147bac5cf49f271ea9a87de03775205204b1e8ac745db",
-      "previewPNG": "Brand-trustWallet.png",
-      "previewSHA256": "fe10a4d92ba883be69ad9c4db17bdb34eac7028d54adefb52effb8b78a02f785"
+      "theme": {
+        "ReverieWalletTheme": "trustWallet"
+      },
+      "platform": [
+        "iPhoneOS"
+      ],
+      "primaryIconPhone": {
+        "CFBundleIconName": "Brand-trustWallet"
+      },
+      "primaryIconIPad": {
+        "CFBundleIconName": "Brand-trustWallet"
+      },
+      "nativeCatalogIdioms": [
+        "pad",
+        "phone"
+      ],
+      "allOtherResourcesByteIdenticalToBase": true,
+      "codeSignatureAbsent": true
     }
   ],
-  "nativeBuildCommit": "dceee7ba9a0f0e16d8c8a2ab49c3ec3d1ac6ffd8",
-  "workflowURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38367881655"
+  "workflowRunURL": "https://github.com/Fink692/Reverie-ios/actions/runs/38411196377"
 }
