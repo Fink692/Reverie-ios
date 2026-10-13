@@ -499,7 +499,6 @@ private struct PredictionGameCard: View {
             }.buttonStyle(.plain)
         }
         .padding(16).predictionSurface()
-        .accessibilityIdentifier("prediction-game-\(game.id.uuidString)")
     }
     private func choice(_ outcome: PredictionOutcome, team: String, color: Color) -> some View {
         let price = market.price(for: outcome)
