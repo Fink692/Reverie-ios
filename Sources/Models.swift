@@ -53,9 +53,21 @@ struct SceneEvent: Codable, Identifiable, Equatable {
     var amount: Double
     var detail: String
     var date = Date()
+    var orderNumber: Int?
+    var customerName: String?
+    var itemCount: Int?
     var title: String { kind.title }
-    var isValid: Bool { Simulation.validAmount(amount) && detail.count <= 240 && date.timeIntervalSince1970.isFinite }
+    var isValid: Bool {
+        Simulation.validAmount(amount) && detail.count <= 240 && date.timeIntervalSince1970.isFinite &&
+        (orderNumber.map { (1...2_000_000).contains($0) } ?? true) &&
+        (customerName.map { !$0.isEmpty && $0.count <= 80 } ?? true) &&
+        (itemCount.map { (1...1000).contains($0) } ?? true)
+    }
     func body(scene: StudioScene) -> String {
+        if scene.kind == .commerce && kind == .order {
+            let quantity = itemCount ?? 2
+            return "[\(scene.name)] You have a new order for \(quantity) \(quantity == 1 ? "item" : "items") totaling \(scene.money(amount))."
+        }
         let parts = kind == .subscriber ? [scene.name, detail] : [scene.name, scene.money(kind.isOutflow ? -amount : amount), detail]
         return parts.filter { !$0.isEmpty }.joined(separator: " · ")
     }
@@ -89,23 +101,32 @@ struct Archive: Codable {
     var events: [SceneEvent]
     var activeID: UUID
     var presets: [NotificationPreset]
-    init(scenes: [StudioScene], events: [SceneEvent], activeID: UUID, presets: [NotificationPreset] = []) {
+    var commerceProfiles: [CommerceProfile]
+    var bankProfiles: [BankProfile]
+    init(scenes: [StudioScene], events: [SceneEvent], activeID: UUID, presets: [NotificationPreset] = [], commerceProfiles: [CommerceProfile] = [], bankProfiles: [BankProfile] = []) {
+        self.commerceProfiles = commerceProfiles; self.bankProfiles = bankProfiles
         self.scenes = scenes; self.events = events; self.activeID = activeID; self.presets = presets
     }
-    private enum CodingKeys: String, CodingKey { case scenes, events, activeID, presets }
+    private enum CodingKeys: String, CodingKey { case scenes, events, activeID, presets, commerceProfiles, bankProfiles }
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         scenes = try container.decode([StudioScene].self, forKey: .scenes)
         events = try container.decode([SceneEvent].self, forKey: .events)
         activeID = try container.decode(UUID.self, forKey: .activeID)
         presets = try container.decodeIfPresent([NotificationPreset].self, forKey: .presets) ?? []
+        commerceProfiles = try container.decodeIfPresent([CommerceProfile].self, forKey: .commerceProfiles) ?? []
+        bankProfiles = try container.decodeIfPresent([BankProfile].self, forKey: .bankProfiles) ?? []
     }
     var isValid: Bool {
         let sceneIDs = Set(scenes.map(\.id))
         return (1...100).contains(scenes.count) && scenes.allSatisfy(\.isValid) && sceneIDs.count == scenes.count &&
         sceneIDs.contains(activeID) && events.count <= 1000 && Set(events.map(\.id)).count == events.count &&
         events.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
-        presets.count <= 50 && Set(presets.map(\.id)).count == presets.count && presets.allSatisfy(\.isValid)
+        presets.count <= 50 && Set(presets.map(\.id)).count == presets.count && presets.allSatisfy(\.isValid) &&
+        commerceProfiles.count <= 100 && Set(commerceProfiles.map(\.sceneID)).count == commerceProfiles.count &&
+        commerceProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) } &&
+        bankProfiles.count <= 100 && Set(bankProfiles.map(\.sceneID)).count == bankProfiles.count &&
+        bankProfiles.allSatisfy { $0.isValid && sceneIDs.contains($0.sceneID) }
     }
     func encoded(prettyPrinted: Bool = false) throws -> Data {
         guard isValid else { throw ArchiveError.invalidSession }

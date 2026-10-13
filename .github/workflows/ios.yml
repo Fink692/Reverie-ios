@@ -31,6 +31,15 @@ jobs:
         run: |
           set -o pipefail
           ./scripts/verify-macos.sh device 2>&1 | tee device-build.log
+      - name: Package the unsigned physical-device application
+        if: always()
+        run: |
+          DEVICE_APP_PATH=build-device/Build/Products/Release-iphoneos/Reverie.app
+          if [ -d "$DEVICE_APP_PATH" ]; then
+            mkdir -p build-device/package/Payload
+            ditto "$DEVICE_APP_PATH" build-device/package/Payload/Reverie.app
+            ditto -c -k --keepParent build-device/package/Payload Reverie-unsigned.ipa
+          fi
       - name: Build and run unit and UI tests
         env:
           IOS_TEST_DESTINATION: platform=iOS Simulator,id=${{ env.SIMULATOR_ID }}
@@ -65,4 +74,5 @@ jobs:
             test-attachments
             simulator.png
             Reverie-simulator.zip
+            Reverie-unsigned.ipa
           if-no-files-found: warn

@@ -125,6 +125,89 @@ final class ReverieUITests: XCTestCase {
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Studio Supply"].tap()
     }
+
+    func testCommercePlaybackTabsAndReturnToStudio() {
+        let app = makeApp()
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        if welcome.waitForExistence(timeout: 3) { welcome.tap() }
+        let openScene = app.buttons["open-scene"]
+        scrollTo(openScene, in: app)
+        openScene.tap()
+        let closeScene = app.buttons["close-scene"]
+        XCTAssertTrue(closeScene.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["commerce-tab-home"].isHittable)
+        let homeScreenshot = XCTAttachment(screenshot: app.screenshot())
+        homeScreenshot.name = "Commerce playback home"
+        homeScreenshot.lifetime = .keepAlways
+        add(homeScreenshot)
+
+        app.buttons["commerce-tab-orders"].tap()
+        XCTAssertTrue(app.textFields["Search orders"].waitForExistence(timeout: 3))
+        XCTAssertTrue(closeScene.isHittable)
+        let ordersScreenshot = XCTAttachment(screenshot: app.screenshot())
+        ordersScreenshot.name = "Commerce playback orders"
+        ordersScreenshot.lifetime = .keepAlways
+        add(ordersScreenshot)
+
+        app.buttons["commerce-tab-products"].tap()
+        XCTAssertTrue(app.textFields["Search products"].waitForExistence(timeout: 3))
+        XCTAssertTrue(closeScene.isHittable)
+        app.buttons["commerce-tab-store"].tap()
+        XCTAssertTrue(app.buttons["Store settings"].waitForExistence(timeout: 3))
+        XCTAssertTrue(closeScene.isHittable)
+        app.buttons["commerce-tab-home"].tap()
+        closeScene.tap()
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Studio"].tap()
+        XCTAssertTrue(app.navigationBars["Studio"].waitForExistence(timeout: 3))
+    }
+
+    func testBankPlaybackThemesAndReturnToDashboard() {
+        let app = makeApp()
+        app.launch()
+        let welcome = app.buttons["Enter your studio"]
+        if welcome.waitForExistence(timeout: 3) { welcome.tap() }
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Northstar"].tap()
+        app.tabBars.buttons["Dashboard"].tap()
+        let openScene = app.buttons["open-scene"]
+        scrollTo(openScene, in: app)
+        openScene.tap()
+        let bankPicker = app.buttons["bank-theme-picker"]
+        XCTAssertTrue(bankPicker.waitForExistence(timeout: 5))
+        XCTAssertTrue(bankPicker.isHittable)
+        XCTAssertTrue(bankPicker.label.contains("Chase"))
+        let chaseScreenshot = XCTAttachment(screenshot: app.screenshot())
+        chaseScreenshot.name = "Bank playback Chase"
+        chaseScreenshot.lifetime = .keepAlways
+        add(chaseScreenshot)
+
+        for name in ["Monzo", "Revolut"] {
+            bankPicker.tap()
+            let bank = app.buttons[name]
+            XCTAssertTrue(bank.waitForExistence(timeout: 3))
+            bank.tap()
+            let selected = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "label CONTAINS %@", name), object: bankPicker
+            )
+            XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "Bank playback \(name)"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        app.buttons["close-scene"].tap()
+        XCTAssertTrue(app.navigationBars["Reverie"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Northstar"].waitForExistence(timeout: 3))
+        app.terminate()
+        app.launch()
+        scrollTo(openScene, in: app)
+        openScene.tap()
+        XCTAssertTrue(bankPicker.waitForExistence(timeout: 5))
+        XCTAssertTrue(bankPicker.label.contains("Revolut"))
+        app.buttons["close-scene"].tap()
+    }
 }
 
 extension ReverieUITests {

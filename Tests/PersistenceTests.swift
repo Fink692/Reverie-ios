@@ -81,4 +81,35 @@ import XCTest
         XCTAssertNotNil(store.error)
     }
 
+    func testPlaybackProfilesSurviveAnUnrelatedEventSave() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let commerceID = store.scenes[0].id
+        let bankID = store.scenes[1].id
+        XCTAssertTrue(store.preparePlayback(for: commerceID))
+        var bank = store.bankProfile(for: bankID)
+        bank.theme = .revolut
+        XCTAssertTrue(store.updateBankProfile(bank))
+        XCTAssertNotNil(store.emit(kind: .deposit, amount: 10, detail: "Income", sceneID: bankID))
+        let restored = StudioStore(fileURL: file)
+        XCTAssertEqual(restored.bankProfile(for: bankID).theme, .revolut)
+        XCTAssertEqual(restored.commerceProfile(for: commerceID).products.count, 3)
+    }
+    func testNewOrderUsesCapturedSceneAndCustomerMetadata() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = StudioStore(fileURL: file)
+        let scene = store.scenes[0]
+        store.select(store.scenes[1])
+        let event = try XCTUnwrap(store.addCommerceOrder(sceneID: scene.id, customer: "Taylor", itemCount: 4, total: 100))
+        XCTAssertEqual(store.activeID, store.scenes[1].id)
+        let order = try XCTUnwrap(store.commerceOrders(for: scene.id).first { $0.id == event.id })
+        XCTAssertEqual(order.customer, "Taylor")
+        XCTAssertEqual(order.itemCount, 4)
+        XCTAssertEqual(order.number, 1001 + scene.orders)
+        XCTAssertTrue(store.setOrderStatus(orderID: order.id, sceneID: scene.id, status: .fulfilled))
+        XCTAssertEqual(store.commerceOrders(for: scene.id).first { $0.id == order.id }?.fulfillment, .fulfilled)
+    }
+
 }

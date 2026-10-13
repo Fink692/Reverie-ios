@@ -28,11 +28,13 @@ macOS .bundle names instead of SwiftPM's Linux .resources names. No XcodeGen
 source, app source, or project specification was modified to generate the project.
 
 Verified generated output:
-  - All five app Swift sources, all five XCTest sources, and the UI test source
+  - All eight app Swift sources, all six XCTest sources, and the UI test source
     have file references and source build phase entries in their correct targets.
   - SessionStorage.swift, SessionStorageTests.swift, SessionCodecTests.swift,
     and ValidationTests.swift are included in their correct source groups and
     target build phases.
+  - PlaybackModels.swift, CommercePlayback.swift, BankPlayback.swift, and
+    PlaybackModelTests.swift are included in their correct target build phases.
   - Assets.xcassets and PrivacyInfo.xcprivacy have resource build phase entries.
   - iPhone SDK, iOS 17 deployment target, Swift 5 language mode, Debug testability,
     and Debug compilation conditions are present.

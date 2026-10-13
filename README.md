@@ -29,9 +29,9 @@ Notification permission is requested only when cueing alerts. Focus modes, notif
 
 ## Validation status
 
-The shared Foundation code compiled with Swift 6.0.3 in an official Linux Swift container. **27 shared-logic and storage tests passed**, including accounting, refunds, localized numeric input, scheduling plans, persistence, recovery backups, and failed writes. Run `./scripts/verify-core.sh` to reproduce them with Swift 6+ or Docker.
+The baseline hosted build (`f989f89`) passed on GitHub Actions: unsigned physical-device compilation, 34 native XCTest cases, and 6 iPhone UI tests, using Xcode 16.4 and an iPhone 17 Pro Max simulator running iOS 26.2. The baseline run is https://github.com/Fink692/Reverie-ios/actions/runs/38337929358.
 
-Native Swift source and test grammar passed Swift frontend parsing. XcodeGen generated and validated the included project with complete configuration presets and all source/test references. Full Apple SDK compilation, native Store tests, UI tests, simulator behavior, accessibility runtime checks, and signing remain unverified. The hosted macOS workflow will perform unsigned device compilation and simulator unit/UI tests after the project is pushed to an accessible repository. See `Verification/STATUS.md` and the retained test output.
+The newer immersive commerce/bank scenes are undergoing their own hosted build. Shared model/storage tests run locally with Swift 6.0.3; source grammar and generated project references are checked too. Native screenshots are compared with official references before assessing visual parity. No App Store certification or signed-device release is claimed.
 
 ## Design references
 
@@ -48,7 +48,7 @@ This repository includes `.github/workflows/ios.yml`. Push the project to a GitH
 
 The simulator artifact does not require an Apple developer account. It runs on a Mac's iOS Simulator, not on a physical iPhone. Physical installation or TestFlight distribution still requires Apple signing through your developer account. Hosted Mac builds use GitHub Actions minutes under the repository owner's plan.
 
-The connected GitHub integration could read repositories but returned HTTP 403 when asked to create `Fink692/reverie-ios`. The remote workflow has not run. Once an empty repository exists and the integration has access, the prepared commit can be pushed and the actual build results reviewed.
+The user-provided repository is https://github.com/Fink692/Reverie-ios. It is public and contains the source plus hosted build workflow.
 
 ## Notifications and recovery details
 
@@ -61,3 +61,13 @@ Deleting a scene removes its recorded events and cancels its queued alerts. Canc
 Settings → Export session writes a native `.json` file through Files. Imports include all scenes, activity, and saved cues, and require confirmation before replacing current data. Import validates file size (up to 2 MB), identities, numerical bounds, references, and cue settings before changing anything; queued alerts are cleared after replacement. Older exports without saved cues still load. Invalid imports leave the current session unchanged.
 
 Saved cues store event type, amount, details, start delay, and alert count. Loading a cue fills Studio without scheduling it. The queued-alert view shows payloads, scene names, scheduled times, and per-alert cancellation. Queued iOS requests are not re-scheduled automatically when a session is imported.
+
+## Immersive scenes
+
+Dashboard → Open scene hides Studio navigation and opens commerce or bank playback. Commerce layouts reference Shopify's current official iPhone screenshots: black metric/chart header, blue plots, white rounded panels, floating navigation, order rows, filters and status chips. Home, Orders, Products, and Menu are interactive. Products, orders, metrics, current/prior chart curves, payouts and fulfillment state can be edited locally. Shopify-style order wording uses item quantity and the selected store name.
+
+Bank playback offers Chase, Bank of America, Wells Fargo, Citi, Capital One, HSBC UK, Barclays UK, Lloyds, NatWest, Monzo, Revolut and Starling. These are 12 named references, not an exhaustive list of every major bank worldwide. Each has a distinct reference-based overview, account/activity pages, editable balances, simulated payments/deposits, and persisted card controls. Change the scene currency in Studio for the desired region.
+
+Reference provenance and known differences are in `References/Shopify/README.md` and `References/Banks/README.md`. App Store images include promotional framing; the implementation reproduces visible in-app patterns, and has its own Close scene control. It is not yet certified as pixel-identical to complete third-party apps. System notifications retain Reverie's installed identity.
+
+The workflow also produces `Reverie-unsigned.ipa`. This is a physical-device build package, **not directly installable until signed** using an Apple account/developer team or an authorized sideloading tool. The simulator archive runs on a Mac's iOS Simulator. Neither artifact grants access to real bank or Shopify services.

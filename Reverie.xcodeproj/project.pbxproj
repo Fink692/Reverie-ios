@@ -7,14 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03B97D03CACC6B56D27157C4 /* CommercePlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3420ED2AB4E169E019A68C /* CommercePlayback.swift */; };
+		0C3532623ECCF413AE83050D /* BankPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B2DD01D6FC941494C7AC377 /* BankPlayback.swift */; };
 		11DA6423E028C6E2D06468BE /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1CC96DA54EBC9BE1475B73 /* Views.swift */; };
 		1BA2BD8F4E0D60D45688838F /* SimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */; };
 		1C8723DF25AF1475D2179B41 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */; };
+		2144FE352774FA6BE7AB6001 /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478AEF362123ECB71960140D /* PlaybackModels.swift */; };
 		34676AB17AFCCBC20EDAD3C1 /* SessionCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ED88F20680A84D5B2F93316 /* SessionCodecTests.swift */; };
 		4B9EDD54B1487BA161A1A798 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F6101AB287291F731B9D7B /* PersistenceTests.swift */; };
 		53A0E1BDEC2B5658232EA031 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2DECBDC619FE6987A082396 /* Store.swift */; };
 		5F0B61EE69A5E24EEEF142AE /* SessionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */; };
 		784A94A2A6953A1DC6F33471 /* SessionStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */; };
+		7DF7A9029F0FBB1C63C37B90 /* PlaybackModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81F2A365B38274E3879AE0BE /* PlaybackModelTests.swift */; };
 		9F0A193454F5D3024D7589B0 /* ReverieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45C4A048EF8D790434D2483 /* ReverieApp.swift */; };
 		AAF8A59AB83C656C77D1897C /* ReverieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9152D1E23C08B59633FBE4 /* ReverieUITests.swift */; };
 		DC491C0319EAABE8280F2463 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CB299DD7755BC89EC1C986 /* Models.swift */; };
@@ -42,15 +46,19 @@
 /* Begin PBXFileReference section */
 		09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A1CC96DA54EBC9BE1475B73 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		0B2DD01D6FC941494C7AC377 /* BankPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankPlayback.swift; sourceTree = "<group>"; };
 		0ED88F20680A84D5B2F93316 /* SessionCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCodecTests.swift; sourceTree = "<group>"; };
 		3797625F672935FCAE0FBEE2 /* ValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationTests.swift; sourceTree = "<group>"; };
 		3F8D0187AAF17EE1F618A62F /* ReverieTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		478AEF362123ECB71960140D /* PlaybackModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModels.swift; sourceTree = "<group>"; };
 		6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationTests.swift; sourceTree = "<group>"; };
 		7BD6C44E42A63C16B430762C /* ReverieUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		81F2A365B38274E3879AE0BE /* PlaybackModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackModelTests.swift; sourceTree = "<group>"; };
 		84F6101AB287291F731B9D7B /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
 		9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStorage.swift; sourceTree = "<group>"; };
 		9F9152D1E23C08B59633FBE4 /* ReverieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverieUITests.swift; sourceTree = "<group>"; };
 		AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStorageTests.swift; sourceTree = "<group>"; };
+		AF3420ED2AB4E169E019A68C /* CommercePlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommercePlayback.swift; sourceTree = "<group>"; };
 		B45C4A048EF8D790434D2483 /* ReverieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverieApp.swift; sourceTree = "<group>"; };
 		BE7DF0A1CE5DCF19DCBEC3E5 /* Reverie.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Reverie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -63,7 +71,10 @@
 			isa = PBXGroup;
 			children = (
 				CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */,
+				0B2DD01D6FC941494C7AC377 /* BankPlayback.swift */,
+				AF3420ED2AB4E169E019A68C /* CommercePlayback.swift */,
 				E5CB299DD7755BC89EC1C986 /* Models.swift */,
+				478AEF362123ECB71960140D /* PlaybackModels.swift */,
 				09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */,
 				B45C4A048EF8D790434D2483 /* ReverieApp.swift */,
 				9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */,
@@ -95,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				84F6101AB287291F731B9D7B /* PersistenceTests.swift */,
+				81F2A365B38274E3879AE0BE /* PlaybackModelTests.swift */,
 				0ED88F20680A84D5B2F93316 /* SessionCodecTests.swift */,
 				AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */,
 				6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */,
@@ -222,7 +234,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C3532623ECCF413AE83050D /* BankPlayback.swift in Sources */,
+				03B97D03CACC6B56D27157C4 /* CommercePlayback.swift in Sources */,
 				DC491C0319EAABE8280F2463 /* Models.swift in Sources */,
+				2144FE352774FA6BE7AB6001 /* PlaybackModels.swift in Sources */,
 				9F0A193454F5D3024D7589B0 /* ReverieApp.swift in Sources */,
 				5F0B61EE69A5E24EEEF142AE /* SessionStorage.swift in Sources */,
 				53A0E1BDEC2B5658232EA031 /* Store.swift in Sources */,
@@ -243,6 +258,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B9EDD54B1487BA161A1A798 /* PersistenceTests.swift in Sources */,
+				7DF7A9029F0FBB1C63C37B90 /* PlaybackModelTests.swift in Sources */,
 				34676AB17AFCCBC20EDAD3C1 /* SessionCodecTests.swift in Sources */,
 				784A94A2A6953A1DC6F33471 /* SessionStorageTests.swift in Sources */,
 				1BA2BD8F4E0D60D45688838F /* SimulationTests.swift in Sources */,

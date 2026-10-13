@@ -6,6 +6,8 @@ import UserNotifications
     @Published private(set) var events: [SceneEvent] = []
     @Published private(set) var presets: [NotificationPreset] = []
     @Published private(set) var queuedAlerts: [QueuedAlert] = []
+    @Published private(set) var commerceProfiles: [CommerceProfile] = []
+    @Published private(set) var bankProfiles: [BankProfile] = []
     @Published private(set) var activeID = StudioScene.examples[0].id
     @Published var error: String?
     @Published private(set) var notificationStatus = "Not requested"
@@ -21,7 +23,7 @@ import UserNotifications
         storage = SessionStorage(file: fileURL)
         do {
             if let saved = try storage.load() {
-                scenes = saved.scenes; events = saved.events; activeID = saved.activeID; presets = saved.presets
+                scenes = saved.scenes; events = saved.events; activeID = saved.activeID; presets = saved.presets; commerceProfiles = saved.commerceProfiles; bankProfiles = saved.bankProfiles
             }
         } catch {
             self.error = "Your saved session could not be loaded. Starter scenes are available. The original file will be preserved in a recovery backup before new changes are saved."
@@ -32,11 +34,11 @@ import UserNotifications
         catch { self.error = "Could not save your changes: \(error.localizedDescription)"; return false }
     }
     func save() {
-        _ = persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets))
+        _ = persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
     }
     func select(_ scene: StudioScene) {
         guard scenes.contains(where: { $0.id == scene.id }),
-              persist(Archive(scenes: scenes, events: events, activeID: scene.id, presets: presets)) else { return }
+              persist(Archive(scenes: scenes, events: events, activeID: scene.id, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return }
         activeID = scene.id
     }
     @discardableResult func update(_ scene: StudioScene) -> Bool {
@@ -47,7 +49,7 @@ import UserNotifications
             guard updated.count < 100 else { error = "You can save up to 100 scenes."; return false }
             updated.append(scene)
         }
-        guard persist(Archive(scenes: updated, events: events, activeID: scene.id, presets: presets)) else { return false }
+        guard persist(Archive(scenes: updated, events: events, activeID: scene.id, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return false }
         scenes = updated; activeID = scene.id
         return true
     }
@@ -56,9 +58,10 @@ import UserNotifications
         let remaining = scenes.filter { $0.id != scene.id }
         let remainingEvents = events.filter { $0.sceneID != scene.id }
         let selection = activeID == scene.id ? remaining[0].id : activeID
-        guard persist(Archive(scenes: remaining, events: remainingEvents, activeID: selection, presets: presets)) else { return }
+        guard persist(Archive(scenes: remaining, events: remainingEvents, activeID: selection, presets: presets, commerceProfiles: commerceProfiles.filter { $0.sceneID != scene.id }, bankProfiles: bankProfiles.filter { $0.sceneID != scene.id })) else { return }
         notificationGeneration += 1
         scenes = remaining; events = remainingEvents; activeID = selection
+        commerceProfiles.removeAll { $0.sceneID == scene.id }; bankProfiles.removeAll { $0.sceneID == scene.id }
         Task {
             let center = UNUserNotificationCenter.current()
             let pending = await center.pendingNotificationRequests()
@@ -68,19 +71,25 @@ import UserNotifications
             await refreshNotifications()
         }
     }
-    @discardableResult func emit(kind: EventKind, amount: Double, detail: String) -> SceneEvent? {
+    @discardableResult func emit(kind: EventKind, amount: Double, detail: String, sceneID: UUID? = nil, customerName: String? = nil, itemCount: Int? = nil) -> SceneEvent? {
         let value = kind == .subscriber ? 0.01 : amount
         guard Simulation.validAmount(value), detail.count <= 240 else {
             error = "Enter an amount between 0.01 and 1 billion and details up to 240 characters."; return nil
         }
-        let event = SceneEvent(sceneID: activeID, kind: kind, amount: value, detail: detail.trimmingCharacters(in: .whitespacesAndNewlines))
-        guard let index = scenes.firstIndex(where: { $0.id == activeID }) else { return nil }
+        let targetID = sceneID ?? activeID
+        guard let index = scenes.firstIndex(where: { $0.id == targetID }) else { return nil }
+        var event = SceneEvent(sceneID: targetID, kind: kind, amount: value, detail: detail.trimmingCharacters(in: .whitespacesAndNewlines))
+        if kind == .order {
+            event.orderNumber = 1001 + scenes[index].orders
+            event.customerName = customerName ?? "Online customer"
+            event.itemCount = itemCount ?? 2
+        }
         let updated = Simulation.applying(event, to: scenes[index])
         guard updated != scenes[index] else { error = "This event would exceed the dashboard limits or available balance. Adjust the amount or totals in Edit scene."; return nil }
         var updatedScenes = scenes
         updatedScenes[index] = updated
         let updatedEvents = Array(([event] + events).prefix(1000))
-        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID, presets: presets)) else { return nil }
+        guard persist(Archive(scenes: updatedScenes, events: updatedEvents, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles)) else { return nil }
         scenes = updatedScenes; events = updatedEvents
         return event
     }
@@ -164,7 +173,7 @@ import UserNotifications
         center.removeAllDeliveredNotifications()
         let starter = Archive(scenes: StudioScene.examples, events: [], activeID: StudioScene.examples[0].id)
         if persist(starter) {
-            scenes = starter.scenes; activeID = starter.activeID; events = []; presets = []
+            scenes = starter.scenes; activeID = starter.activeID; events = []; presets = []; commerceProfiles = []; bankProfiles = []
             NotificationRouter.shared.request = nil
         }
         await refreshNotifications()
@@ -186,14 +195,14 @@ import UserNotifications
             updated.append(clean)
         }
         do {
-            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated))
+            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
             presets = updated; return true
         } catch { self.error = "Could not save your cue: \(error.localizedDescription)"; return false }
     }
     func deletePreset(_ preset: NotificationPreset) {
         let updated = presets.filter { $0.id != preset.id }
         do {
-            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated))
+            try storage.save(Archive(scenes: scenes, events: events, activeID: activeID, presets: updated, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles))
             presets = updated
         } catch { self.error = "Could not delete your cue: \(error.localizedDescription)" }
     }
@@ -206,7 +215,7 @@ import UserNotifications
             isResetting = true
             defer { isResetting = false }
             notificationGeneration += 1
-            scenes = archive.scenes; events = archive.events; activeID = archive.activeID; presets = archive.presets
+            scenes = archive.scenes; events = archive.events; activeID = archive.activeID; presets = archive.presets; commerceProfiles = archive.commerceProfiles; bankProfiles = archive.bankProfiles
             let center = UNUserNotificationCenter.current()
             center.removeAllPendingNotificationRequests(); center.removeAllDeliveredNotifications()
             NotificationRouter.shared.request = nil
@@ -214,8 +223,69 @@ import UserNotifications
             return true
         } catch { self.error = "Could not import this session: \(error.localizedDescription)"; return false }
     }
+    func commerceProfile(for sceneID: UUID) -> CommerceProfile {
+        commerceProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
+    }
+    func bankProfile(for sceneID: UUID) -> BankProfile {
+        bankProfiles.first { $0.sceneID == sceneID } ?? .starter(for: sceneID)
+    }
+    @discardableResult func preparePlayback(for sceneID: UUID) -> Bool {
+        guard let scene = scenes.first(where: { $0.id == sceneID }) else { return false }
+        if scene.kind == .commerce && !commerceProfiles.contains(where: { $0.sceneID == sceneID }) {
+            return updateCommerceProfile(.starter(for: sceneID))
+        }
+        if scene.kind == .banking && !bankProfiles.contains(where: { $0.sceneID == sceneID }) {
+            return updateBankProfile(.starter(for: sceneID))
+        }
+        return true
+    }
+    @discardableResult func updateCommerceProfile(_ profile: CommerceProfile) -> Bool {
+        guard profile.isValid, scenes.contains(where: { $0.id == profile.sceneID }) else { error = "Check the store metrics, products, and orders."; return false }
+        var updated = commerceProfiles
+        if let index = updated.firstIndex(where: { $0.sceneID == profile.sceneID }) { updated[index] = profile }
+        else { updated.append(profile) }
+        guard persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: updated, bankProfiles: bankProfiles)) else { return false }
+        commerceProfiles = updated; return true
+    }
+    @discardableResult func updateBankProfile(_ profile: BankProfile) -> Bool {
+        guard profile.isValid, scenes.contains(where: { $0.id == profile.sceneID }) else { error = "Check the account name, four-digit suffix, and savings amount."; return false }
+        var updated = bankProfiles
+        if let index = updated.firstIndex(where: { $0.sceneID == profile.sceneID }) { updated[index] = profile }
+        else { updated.append(profile) }
+        guard persist(Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: updated)) else { return false }
+        bankProfiles = updated; return true
+    }
+    func commerceOrders(for sceneID: UUID) -> [CommerceOrder] {
+        let profile = commerceProfile(for: sceneID)
+        var orders = profile.initialOrders
+        let sceneEvents = events.filter { $0.sceneID == sceneID && $0.kind == .order }.sorted { $0.date < $1.date }
+        for (index, event) in sceneEvents.enumerated() {
+            orders.append(CommerceOrder(id: event.id, number: event.orderNumber ?? 1001 + index,
+                customer: event.customerName ?? "Online customer", itemCount: event.itemCount ?? 2,
+                total: event.amount, date: event.date, fulfillment: .unfulfilled, isPaid: true))
+        }
+        return orders.map { order in
+            var value = order
+            if let state = profile.orderStates.first(where: { $0.id == order.id }) { value.fulfillment = state.fulfillment }
+            return value
+        }.sorted { $0.date > $1.date }
+    }
+    @discardableResult func setOrderStatus(orderID: UUID, sceneID: UUID, status: CommerceFulfillment) -> Bool {
+        guard commerceOrders(for: sceneID).contains(where: { $0.id == orderID }) else { return false }
+        var profile = commerceProfile(for: sceneID)
+        if let index = profile.orderStates.firstIndex(where: { $0.id == orderID }) { profile.orderStates[index].fulfillment = status }
+        else { profile.orderStates.append(CommerceOrderState(id: orderID, fulfillment: status)) }
+        return updateCommerceProfile(profile)
+    }
+    @discardableResult func addCommerceOrder(sceneID: UUID, customer: String, itemCount: Int, total: Double) -> SceneEvent? {
+        guard let scene = scenes.first(where: { $0.id == sceneID }), scene.kind == .commerce,
+              !customer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, customer.count <= 80,
+              (1...1000).contains(itemCount) else { error = "Check the customer name and item count."; return nil }
+        return emit(kind: .order, amount: total, detail: "\(customer) · \(itemCount) items", sceneID: sceneID,
+            customerName: customer.trimmingCharacters(in: .whitespacesAndNewlines), itemCount: itemCount)
+    }
     func exportData() -> Data? {
-        do { return try Archive(scenes: scenes, events: events, activeID: activeID, presets: presets).encoded(prettyPrinted: true) }
+        do { return try Archive(scenes: scenes, events: events, activeID: activeID, presets: presets, commerceProfiles: commerceProfiles, bankProfiles: bankProfiles).encoded(prettyPrinted: true) }
         catch { self.error = "Could not export this session: \(error.localizedDescription)"; return nil }
     }
     func export() -> String {

@@ -137,6 +137,7 @@ struct DashboardView: View {
     @EnvironmentObject var store: StudioStore
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var editing = false
+    @State private var playback: StudioScene?
     @State private var range = "Today"
     var onCompose: () -> Void = {}
     var onActivity: () -> Void = {}
@@ -179,6 +180,20 @@ struct DashboardView: View {
                         .accessibilityValue(store.active.name)
                     }
                     if store.active.kind == .banking { bankCard } else { revenueCard }
+                    if store.active.kind != .creator {
+                        Button {
+                            let scene = store.active
+                            if store.preparePlayback(for: scene.id) { playback = scene }
+                        } label: {
+                            Label("Open scene", systemImage: "arrow.up.left.and.arrow.down.right")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .accessibilityIdentifier("open-scene")
+                    }
                     Picker("Period", selection: $range) {
                         ForEach(ranges, id: \.self) { Text($0).tag($0) }
                     }
@@ -224,6 +239,21 @@ struct DashboardView: View {
                     .accessibilityHint("Change this scene's name, currency, and totals")
             }
             .sheet(isPresented: $editing) { SceneEditor(scene: store.active) }
+            .fullScreenCover(item: $playback) { scene in
+                switch scene.kind {
+                case .commerce: CommercePlayback(sceneID: scene.id).environmentObject(store)
+                case .banking: BankPlayback(sceneID: scene.id).environmentObject(store)
+                case .creator: EmptyView()
+                }
+            }
+            .onReceive(NotificationRouter.shared.$request) { route in
+                if route != nil { playback = nil }
+            }
+            .onChange(of: store.scenes) { _, scenes in
+                if let playback, !scenes.contains(where: { $0.id == playback.id && $0.kind == playback.kind }) {
+                    self.playback = nil
+                }
+            }
         }
     }
 
