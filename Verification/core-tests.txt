@@ -1,0 +1,85 @@
+[0/1] Planning build
+Building for debugging...
+[0/4] Write sources
+[2/4] Write swift-version-24593BA9C3E375BF.txt
+[4/6] Compiling Reverie Models.swift
+[5/6] Emitting module Reverie
+[7/11] Compiling ReverieCoreTests ValidationTests.swift
+[8/11] Emitting module ReverieCoreTests
+[9/11] Compiling ReverieCoreTests SimulationTests.swift
+[10/11] Compiling ReverieCoreTests SessionStorageTests.swift
+[11/19] /app/.build/x86_64-unknown-linux-gnu/debug/ReverieCorePackageDiscoveredTests.derived/all-discovered-tests.swift
+[12/20] Write sources
+[13/20] Wrapping AST for ReverieCoreTests for debugging
+[14/20] Wrapping AST for Reverie for debugging
+[16/23] Emitting module ReverieCorePackageDiscoveredTests
+[17/23] Compiling ReverieCorePackageDiscoveredTests all-discovered-tests.swift
+[18/23] Compiling ReverieCorePackageDiscoveredTests ReverieCoreTests.swift
+[19/24] /app/.build/x86_64-unknown-linux-gnu/debug/ReverieCorePackageTests.derived/runner.swift
+[20/25] Write sources
+[21/25] Wrapping AST for ReverieCorePackageDiscoveredTests for debugging
+[23/27] Emitting module ReverieCorePackageTests
+[24/27] Compiling ReverieCorePackageTests runner.swift
+[25/27] Write Objects.LinkFileList
+[26/27] Linking ReverieCorePackageTests.xctest
+Build complete! (3.26s)
+Test Suite 'All tests' started at 2026-10-13 02:11:14.093
+Test Suite 'debug.xctest' started at 2026-10-13 02:11:14.109
+Test Suite 'SessionStorageTests' started at 2026-10-13 02:11:14.109
+Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' started at 2026-10-13 02:11:14.109
+Test Case 'SessionStorageTests.testCorruptionIsPreservedBeforeRecoverySave' passed (0.013 seconds)
+Test Case 'SessionStorageTests.testInvalidSaveDoesNotReplaceValidSession' started at 2026-10-13 02:11:14.122
+Test Case 'SessionStorageTests.testInvalidSaveDoesNotReplaceValidSession' passed (0.002 seconds)
+Test Case 'SessionStorageTests.testMissingSessionAndAtomicRoundTrip' started at 2026-10-13 02:11:14.124
+Test Case 'SessionStorageTests.testMissingSessionAndAtomicRoundTrip' passed (0.002 seconds)
+Test Case 'SessionStorageTests.testWriteFailureIsReported' started at 2026-10-13 02:11:14.126
+Test Case 'SessionStorageTests.testWriteFailureIsReported' passed (0.001 seconds)
+Test Suite 'SessionStorageTests' passed at 2026-10-13 02:11:14.127
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.018 (0.018) seconds
+Test Suite 'SimulationTests' started at 2026-10-13 02:11:14.127
+Test Case 'SimulationTests.testArchiveRoundTripPreservesSceneReferences' started at 2026-10-13 02:11:14.127
+Test Case 'SimulationTests.testArchiveRoundTripPreservesSceneReferences' passed (0.0 seconds)
+Test Case 'SimulationTests.testBankDepositUpdatesBalanceAndIncome' started at 2026-10-13 02:11:14.128
+Test Case 'SimulationTests.testBankDepositUpdatesBalanceAndIncome' passed (0.001 seconds)
+Test Case 'SimulationTests.testCreatorPayoutUpdatesEarnings' started at 2026-10-13 02:11:14.128
+Test Case 'SimulationTests.testCreatorPayoutUpdatesEarnings' passed (0.0 seconds)
+Test Case 'SimulationTests.testInvalidAmountsAreRejected' started at 2026-10-13 02:11:14.128
+Test Case 'SimulationTests.testInvalidAmountsAreRejected' passed (0.0 seconds)
+Test Case 'SimulationTests.testOrderUpdatesTotalsAndPreservesIdentity' started at 2026-10-13 02:11:14.129
+Test Case 'SimulationTests.testOrderUpdatesTotalsAndPreservesIdentity' passed (0.0 seconds)
+Test Case 'SimulationTests.testPaymentCannotOverdraw' started at 2026-10-13 02:11:14.129
+Test Case 'SimulationTests.testPaymentCannotOverdraw' passed (0.0 seconds)
+Test Case 'SimulationTests.testRefundReducesSalesWithoutDeletingOrderCount' started at 2026-10-13 02:11:14.129
+Test Case 'SimulationTests.testRefundReducesSalesWithoutDeletingOrderCount' passed (0.0 seconds)
+Test Case 'SimulationTests.testSubscriberOnlyChangesAudience' started at 2026-10-13 02:11:14.129
+Test Case 'SimulationTests.testSubscriberOnlyChangesAudience' passed (0.0 seconds)
+Test Suite 'SimulationTests' passed at 2026-10-13 02:11:14.129
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'ValidationTests' started at 2026-10-13 02:11:14.129
+Test Case 'ValidationTests.testArchiveRejectsDuplicateScenesAndOrphanEvents' started at 2026-10-13 02:11:14.129
+Test Case 'ValidationTests.testArchiveRejectsDuplicateScenesAndOrphanEvents' passed (0.0 seconds)
+Test Case 'ValidationTests.testArchiveRejectsInvalidTotalsAndCounts' started at 2026-10-13 02:11:14.129
+Test Case 'ValidationTests.testArchiveRejectsInvalidTotalsAndCounts' passed (0.0 seconds)
+Test Case 'ValidationTests.testEventCannotUpdateAnotherScene' started at 2026-10-13 02:11:14.130
+Test Case 'ValidationTests.testEventCannotUpdateAnotherScene' passed (0.0 seconds)
+Test Case 'ValidationTests.testLocalizedDecimalDigitsRoundTrip' started at 2026-10-13 02:11:14.130
+Test Case 'ValidationTests.testLocalizedDecimalDigitsRoundTrip' passed (0.003 seconds)
+Test Case 'ValidationTests.testLocalizedDecimalInputAndZero' started at 2026-10-13 02:11:14.132
+Test Case 'ValidationTests.testLocalizedDecimalInputAndZero' passed (0.0 seconds)
+Test Case 'ValidationTests.testNotificationCapacityAndTimingAreBounded' started at 2026-10-13 02:11:14.133
+Test Case 'ValidationTests.testNotificationCapacityAndTimingAreBounded' passed (0.0 seconds)
+Test Case 'ValidationTests.testNotificationPlanKeepsSceneAndSpacing' started at 2026-10-13 02:11:14.133
+Test Case 'ValidationTests.testNotificationPlanKeepsSceneAndSpacing' passed (0.0 seconds)
+Test Case 'ValidationTests.testOverflowingDashboardTotalsStayUnchanged' started at 2026-10-13 02:11:14.133
+Test Case 'ValidationTests.testOverflowingDashboardTotalsStayUnchanged' passed (0.0 seconds)
+Test Case 'ValidationTests.testSubscriberNotificationHasNoMoneyOrEmptySeparator' started at 2026-10-13 02:11:14.133
+Test Case 'ValidationTests.testSubscriberNotificationHasNoMoneyOrEmptySeparator' passed (0.0 seconds)
+Test Suite 'ValidationTests' passed at 2026-10-13 02:11:14.133
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'debug.xctest' passed at 2026-10-13 02:11:14.133
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.024 (0.024) seconds
+Test Suite 'All tests' passed at 2026-10-13 02:11:14.134
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.024 (0.024) seconds
+◇ Test run started.
+↳ Testing Library Version: 6.0.3 (18c42c19cac3faf)
+✔ Test run with 0 tests passed after 0.001 seconds.

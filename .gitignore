@@ -1,7 +1,14 @@
 build/
-*.xcodeproj/
+build-device/
 *.xcresult/
 *.log
 simulator.png
 Reverie-simulator.zip
 .DS_Store
+
+.build/
+.swiftpm/
+
+xcuserdata/
+*.xcuserstate
+test-attachments/

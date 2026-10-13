@@ -1,0 +1,538 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		11DA6423E028C6E2D06468BE /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1CC96DA54EBC9BE1475B73 /* Views.swift */; };
+		1BA2BD8F4E0D60D45688838F /* SimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */; };
+		1C8723DF25AF1475D2179B41 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */; };
+		4B9EDD54B1487BA161A1A798 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F6101AB287291F731B9D7B /* PersistenceTests.swift */; };
+		53A0E1BDEC2B5658232EA031 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2DECBDC619FE6987A082396 /* Store.swift */; };
+		5F0B61EE69A5E24EEEF142AE /* SessionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */; };
+		784A94A2A6953A1DC6F33471 /* SessionStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */; };
+		9F0A193454F5D3024D7589B0 /* ReverieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45C4A048EF8D790434D2483 /* ReverieApp.swift */; };
+		AAF8A59AB83C656C77D1897C /* ReverieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9152D1E23C08B59633FBE4 /* ReverieUITests.swift */; };
+		DC491C0319EAABE8280F2463 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CB299DD7755BC89EC1C986 /* Models.swift */; };
+		EA61CCCAD6B09405BA2402DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */; };
+		FA28AE9876BCAB9FA410731F /* ValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3797625F672935FCAE0FBEE2 /* ValidationTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2EFAFB3FFC50DD4A58E5AA54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EFC27ED395E18589DB0760C1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8B189DA616A2F9D55FC904A6;
+			remoteInfo = Reverie;
+		};
+		89EDB0DFAF5390DA43714242 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EFC27ED395E18589DB0760C1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8B189DA616A2F9D55FC904A6;
+			remoteInfo = Reverie;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0A1CC96DA54EBC9BE1475B73 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		3797625F672935FCAE0FBEE2 /* ValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationTests.swift; sourceTree = "<group>"; };
+		3F8D0187AAF17EE1F618A62F /* ReverieTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationTests.swift; sourceTree = "<group>"; };
+		7BD6C44E42A63C16B430762C /* ReverieUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReverieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		84F6101AB287291F731B9D7B /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
+		9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStorage.swift; sourceTree = "<group>"; };
+		9F9152D1E23C08B59633FBE4 /* ReverieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverieUITests.swift; sourceTree = "<group>"; };
+		AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStorageTests.swift; sourceTree = "<group>"; };
+		B45C4A048EF8D790434D2483 /* ReverieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverieApp.swift; sourceTree = "<group>"; };
+		BE7DF0A1CE5DCF19DCBEC3E5 /* Reverie.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Reverie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E2DECBDC619FE6987A082396 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		E5CB299DD7755BC89EC1C986 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1D888B6849FE7BE51EDC0A6E /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				CE7A1E6BA4C5B3B733E9C6BF /* Assets.xcassets */,
+				E5CB299DD7755BC89EC1C986 /* Models.swift */,
+				09C9C403C46ACA9D77A80CAD /* PrivacyInfo.xcprivacy */,
+				B45C4A048EF8D790434D2483 /* ReverieApp.swift */,
+				9E5BE346C26F7FE9591EC626 /* SessionStorage.swift */,
+				E2DECBDC619FE6987A082396 /* Store.swift */,
+				0A1CC96DA54EBC9BE1475B73 /* Views.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		42E33E66020005D5A055736B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BE7DF0A1CE5DCF19DCBEC3E5 /* Reverie.app */,
+				3F8D0187AAF17EE1F618A62F /* ReverieTests.xctest */,
+				7BD6C44E42A63C16B430762C /* ReverieUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E6F02C3EF884E19B77E41485 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				9F9152D1E23C08B59633FBE4 /* ReverieUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		EE8A190986F1F59C9242CADA /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				84F6101AB287291F731B9D7B /* PersistenceTests.swift */,
+				AA549D58F39CC94E8E753929 /* SessionStorageTests.swift */,
+				6905B2B7B2AD80AE786208F0 /* SimulationTests.swift */,
+				3797625F672935FCAE0FBEE2 /* ValidationTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		F3E882B30408C031F672BDBC = {
+			isa = PBXGroup;
+			children = (
+				1D888B6849FE7BE51EDC0A6E /* Sources */,
+				EE8A190986F1F59C9242CADA /* Tests */,
+				E6F02C3EF884E19B77E41485 /* UITests */,
+				42E33E66020005D5A055736B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6D386A4EE95C6BD6AEBDCB3D /* ReverieTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C833B99FB512518D36934E75 /* Build configuration list for PBXNativeTarget "ReverieTests" */;
+			buildPhases = (
+				53D427A30B556850BCA36F2A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CDB2D7C5C227A893E1DF0562 /* PBXTargetDependency */,
+			);
+			name = ReverieTests;
+			packageProductDependencies = (
+			);
+			productName = ReverieTests;
+			productReference = 3F8D0187AAF17EE1F618A62F /* ReverieTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8B189DA616A2F9D55FC904A6 /* Reverie */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 62428562A667017AD3DA670E /* Build configuration list for PBXNativeTarget "Reverie" */;
+			buildPhases = (
+				1859217FBD91CDE8B3BB77CE /* Sources */,
+				C2D179ED4EF1AE6C8AC04473 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Reverie;
+			packageProductDependencies = (
+			);
+			productName = Reverie;
+			productReference = BE7DF0A1CE5DCF19DCBEC3E5 /* Reverie.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9B30E0016DE206B9E6DED258 /* ReverieUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7D996404C345AAAD1362763E /* Build configuration list for PBXNativeTarget "ReverieUITests" */;
+			buildPhases = (
+				3883A06964783B331B19BA05 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F9692A0D6783B9AC23A70535 /* PBXTargetDependency */,
+			);
+			name = ReverieUITests;
+			packageProductDependencies = (
+			);
+			productName = ReverieUITests;
+			productReference = 7BD6C44E42A63C16B430762C /* ReverieUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EFC27ED395E18589DB0760C1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					9B30E0016DE206B9E6DED258 = {
+						TestTargetID = 8B189DA616A2F9D55FC904A6;
+					};
+				};
+			};
+			buildConfigurationList = 8586A7123927BA8DC1018415 /* Build configuration list for PBXProject "Reverie" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F3E882B30408C031F672BDBC;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 42E33E66020005D5A055736B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8B189DA616A2F9D55FC904A6 /* Reverie */,
+				6D386A4EE95C6BD6AEBDCB3D /* ReverieTests */,
+				9B30E0016DE206B9E6DED258 /* ReverieUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C2D179ED4EF1AE6C8AC04473 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA61CCCAD6B09405BA2402DD /* Assets.xcassets in Resources */,
+				1C8723DF25AF1475D2179B41 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1859217FBD91CDE8B3BB77CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC491C0319EAABE8280F2463 /* Models.swift in Sources */,
+				9F0A193454F5D3024D7589B0 /* ReverieApp.swift in Sources */,
+				5F0B61EE69A5E24EEEF142AE /* SessionStorage.swift in Sources */,
+				53A0E1BDEC2B5658232EA031 /* Store.swift in Sources */,
+				11DA6423E028C6E2D06468BE /* Views.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3883A06964783B331B19BA05 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAF8A59AB83C656C77D1897C /* ReverieUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		53D427A30B556850BCA36F2A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4B9EDD54B1487BA161A1A798 /* PersistenceTests.swift in Sources */,
+				784A94A2A6953A1DC6F33471 /* SessionStorageTests.swift in Sources */,
+				1BA2BD8F4E0D60D45688838F /* SimulationTests.swift in Sources */,
+				FA28AE9876BCAB9FA410731F /* ValidationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CDB2D7C5C227A893E1DF0562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8B189DA616A2F9D55FC904A6 /* Reverie */;
+			targetProxy = 2EFAFB3FFC50DD4A58E5AA54 /* PBXContainerItemProxy */;
+		};
+		F9692A0D6783B9AC23A70535 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8B189DA616A2F9D55FC904A6 /* Reverie */;
+			targetProxy = 89EDB0DFAF5390DA43714242 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5583319D103AED92BA289FE6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.ReverieUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Reverie;
+			};
+			name = Debug;
+		};
+		57CCBF35FD47C3EECACCDDEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.ReverieTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Reverie.app/Reverie";
+			};
+			name = Debug;
+		};
+		726261DD8DC3DBE27B57CF24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.ReverieTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Reverie.app/Reverie";
+			};
+			name = Release;
+		};
+		BDC50EC038499A1976322F5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DAFB7987FBC7C0E413F28AB3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F195DDAA87AA64F2D94B5EBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_KEY_CFBundleDisplayName = Reverie;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.simulator;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F1DAD34B64F9CB3DF411312B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.ReverieUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Reverie;
+			};
+			name = Release;
+		};
+		F2BEA05C53C27F4FD17ABD2F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_KEY_CFBundleDisplayName = Reverie;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.reverie.simulator;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		62428562A667017AD3DA670E /* Build configuration list for PBXNativeTarget "Reverie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F195DDAA87AA64F2D94B5EBD /* Debug */,
+				F2BEA05C53C27F4FD17ABD2F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7D996404C345AAAD1362763E /* Build configuration list for PBXNativeTarget "ReverieUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5583319D103AED92BA289FE6 /* Debug */,
+				F1DAD34B64F9CB3DF411312B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8586A7123927BA8DC1018415 /* Build configuration list for PBXProject "Reverie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDC50EC038499A1976322F5D /* Debug */,
+				DAFB7987FBC7C0E413F28AB3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C833B99FB512518D36934E75 /* Build configuration list for PBXNativeTarget "ReverieTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				57CCBF35FD47C3EECACCDDEE /* Debug */,
+				726261DD8DC3DBE27B57CF24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EFC27ED395E18589DB0760C1 /* Project object */;
+}

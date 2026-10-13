@@ -7,15 +7,15 @@ Native SwiftUI iOS 17+ roleplay studio. Fictional commerce, banking, and creator
 On a Mac with Xcode 16 or later:
 
 ```sh
-brew install xcodegen
 cd SceneKitDemo
-xcodegen generate
 open Reverie.xcodeproj
 ```
 
+A real Xcode project is included, generated with official XcodeGen 2.46.0. No project generator is needed just to open and run it. To change project configuration, edit `project.yml` and regenerate with `brew install xcodegen && xcodegen generate`.
+
 Select the Reverie scheme and an iPhone simulator, then Run. To install on a physical iPhone, select your Apple developer team under Signing & Capabilities and choose a unique bundle identifier. No server or APNs certificate is needed for local notifications.
 
-Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINATION` for an installed simulator, e.g. `platform=iOS Simulator,name=iPhone 17`. The script generates the project before testing. Tests cover event accounting, invalid amounts, stable scene references, saved-data round trips, persistence, corrupt-save recovery, scene deletion, onboarding, event creation, and scene switching.
+Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINATION` for an installed simulator, e.g. `platform=iOS Simulator,name=iPhone 17`. The script uses the included project, or regenerates it when XcodeGen is installed. It discovers an installed compatible simulator by default and also compiles for unsigned physical devices. The full native suite covers accounting, invalid amounts, stable scene references, file recovery, scene deletion, onboarding, event creation, scene switching, and scheduling/cancelling notification sessions.
 
 ## Use
 
@@ -28,7 +28,9 @@ Notification permission is requested only when cueing alerts. Focus modes, notif
 
 ## Validation status
 
-Source and project configuration were checked in a Linux workspace. This workspace has no Swift compiler, Xcode, or iOS simulator, so no iOS build or runtime test result is claimed. The XCTest suite is supplied but has not run here. Mac/device verification and signing remain required before release; this is not an App Store approved or production-certified build.
+The shared Foundation code compiled with Swift 6.0.3 in an official Linux Swift container. **21 shared-logic and storage tests passed**, including accounting, refunds, localized numeric input, scheduling plans, persistence, recovery backups, and failed writes. Run `./scripts/verify-core.sh` to reproduce them with Swift 6+ or Docker.
+
+Native Swift source and test grammar passed Swift frontend parsing. XcodeGen generated and validated the included project with complete configuration presets and all source/test references. Full Apple SDK compilation, native Store tests, UI tests, simulator behavior, accessibility runtime checks, and signing remain unverified. The hosted macOS workflow will perform unsigned device compilation and simulator unit/UI tests after the project is pushed to an accessible repository. See `Verification/STATUS.md` and the retained test output.
 
 ## Design references
 
@@ -41,8 +43,14 @@ References informed native navigation, concise alerts, sales/order metrics, and 
 
 ## Build without owning a Mac
 
-This repository includes `.github/workflows/ios.yml`. Push the project to a GitHub repository with Actions enabled. A standard `macos-15` runner installs XcodeGen, discovers an available iPhone simulator, compiles the application, runs unit and UI tests, launches the app, and uploads screenshots, the test result bundle, a build log, and a simulator app archive. The workflow runs on pushes to main and can also be started from Actions → iOS build and test → Run workflow.
+This repository includes `.github/workflows/ios.yml`. Push the project to a GitHub repository with Actions enabled. The workflow first tests shared Swift logic on Linux. A standard `macos-15` runner then installs XcodeGen, discovers a compatible iPhone simulator, compiles the application for physical iOS devices without signing, runs simulator unit and UI tests, launches the app, and uploads screenshots, test results, logs, and a simulator app archive. The workflow runs on pushes to main and can also be started from Actions → iOS build and test → Run workflow.
 
 The simulator artifact does not require an Apple developer account. It runs on a Mac's iOS Simulator, not on a physical iPhone. Physical installation or TestFlight distribution still requires Apple signing through your developer account. Hosted Mac builds use GitHub Actions minutes under the repository owner's plan.
 
 The connected GitHub integration could read repositories but returned HTTP 403 when asked to create `Fink692/reverie-ios`. The remote workflow has not run. Once an empty repository exists and the integration has access, the prepared commit can be pushed and the actual build results reviewed.
+
+## Notifications and recovery details
+
+Supported events include new orders, deposits, payouts, subscribers, outgoing payments, and order refunds. Outgoing events show negative amounts; subscribers show no monetary amount. Bank deposits update balance and income, creator payouts update balance and earnings, and refunds reduce sales without removing order history. Dashboard totals are bounded, and insufficient balance prevents an outgoing event from being recorded.
+
+Deleting a scene removes its recorded events and cancels its queued alerts. Cancelling or resetting a session also invalidates a batch still being scheduled. Tapping a notification selects its scene and opens Dashboard. A corrupt save is kept in a uniquely named recovery file before new data replaces it.

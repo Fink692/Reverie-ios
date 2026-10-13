@@ -11,11 +11,11 @@ final class SimulationTests: XCTestCase {
         XCTAssertEqual(changed.orders, scene.orders + 1)
         XCTAssertEqual(changed.audience, scene.audience)
     }
-    func testDepositOnlyChangesBalance() {
+    func testBankDepositUpdatesBalanceAndIncome() {
         let scene = StudioScene.examples[1]
         let changed = Simulation.applying(SceneEvent(sceneID: scene.id, kind: .deposit, amount: 200, detail: ""), to: scene)
         XCTAssertEqual(changed.balance, scene.balance + 200)
-        XCTAssertEqual(changed.sales, scene.sales)
+        XCTAssertEqual(changed.sales, scene.sales + 200)
         XCTAssertEqual(changed.orders, scene.orders)
     }
     func testSubscriberOnlyChangesAudience() {
@@ -38,4 +38,29 @@ final class SimulationTests: XCTestCase {
         XCTAssertEqual(restored.activeID, restored.events[0].sceneID)
         XCTAssertEqual(restored.events[0].title, "New order")
     }
+    func testPaymentCannotOverdraw() {
+        let scene = StudioScene.examples[1]
+        let payment = SceneEvent(sceneID: scene.id, kind: .payment, amount: 100, detail: "Rent")
+        let changed = Simulation.applying(payment, to: scene)
+        XCTAssertEqual(changed.balance, scene.balance - 100)
+        XCTAssertEqual(changed.sales, scene.sales)
+        let excessive = SceneEvent(sceneID: scene.id, kind: .payment, amount: scene.balance + 1, detail: "")
+        XCTAssertEqual(Simulation.applying(excessive, to: scene), scene)
+    }
+    func testRefundReducesSalesWithoutDeletingOrderCount() {
+        let scene = StudioScene.examples[0]
+        let refund = SceneEvent(sceneID: scene.id, kind: .refund, amount: 100, detail: "Return")
+        let changed = Simulation.applying(refund, to: scene)
+        XCTAssertEqual(changed.balance, scene.balance - 100)
+        XCTAssertEqual(changed.sales, scene.sales - 100)
+        XCTAssertEqual(changed.orders, scene.orders)
+    }
+    func testCreatorPayoutUpdatesEarnings() {
+        let scene = StudioScene.examples[2]
+        let payout = SceneEvent(sceneID: scene.id, kind: .payout, amount: 100, detail: "")
+        let changed = Simulation.applying(payout, to: scene)
+        XCTAssertEqual(changed.sales, scene.sales + 100)
+        XCTAssertEqual(changed.balance, scene.balance + 100)
+    }
+
 }

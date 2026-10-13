@@ -1,0 +1,42 @@
+Reverie Xcode project generation
+===============================
+
+Generated on Linux using the official upstream XcodeGen Swift package.
+XcodeGen version: 2.46.0
+Upstream source: https://github.com/yonaskolb/XcodeGen
+Upstream commit: 366592bc5be446b427fc8e2a21520344460f96ab
+Compiler container: official swift:6.0-bookworm
+
+Generator build:
+  swift build -c release --product xcodegen -j 4
+Result: Build of product 'xcodegen' complete! (115.07s)
+
+Project generation:
+  Working directory: XcodeGen/Sources/XcodeGenKit
+  xcodegen generate --spec /project/project.yml --project /project
+Result:
+  Generating plists...
+  Generating project...
+  Writing project...
+  Created project at /project/Reverie.xcodeproj
+
+The official SettingPresets directory was available through the generator's
+working directory. This avoids the upstream Linux resource-bundle lookup using
+macOS .bundle names instead of SwiftPM's Linux .resources names. No XcodeGen
+source, app source, or project specification was modified to generate the project.
+
+Verified generated output:
+  - All five app Swift sources, all four XCTest sources, and the UI test source
+    have file references and source build phase entries.
+  - SessionStorage.swift, SessionStorageTests.swift, and ValidationTests.swift
+    are included in their correct source groups and build phases.
+  - Assets.xcassets and PrivacyInfo.xcprivacy have resource build phase entries.
+  - iPhone SDK, iOS 17 deployment target, Swift 5 language mode, Debug testability,
+    and Debug compilation conditions are present.
+  - Shared Reverie scheme includes the app, unit tests, and UI tests; all scheme
+    target identifiers resolve to the generated project.
+  - Workspace and scheme XML parse successfully.
+  - No container-specific /project or /work paths appear in project.pbxproj.
+
+These checks verify project generation and source references. They do not
+constitute an Apple SDK build, iOS simulator run, device test, or signed release.

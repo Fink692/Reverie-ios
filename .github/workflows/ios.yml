@@ -7,32 +7,43 @@ on:
 permissions:
   contents: read
 jobs:
+  core:
+    runs-on: ubuntu-latest
+    container: swift:6.0-bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test shared Swift logic
+        run: swift test
   ios:
     runs-on: macos-15
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - name: Install project generator
-        run: brew install xcodegen
-      - name: Generate Xcode project
-        run: xcodegen generate
+        run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
       - name: Select an available iPhone simulator
         run: |
-          python3 - <<'PY'
-          import json, subprocess, os
-          data = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))
-          devices = [d for runtime, items in data['devices'].items() if 'iOS' in runtime for d in items if d['name'].startswith('iPhone') and d.get('isAvailable')]
-          if not devices:
-              raise SystemExit('No iPhone simulator installed')
-          device = devices[0]
-          with open(os.environ['GITHUB_ENV'], 'a') as f:
-              f.write('SIMULATOR_ID=' + device['udid'] + '\n')
-          print(device['name'], device['udid'])
-          PY
-      - name: Build and run unit tests
+          SIMULATOR_ID="$(./scripts/verify-macos.sh --select-simulator)"
+          printf 'SIMULATOR_ID=%s\n' "$SIMULATOR_ID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+      - name: Compile the unsigned physical-device application
         run: |
           set -o pipefail
-          xcodebuild -project Reverie.xcodeproj -scheme Reverie -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO test | tee build.log
+          ./scripts/verify-macos.sh device 2>&1 | tee device-build.log
+      - name: Build and run unit and UI tests
+        env:
+          IOS_TEST_DESTINATION: platform=iOS Simulator,id=${{ env.SIMULATOR_ID }}
+          IOS_TEST_RESULT_BUNDLE: TestResults.xcresult
+        run: |
+          set -o pipefail
+          ./scripts/verify-macos.sh test 2>&1 | tee build.log
+      - name: Export UI test screenshots
+        if: always()
+        run: |
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool export attachments --path TestResults.xcresult --output-path test-attachments
+          fi
       - name: Launch app and capture simulator screenshot
         run: |
           xcrun simctl boot "$SIMULATOR_ID" || true
@@ -48,8 +59,10 @@ jobs:
         with:
           name: Reverie-ios-build
           path: |
+            device-build.log
             build.log
             TestResults.xcresult
+            test-attachments
             simulator.png
             Reverie-simulator.zip
           if-no-files-found: warn
