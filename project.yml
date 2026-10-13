@@ -27,11 +27,18 @@ targets:
     sources: [Tests]
     dependencies:
       - target: Reverie
+  ReverieUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Reverie
 schemes:
   Reverie:
     build:
       targets:
         Reverie: all
         ReverieTests: [test]
+        ReverieUITests: [test]
     test:
-      targets: [ReverieTests]
+      targets: [ReverieTests, ReverieUITests]

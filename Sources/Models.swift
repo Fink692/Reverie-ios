@@ -53,5 +53,5 @@ enum Simulation {
         }
         return result
     }
-    static func validAmount(_ amount: Double) -> Bool { amount.isFinite && amount > 0 && amount <= 1_000_000_000 }
+    static func validAmount(_ amount: Double) -> Bool { amount.isFinite && amount >= 0.01 && amount <= 1_000_000_000 }
 }

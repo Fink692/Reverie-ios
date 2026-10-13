@@ -15,7 +15,7 @@ open Reverie.xcodeproj
 
 Select the Reverie scheme and an iPhone simulator, then Run. To install on a physical iPhone, select your Apple developer team under Signing & Capabilities and choose a unique bundle identifier. No server or APNs certificate is needed for local notifications.
 
-Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINATION` for an installed simulator, e.g. `platform=iOS Simulator,name=iPhone 17`. The script generates the project before testing. Tests cover event accounting, invalid amounts, stable scene references, and saved-data round trips.
+Run the unit suite with `./scripts/verify-macos.sh`. Override `IOS_TEST_DESTINATION` for an installed simulator, e.g. `platform=iOS Simulator,name=iPhone 17`. The script generates the project before testing. Tests cover event accounting, invalid amounts, stable scene references, saved-data round trips, persistence, corrupt-save recovery, scene deletion, onboarding, event creation, and scene switching.
 
 ## Use
 
@@ -38,3 +38,11 @@ Source and project configuration were checked in a Linux workspace. This workspa
 - Shopify analytics: https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/overview-dashboard
 
 References informed native navigation, concise alerts, sales/order metrics, and activity patterns. Reverie uses its own identity and fictional scenes, rather than bank/Shopify branding.
+
+## Build without owning a Mac
+
+This repository includes `.github/workflows/ios.yml`. Push the project to a GitHub repository with Actions enabled. A standard `macos-15` runner installs XcodeGen, discovers an available iPhone simulator, compiles the application, runs unit and UI tests, launches the app, and uploads screenshots, the test result bundle, a build log, and a simulator app archive. The workflow runs on pushes to main and can also be started from Actions → iOS build and test → Run workflow.
+
+The simulator artifact does not require an Apple developer account. It runs on a Mac's iOS Simulator, not on a physical iPhone. Physical installation or TestFlight distribution still requires Apple signing through your developer account. Hosted Mac builds use GitHub Actions minutes under the repository owner's plan.
+
+The connected GitHub integration could read repositories but returned HTTP 403 when asked to create `Fink692/reverie-ios`. The remote workflow has not run. Once an empty repository exists and the integration has access, the prepared commit can be pushed and the actual build results reviewed.

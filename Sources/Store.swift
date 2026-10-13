@@ -11,8 +11,8 @@ import UserNotifications
     private let file: URL
     var active: StudioScene { scenes.first(where: { $0.id == activeID }) ?? scenes[0] }
     var activity: [SceneEvent] { events.filter { $0.sceneID == activeID }.sorted { $0.date > $1.date } }
-    init() {
-        file = URL.documentsDirectory.appending(path: "reverie.json")
+    init(fileURL: URL = URL.documentsDirectory.appending(path: "reverie.json")) {
+        file = fileURL
         if FileManager.default.fileExists(atPath: file.path) {
             do {
                 let saved = try JSONDecoder().decode(Archive.self, from: Data(contentsOf: file))
@@ -51,6 +51,7 @@ import UserNotifications
     func schedule(kind: EventKind, amount: Double, detail: String, delay: Double, count: Int) async -> Bool {
         guard Simulation.validAmount(amount), (1...20).contains(count) else { error = "Check the amount and notification count."; return false }
         let center = UNUserNotificationCenter.current()
+        let scheduledScene = active
         do {
             let allowed = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             guard allowed else { error = "Notifications are disabled. Enable Reverie notifications in iOS Settings."; await refreshNotifications(); return false }
@@ -59,11 +60,11 @@ import UserNotifications
             var added: [String] = []
             do {
                 for i in 0..<count {
-                    let event = SceneEvent(sceneID: activeID, kind: kind, amount: amount, detail: detail)
+                    let event = SceneEvent(sceneID: scheduledScene.id, kind: kind, amount: amount, detail: detail)
                     let content = UNMutableNotificationContent()
-                    content.title = event.title; content.body = event.body(scene: active)
-                    content.sound = .default; content.threadIdentifier = activeID.uuidString
-                    content.userInfo = ["sceneID": activeID.uuidString]
+                    content.title = event.title; content.body = event.body(scene: scheduledScene)
+                    content.sound = .default; content.threadIdentifier = scheduledScene.id.uuidString
+                    content.userInfo = ["sceneID": scheduledScene.id.uuidString]
                     let id = "reverie.\(event.id.uuidString)"
                     try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: UNTimeIntervalNotificationTrigger(timeInterval: max(2, delay) + Double(i) * 10, repeats: false)))
                     added.append(id)

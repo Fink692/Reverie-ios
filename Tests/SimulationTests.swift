@@ -25,7 +25,7 @@ final class SimulationTests: XCTestCase {
         XCTAssertEqual(changed.balance, scene.balance)
     }
     func testInvalidAmountsAreRejected() {
-        for amount in [0.0, -1, Double.nan, Double.infinity, 1_000_000_001] { XCTAssertFalse(Simulation.validAmount(amount)) }
+        for amount in [0.0, 0.001, -1, Double.nan, Double.infinity, 1_000_000_001] { XCTAssertFalse(Simulation.validAmount(amount)) }
         XCTAssertTrue(Simulation.validAmount(0.01))
     }
     func testArchiveRoundTripPreservesSceneReferences() throws {
