@@ -196,6 +196,7 @@ struct BankPlayback: View {
         .buttonStyle(.plain)
         .foregroundStyle(palette.headerInk)
         .padding(.horizontal, 12)
+        .frame(height: 44)
         .background(palette.header)
     }
 
