@@ -83,6 +83,18 @@ def binary_hashes(app, executable):
     return {name: sha256((app / name).read_bytes()) for name in sorted(names)}
 
 
+def preview_icon(entry):
+    icon_set = ROOT / "Sources/Assets.xcassets" / (entry["appIcon"] + ".appiconset")
+    images = json.loads((icon_set / "Contents.json").read_text()).get("images", [])
+    names = {image.get("filename") for image in images if image.get("size") == "1024x1024"
+             and image.get("filename") and not image.get("appearances")}
+    require(len(names) == 1, f"{entry['id']}: expected one default 1024px official source icon.")
+    source = icon_set / names.pop()
+    data = source.read_bytes()
+    require(data.startswith(b"\x89PNG\r\n\x1a\n"), f"{entry['id']}: official source icon is not PNG data.")
+    return source, entry["appIcon"] + ".png", sha256(data)
+
+
 def read_app(app):
     require((app / "Info.plist").is_file(), f"Compiled app Info.plist missing: {app}.")
     info = plistlib.loads((app / "Info.plist").read_bytes())
@@ -183,7 +195,7 @@ def inspect_base(app, entries, platform, cached=None, native_output=None):
             "compiledIcons": {entry["id"]: {family: alternate_icon(info, files, entry, family, catalog_names) for family in FAMILIES} for entry in entries}}
 
 
-def check_variant(info, files, entry, platform, catalog_names=None):
+def check_variant(info, files, entry, platform, catalog_names=None, read_resource=None):
     executable = check_resources(info, files, platform, entry["id"])
     expected = {"CFBundleIdentifier": entry["bundleIdentifier"], "CFBundleDisplayName": entry["displayName"],
                 "ReveriePlaybackKind": entry["playbackKind"]}
@@ -199,9 +211,13 @@ def check_variant(info, files, entry, platform, catalog_names=None):
         primary = info.get(family, {}).get("CFBundlePrimaryIcon", {})
         require(primary.get("CFBundleIconName") == entry["appIcon"], f"{entry['id']}: {family} primary icon does not match {entry['appIcon']}.")
         icons[family] = verify_icon(primary, files, entry, f"{entry['id']} {family}", catalog_names or set())
+    _, preview_name, source_hash = preview_icon(entry)
+    require(preview_name in files, f"{entry['id']}: bundled notification preview icon {preview_name} missing.")
+    require(read_resource is not None, f"{entry['id']}: preview icon byte validation is required.")
+    require(sha256(read_resource(preview_name)) == source_hash, f"{entry['id']}: notification preview PNG differs from the official source icon.")
     return {**entry, "installedInfo": {**expected, "CFBundleSupportedPlatforms": info["CFBundleSupportedPlatforms"]},
             "installedIcon": icons["CFBundleIcons"]["primaryIcon"], "installedIPadIcon": icons["CFBundleIcons~ipad"]["primaryIcon"],
-            "compiledIcons": icons, "executable": executable}
+            "compiledIcons": icons, "executable": executable, "notificationPreviewIcon": {"file": preview_name, "sha256": source_hash}}
 
 
 def validate_app(app, entry, platform, cached=None):
@@ -209,7 +225,7 @@ def validate_app(app, entry, platform, cached=None):
     catalog_needed = any("CFBundleIconFiles" not in info.get(family, {}).get("CFBundlePrimaryIcon", {}) for family in FAMILIES)
     catalog = catalog_evidence(app, cached) if catalog_needed else {"catalogRenditions": []}
     catalog_names = {record.get("Name") for record in catalog["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
-    record = check_variant(info, files, entry, platform, catalog_names)
+    record = check_variant(info, files, entry, platform, catalog_names, lambda name: (app / name).read_bytes())
     record.update(executableSHA256=sha256((app / record["executable"]).read_bytes()), assetCatalogSHA256=sha256((app / "Assets.car").read_bytes()))
     record["binarySHA256"] = binary_hashes(app, record["executable"])
     return record
@@ -232,10 +248,12 @@ def prepare(base, destination, entry, platform, cached=None):
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(base, destination, symlinks=True)
     (destination / "Info.plist").write_bytes(plistlib.dumps(info, fmt=plistlib.FMT_BINARY))
+    source_icon, preview_name, _ = preview_icon(entry)
+    shutil.copyfile(source_icon, destination / preview_name)
     # Reuse the evidence just checked against the exact source catalog.
     info, files = read_app(destination)
     names = {record.get("Name") for record in evidence["catalogRenditions"] if isinstance(record, dict) and isinstance(record.get("Name"), str)}
-    record = check_variant(info, files, entry, platform, names)
+    record = check_variant(info, files, entry, platform, names, lambda name: (destination / name).read_bytes())
     record.update(executableSHA256=sha256((destination / record["executable"]).read_bytes()),
                   assetCatalogSHA256=sha256((destination / "Assets.car").read_bytes()))
     record["binarySHA256"] = binary_hashes(destination, record["executable"])
@@ -256,14 +274,16 @@ def validate_packages(directory, base, entries, platform, cached=None):
             prefix = "Payload/Reverie.app/"
             files = {name.removeprefix(prefix) for name in payload.namelist() if name.startswith(prefix) and not name.endswith("/")}
             require("Info.plist" in files, f"{entry['id']}: IPA Info.plist missing.")
-            record = check_variant(plistlib.loads(payload.read(prefix + "Info.plist")), files, entry, platform, names)
+            record = check_variant(plistlib.loads(payload.read(prefix + "Info.plist")), files, entry, platform, names,
+                                   lambda name: payload.read(prefix + name))
             hashes = {"executableSHA256": sha256(payload.read(prefix + record["executable"])), "assetCatalogSHA256": sha256(payload.read(prefix + "Assets.car"))}
             for key, value in hashes.items():
                 require(value == evidence[key], f"{entry['id']}: IPA compiled bytes differ from base ({key}).")
             libraries = {name: sha256(payload.read(prefix + name)) for name in evidence["binarySHA256"]}
             require(libraries == evidence["binarySHA256"], f"{entry['id']}: IPA compiled libraries differ from base.")
         records.append({**entry, "file": archive.name, "sizeBytes": archive.stat().st_size, "sha256": sha256(archive.read_bytes()),
-                        **hashes, "binarySHA256": libraries, "compiledIcons": record["compiledIcons"]})
+                        **hashes, "binarySHA256": libraries, "compiledIcons": record["compiledIcons"],
+                        "notificationPreviewIcon": record["notificationPreviewIcon"]})
     return {"generatedAt": datetime.now(timezone.utc).isoformat(), "platform": platform,
             "signing": "unsigned; Apple signing and provisioning required for installation",
             "packaging": "One compiled executable and icon catalog; per-app runtime Info.plist metadata",

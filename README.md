@@ -52,7 +52,7 @@ The user-provided repository is https://github.com/Fink692/Reverie-ios. It is pu
 
 Studio offers 33 notification styles and 35 editable templates, filtered for the active scene. They cover Shopify orders, refunds, payouts, fulfillment and inventory; bank payments and balances; investing, crypto and prediction activity; creator milestones; and custom messages.
 
-Customize the title and details, amount, customer or subscriber, item quantity, order number, and relevant outcome. Custom messages support `{scene}`, `{amount}`, `{customer}`, `{items}`, and `{order}` placeholders. The preview reads the installed build’s name and primary icon, with a generic icon fallback when unavailable; iOS uses the installed app’s identity for delivered alerts.
+Customize the title and details, amount, customer or subscriber, item quantity, order number, and relevant outcome. Custom messages support `{scene}`, `{amount}`, `{customer}`, `{items}`, and `{order}` placeholders. The preview reads the installed build’s name and primary icon. Brand packages include their selected official icon as an ordinary PNG for matching previews, checked byte-for-byte against the source. The Studio build retains its generic fallback; iOS uses the installed app’s identity for delivered alerts.
 
 Each session supports 1–20 alerts, a start delay of 2 seconds to 24 hours, and at most 60 queued alerts across scenes. The repeat-interval picker offers 5, 10, 15, 20, 30, and 60 seconds; loaded or imported custom intervals within the validated 5–3,600-second range are retained. A queued confirmation appears only after iOS accepts the requests. Notice-only styles can be scheduled without changing accounting totals.
 
